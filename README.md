@@ -37,6 +37,7 @@ cp configs/h3.yaml.example configs/h3.yaml
 如果你有一个本地的 MiniMax-H3 服务（HTTP 接口），且不需要鉴权，可以：
 - 把 `configs/h3.yaml` 的 `base_url` 指向本地服务（例如 `http://127.0.0.1:xxxx`）
 - 设置 `skip_auth: true`
+- 或直接设置环境变量 `export H3_SKIP_AUTH=true`
 - 如本地服务接口路径不是默认 `/v2/video_generation` / `/v2/query/video_generation/{task_id}`，可配置 `generate_path` / `query_path_template`
 
 ## 调用
@@ -60,6 +61,12 @@ python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
   --ref-image face.png --ref-video walk.mp4 --duration 5 --no-video
 ```
 
+## 可选：对比本地/官方提示词 + 视频（report 里会自动包含 diff）
+如果你希望除了生成 `out_local.mp4` 之外，再基于 `official_prompt(raw)` 额外生成 `out_official.mp4`，可以加 `--compare-video`：
+```bash
+python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compare-video
+```
+
 输出在 `--out-dir`（默认 `runs/<mode>_<时间>/`）：
 
 | 文件 | 内容 |
@@ -74,3 +81,9 @@ python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
 | `report.json` / `report.md` / `prompt_diff.txt` | 提示词对比报告（总是生成） |
 
 出片走 MiniMax `/v2/video_generation`；画幅 `--ratio`、分辨率 `--resolution` 只进视频 API。
+
+## 测试（本地离线）
+```bash
+pip install -r test/requirements.txt
+./test/run_tests.sh
+```
