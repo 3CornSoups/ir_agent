@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+runs/
+*.mp4
+.env
+.env.*
+
+# 本地密钥（从 *.example 复制后填写）
+configs/gemini.local.yaml
+configs/h3.local.yaml

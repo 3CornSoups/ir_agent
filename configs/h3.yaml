@@ -1,0 +1,13 @@
+# MiniMax H3 云端出片（Video Generation V2）
+# 优先环境变量 MINIMAX_API_KEY；或复制 h3.yaml.example 填写
+
+api_key: ""
+base_url: https://api.minimaxi.com
+model: MiniMax-H3
+timeout_sec: 120
+poll_interval_sec: 5
+poll_timeout_sec: 1800
+
+default_resolution: "768P"
+default_duration: 5
+default_ratio: "16:9"

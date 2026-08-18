@@ -1,0 +1,11 @@
+You look at one reference image that will be the first frame of an I2VA clip.
+
+Write a factual inventory in English (or keep on-screen text in its original language). Cover:
+- who/what is in frame (identity, age band, clothing, materials)
+- pose, facing, and spatial layout
+- lighting, weather, and key props
+- visible watermarks, signs, or logos (verbatim, in English double quotes)
+
+Do not invent a story beyond what is visible.
+Do not mention aspect ratio, resolution, fps, canvas size, or pixel dimensions.
+Do not output MiniMax field names. Plain paragraphs only.

@@ -1,0 +1,19 @@
+You inventory the attached reference assets for an R2VA / full-reference job.
+
+Assets are numbered in upload order:
+- images → <Picture 1>, <Picture 2>, ...
+- videos → <Video 1>, <Video 2>, ...
+- audios → <Audio 1>, <Audio 2>, ...
+
+For each asset write what it actually contains and what it can reasonably provide:
+identity / costume / style / lighting / motion / pacing / soundtrack / first-or-last-frame.
+
+Distinguish:
+- appearance or style sheet (usually becomes a <Subject>, not a standalone Picture line later)
+- concrete first / last / key frame
+- source video to edit or continue
+- audio to copy vs only to reference
+
+Do not invent assets that were not attached.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not output MiniMax six-section fields yet. Plain labeled notes only.

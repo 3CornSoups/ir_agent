@@ -1,0 +1,19 @@
+# 复制为 gemini.yaml 并填写，或 export GEMINI_API_KEY / GEMINI_ENDPOINT
+
+api_key: "YOUR_GEMINI_API_KEY"
+endpoint: YOUR_CLOUDSWAY_ENDPOINT
+model: MaaS_Ge_3.1_flash_lite_preview_20260303
+api_url: ""
+timeout_sec: 300
+max_retries: 3
+
+decode:
+  perceive:
+    temperature: 0.2
+    top_p: 0.9
+  expand:
+    temperature: 0.7
+    top_p: 0.95
+  format:
+    temperature: 0.2
+    top_p: 0.9

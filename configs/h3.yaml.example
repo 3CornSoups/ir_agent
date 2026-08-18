@@ -1,0 +1,12 @@
+# 复制为 h3.yaml 并填写，或 export MINIMAX_API_KEY
+
+api_key: "YOUR_MINIMAX_API_KEY"
+base_url: https://api.minimaxi.com
+model: MiniMax-H3
+timeout_sec: 120
+poll_interval_sec: 5
+poll_timeout_sec: 1800
+
+default_resolution: "768P"
+default_duration: 5
+default_ratio: "16:9"
