@@ -1,13 +1,42 @@
+# Python
 __pycache__/
-.pytest_cache/
 *.py[cod]
+*.egg-info/
 .venv/
 venv/
+dist/
+build/
+
+# 测试缓存
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# 运行产物与媒体
 runs/
 *.mp4
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.wav
+*.log
+*.pid
+
+# 环境与密钥（从 *.example 复制后填写，禁止提交）
 .env
 .env.*
-
-# 本地密钥（从 *.example 复制后填写）
+configs/gemini.yaml
 configs/gemini.local.yaml
+configs/h3.yaml
 configs/h3.local.yaml
+
+# 内部基础设施文档（含内网代理地址，禁止上传）
+BASH_PROXY_QUICK_START.md
+
+# 编辑器/系统
+.DS_Store
+.idea/
+.vscode/
+*.swp

@@ -33,6 +33,32 @@ cp configs/h3.yaml.example configs/h3.yaml
 
 仓库内 `configs/gemini.yaml` / `configs/h3.yaml` 的 `api_key` 为空；密钥只放本地或环境变量。
 
+### Gemini 端点协议（protocol）
+
+Cloudsway 网关对 Gemini 提供两套端点，多模态能力不同：
+
+| protocol | 端点 | 多模态支持 |
+| --- | --- | --- |
+| `native`（默认） | `.../generateContent`（Gemini 原生协议） | 文本 / 图片 / **视频** / 音频 / PDF |
+| `openai` | `.../google/chat/completions`（OpenAI 兼容层） | 仅文本 / 图片 |
+
+- 配置项：`configs/gemini.yaml` 的 `protocol`（默认 `native`），或环境变量 `GEMINI_PROTOCOL`。
+- 原生端点 URL 默认由 `endpoint` 推导为 `https://genaiapi.cloudsway.net/v1/ai/<endpoint>/generateContent`；
+  也可用 `native_api_url` 或环境变量 `GEMINI_NATIVE_API_URL` 显式指定。
+- 若用 `openai` 协议传入视频，上游会报 `Unrecognized 'type' field ... 'video_url'` 400 错误——
+  因为 OpenAI 兼容层只接受 `image_url`。请勿在该协议下传视频。
+
+### 视频大小限制与自动压缩
+
+Gemini 原生端点的 `inlineData` 单次上限为 **20MB**。当参考视频超过该阈值时，agent 会自动用 **ffmpeg** 压缩兜底：
+
+- 阈值：原始视频 > 20MB（`VIDEO_INLINE_LIMIT_BYTES`）。
+- 压缩目标：≤ 15MB（`VIDEO_TARGET_BYTES`），为 base64 放大（约 4/3）留出余量。
+- 压缩策略：先按原分辨率转码（`libx264 crf28 + aac 96k`）；仍超限则缩到 1280 宽再压一次。
+- 产物固定转码为 `video/mp4`，仅作为**发送副本**，**不修改原始文件**。
+- 依赖：`ffmpeg` 与 `ffprobe` 可执行文件（未安装时打印警告并按原样发送）。
+- 该压缩只作用于 **Gemini 感知阶段**；MiniMax H3 出片用的参考视频**不做压缩**，保留原始质量。
+
 ## 本地 MiniMaxH3（可选）
 如果你有一个本地的 MiniMax-H3 服务（HTTP 接口），且不需要鉴权，可以：
 - 把 `configs/h3.yaml` 的 `base_url` 指向本地服务（例如 `http://127.0.0.1:xxxx`）

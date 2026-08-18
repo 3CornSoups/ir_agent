@@ -37,11 +37,28 @@ def gemini_settings() -> dict[str, Any]:
     api_url = os.environ.get("GEMINI_API_URL") or str(cfg.get("api_url") or "")
     if not api_url:
         api_url = f"https://genaiapi.cloudsway.net/v1/ai/{endpoint}/google/chat/completions"
+    # 协议：native=Gemini 原生 generateContent（支持视频/音频/PDF），openai=OpenAI 兼容层（仅文本/图片）
+    protocol = (os.environ.get("GEMINI_PROTOCOL") or str(cfg.get("protocol") or "native")).strip().lower()
+    # 原生端点 URL：默认由 endpoint 推导，或在 api_url 基础上替换路径段
+    if protocol == "native":
+        native_url = os.environ.get("GEMINI_NATIVE_API_URL") or str(cfg.get("native_api_url") or "")
+        if not native_url:
+            if "google/chat/completions" in api_url:
+                # .../google/chat/completions -> .../generateContent（原生端点无 google/ 段）
+                native_url = api_url.replace("/google/chat/completions", "/generateContent")
+            elif "/chat/completions" in api_url:
+                native_url = api_url.replace("/chat/completions", "/generateContent")
+            else:
+                native_url = f"https://genaiapi.cloudsway.net/v1/ai/{endpoint}/generateContent"
+    else:
+        native_url = ""
     return {
         "api_key": api_key,
         "endpoint": endpoint,
         "model": model,
         "api_url": api_url,
+        "native_url": native_url,
+        "protocol": protocol,
         "timeout_sec": float(cfg.get("timeout_sec") or 300),
         "max_retries": int(cfg.get("max_retries") or 3),
         "decode": cfg.get("decode") or {},
