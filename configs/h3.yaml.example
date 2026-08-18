@@ -3,6 +3,13 @@
 api_key: "YOUR_MINIMAX_API_KEY"
 base_url: https://api.minimaxi.com
 model: MiniMax-H3
+#
+# 本地推理：如果你有一个“本地 MiniMaxH3 服务”，且它不需要鉴权，
+# 可以把 skip_auth 设为 true，并把 base_url 指向本地服务地址（如 http://127.0.0.1:xxxx）。
+#
+skip_auth: false
+generate_path: /v2/video_generation
+query_path_template: /v2/query/video_generation/{task_id}
 timeout_sec: 120
 poll_interval_sec: 5
 poll_timeout_sec: 1800

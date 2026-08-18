@@ -52,11 +52,16 @@ def h3_settings() -> dict[str, Any]:
     """合并 H3 出片配置与环境变量。"""
     cfg = load_yaml("h3")
     api_key = os.environ.get("MINIMAX_API_KEY") or str(cfg.get("api_key") or "")
+    skip_auth_env = os.environ.get("H3_SKIP_AUTH", "").strip().lower()
+    skip_auth = bool(cfg.get("skip_auth")) or skip_auth_env in {"1", "true", "yes", "on"}
     return {
         "api_key": api_key,
         "base_url": str(cfg.get("base_url") or "https://api.minimaxi.com").rstrip("/"),
         "model": str(cfg.get("model") or "MiniMax-H3"),
+        "skip_auth": skip_auth,
         "timeout_sec": float(cfg.get("timeout_sec") or 120),
+        "generate_path": str(cfg.get("generate_path") or "/v2/video_generation"),
+        "query_path_template": str(cfg.get("query_path_template") or "/v2/query/video_generation/{task_id}"),
         "poll_interval_sec": float(cfg.get("poll_interval_sec") or 5),
         "poll_timeout_sec": float(cfg.get("poll_timeout_sec") or 1800),
         "default_resolution": str(cfg.get("default_resolution") or "768P"),

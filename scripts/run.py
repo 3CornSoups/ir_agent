@@ -29,6 +29,7 @@ def main() -> int:
     p.add_argument("--out-dir", type=Path, help="输出目录")
     p.add_argument("--no-video", action="store_true", help="只写 prompt，不出片")
     p.add_argument("--no-wait", action="store_true", help="出片只提交不轮询")
+    p.add_argument("--compare-video", action="store_true", help="本地/官方 prompt 各出一次并做对比")
     args = p.parse_args()
 
     intent = args.intent.strip()
@@ -50,12 +51,17 @@ def main() -> int:
         out_dir=args.out_dir,
         make_video=not args.no_video,
         wait_video=not args.no_wait,
+        compare_video=args.compare_video,
     )
     print(f"[{rec['mode']}] prompt → {Path(rec['out_dir']) / 'prompt.txt'}")
     if rec.get("video", {}).get("video_path"):
         print(f"[{rec['mode']}] video → {rec['video']['video_path']}")
     elif rec.get("video", {}).get("task_id"):
         print(f"[{rec['mode']}] task_id={rec['video']['task_id']}")
+
+    if args.compare_video and rec.get("video_official"):
+        if rec["video_official"].get("video_path"):
+            print(f"[{rec['mode']}] video_official → {rec['video_official']['video_path']}")
     return 0
 
 
