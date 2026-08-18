@@ -13,7 +13,16 @@ build/
 .coverage
 htmlcov/
 
-# 运行产物与媒体：runs/ 仅放开 generated_media 测试素材，其余出片/日志继续忽略
+# 运行产物与媒体
+*.mp4
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.wav
+*.log
+*.pid
+# 仅放开 runs/generated_media 测试素材（! 规则须位于全局媒体忽略之后）
 runs/*
 !runs/generated_media/
 runs/generated_media/*
@@ -28,8 +37,6 @@ runs/generated_media/*
 !runs/generated_media/cases/**/*.png
 !runs/generated_media/cases/**/*.jpg
 !runs/generated_media/cases/**/*.jpeg
-*.log
-*.pid
 
 # 环境与密钥（从 *.example 复制后填写，禁止提交）
 .env
