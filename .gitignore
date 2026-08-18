@@ -13,14 +13,21 @@ build/
 .coverage
 htmlcov/
 
-# 运行产物与媒体
-runs/
-*.mp4
-*.mov
-*.png
-*.jpg
-*.jpeg
-*.wav
+# 运行产物与媒体：runs/ 仅放开 generated_media 测试素材，其余出片/日志继续忽略
+runs/*
+!runs/generated_media/
+runs/generated_media/*
+!runs/generated_media/cases/
+!runs/generated_media/README.md
+!runs/generated_media/*.mp4
+!runs/generated_media/*.mov
+!runs/generated_media/*.png
+!runs/generated_media/*.jpg
+!runs/generated_media/cases/**/*.mp4
+!runs/generated_media/cases/**/*.mov
+!runs/generated_media/cases/**/*.png
+!runs/generated_media/cases/**/*.jpg
+!runs/generated_media/cases/**/*.jpeg
 *.log
 *.pid
 
