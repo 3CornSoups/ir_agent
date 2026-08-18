@@ -153,8 +153,12 @@ def generate_video(
         含 task_id；成功时含 video_path / url
     """
     cfg = h3_settings()
-    if not cfg["api_key"]:
-        raise RuntimeError("缺少 MiniMax API Key：设 MINIMAX_API_KEY 或填写 configs/h3.yaml")
+    # 本地推理可能不需要鉴权；通过 skip_auth 或配置了本地服务来允许 api_key 为空。
+    if not cfg.get("api_key") and not cfg.get("skip_auth"):
+        raise RuntimeError(
+            "缺少 MiniMax API Key：设 MINIMAX_API_KEY 或填写 configs/h3.yaml，"
+            "或设置 skip_auth=true 以使用本地不鉴权服务。"
+        )
     if duration < 4 or duration > 15:
         raise ValueError("duration 须在 4~15 秒")
     res = resolution or cfg["default_resolution"]
@@ -170,12 +174,10 @@ def generate_video(
         reference_audios=reference_audios,
     )
     session = requests.Session()
-    session.headers.update(
-        {
-            "Authorization": f"Bearer {cfg['api_key']}",
-            "Content-Type": "application/json",
-        }
-    )
+    # content-type 固定；Authorization 按需注入。
+    session.headers.update({"Content-Type": "application/json"})
+    if cfg.get("api_key") and not cfg.get("skip_auth"):
+        session.headers.update({"Authorization": f"Bearer {cfg['api_key']}"})
     body: dict[str, Any] = {
         "model": cfg["model"],
         "content": content,
@@ -183,41 +185,59 @@ def generate_video(
         "duration": int(duration),
         "ratio": resolved_ratio,
     }
-    create_url = f"{cfg['base_url']}/v2/video_generation"
+    create_url = f"{cfg['base_url']}{cfg['generate_path']}"
     resp = session.post(create_url, json=body, timeout=cfg["timeout_sec"])
     data = _parse_response(resp)
     task_id = data.get("task_id")
-    if not task_id:
-        raise RuntimeError(f"未返回 task_id: {json.dumps(data, ensure_ascii=False)}")
     result: dict[str, Any] = {
-        "task_id": str(task_id),
         "ratio": resolved_ratio,
         "resolution": res,
         "duration": int(duration),
     }
+
+    # 兼容：部分本地服务可能直接在创建阶段返回最终 url，而不走 task_id 轮询。
+    if not task_id:
+        content_obj = data.get("content") or {}
+        url = content_obj.get("url") if isinstance(content_obj, dict) else None
+        url = url or data.get("url")
+        if url:
+            result["url"] = url
+            result["task"] = {"status": "succeeded", "content": content_obj}
+        else:
+            raise RuntimeError(f"未返回 task_id: {json.dumps(data, ensure_ascii=False)}")
+    else:
+        result["task_id"] = str(task_id)
     if not wait:
         return result
 
     deadline = time.time() + float(cfg["poll_timeout_sec"])
     last_status = None
-    query_url = f"{cfg['base_url']}/v2/query/video_generation/{task_id}"
+    query_url = f"{cfg['base_url']}{cfg['query_path_template'].format(task_id=task_id)}"
     task: dict[str, Any] = {}
-    while time.time() < deadline:
-        q = session.get(query_url, timeout=cfg["timeout_sec"])
-        payload = _parse_response(q)
-        task = payload.get("task") if isinstance(payload.get("task"), dict) else payload
-        status = task.get("status")
-        if status != last_status:
-            print(f"[h3] task_id={task_id} status={status}", flush=True)
-            last_status = status
-        if status == "succeeded":
-            break
-        if status in ("failed", "cancelled"):
-            err = task.get("error") or {}
-            raise RuntimeError(f"出片 {status}: {err.get('message') or err}")
-        time.sleep(float(cfg["poll_interval_sec"]))
+    # 若创建阶段已给出 url，直接下载并返回。
+    if not task_id and result.get("url"):
+        url = result.get("url")
+        content_obj = result.get("task", {}).get("content") if isinstance(result.get("task"), dict) else {}
+        # 保持 task/content 字段结构一致性。
+        result["task"] = {"status": "succeeded", "content": content_obj or {}}
+        task = result["task"]  # type: ignore[assignment]
     else:
-        raise TimeoutError(f"出片超时: task_id={task_id}")
+        while time.time() < deadline:
+            q = session.get(query_url, timeout=cfg["timeout_sec"])
+            payload = _parse_response(q)
+            task = payload.get("task") if isinstance(payload.get("task"), dict) else payload
+            status = task.get("status")
+            if status != last_status:
+                print(f"[h3] task_id={task_id} status={status}", flush=True)
+                last_status = status
+            if status == "succeeded":
+                break
+            if status in ("failed", "cancelled"):
+                err = task.get("error") or {}
+                raise RuntimeError(f"出片 {status}: {err.get('message') or err}")
+            time.sleep(float(cfg["poll_interval_sec"]))
+        else:
+            raise TimeoutError(f"出片超时: task_id={task_id}")
 
     content_obj = task.get("content") or {}
     url = content_obj.get("url") if isinstance(content_obj, dict) else None

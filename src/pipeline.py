@@ -11,6 +11,7 @@ from typing import Any
 from .config import ROOT, h3_settings, load_prompt
 from .gemini import chat
 from .media import user_parts
+from .report import write_report
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -157,6 +158,9 @@ def enhance(
         _format_user(mode, expanded, inventory=inventory, duration=dur),
         stage="format",
     )
+    # official_prompt(raw)：上游格式化模型的原始输出（未清洗）。
+    official_prompt = raw_prompt
+    # local_prompt(cleaned)：本地优化（如去掉误写入画幅/分辨率等）。
     prompt = strip_canvas(raw_prompt)
     steps.append({"stage": "format", "text": prompt})
 
@@ -171,6 +175,7 @@ def enhance(
         "reference_audios": audios,
         "inventory": inventory,
         "expanded": expanded,
+        "prompt_official": official_prompt,
         "prompt": prompt,
         "steps": steps,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -180,6 +185,10 @@ def enhance(
         out_dir = Path(out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / "prompt.txt").write_text(prompt, encoding="utf-8")
+        (out_dir / "prompt_official_raw.txt").write_text(
+            official_prompt.strip() + "\n",
+            encoding="utf-8",
+        )
         (out_dir / "expanded.txt").write_text(expanded.strip() + "\n", encoding="utf-8")
         if inventory:
             (out_dir / "inventory.txt").write_text(inventory.strip() + "\n", encoding="utf-8")
@@ -207,6 +216,7 @@ def run_job(
     out_dir: Path | None = None,
     make_video: bool = True,
     wait_video: bool = True,
+    compare_video: bool = False,
 ) -> dict[str, Any]:
     """增强 prompt，可选调用 H3 出片。画幅/分辨率只进视频 API。"""
     h3 = h3_settings()
@@ -227,11 +237,17 @@ def run_job(
     rec["ratio_api"] = ratio or (h3["default_ratio"] if mode == "t2va" else "adaptive")
     rec["resolution_api"] = resolution or h3["default_resolution"]
     rec["make_video"] = make_video
+    rec["compare_video"] = compare_video
+
+    prompt_official = rec.get("prompt_official") or ""
+    prompt_local = rec.get("prompt") or ""
+    video_official: dict[str, Any] | None = None
+    video_local: dict[str, Any] | None = None
     if make_video:
-        video_path = Path(out_dir) / "out.mp4"
-        video = generate_video(
+        video_local_path = Path(out_dir) / "out_local.mp4"
+        video_local_res = generate_video(
             mode,
-            rec["prompt"],
+            prompt_local,
             duration=dur,
             ratio=ratio,
             resolution=resolution,
@@ -239,16 +255,48 @@ def run_job(
             reference_images=reference_images,
             reference_videos=reference_videos,
             reference_audios=reference_audios,
-            output=video_path,
+            output=video_local_path,
             wait=wait_video,
         )
-        rec["video"] = {k: v for k, v in video.items() if k != "task"}
-        rec["video"]["task_status"] = (video.get("task") or {}).get("status")
+        video_local = {k: v for k, v in video_local_res.items() if k != "task"}
+        video_local["task_status"] = (video_local_res.get("task") or {}).get("status")
+        rec["video"] = video_local
+
+        if compare_video:
+            video_official_path = Path(out_dir) / "out_official.mp4"
+            video_official_res = generate_video(
+                mode,
+                prompt_official,
+                duration=dur,
+                ratio=ratio,
+                resolution=resolution,
+                first_frame=first_frame,
+                reference_images=reference_images,
+                reference_videos=reference_videos,
+                reference_audios=reference_audios,
+                output=video_official_path,
+                wait=wait_video,
+            )
+            video_official = {k: v for k, v in video_official_res.items() if k != "task"}
+            video_official["task_status"] = (video_official_res.get("task") or {}).get("status")
+            rec["video_official"] = video_official
+
         run_path = Path(out_dir) / "run.json"
         if run_path.is_file():
             dumped = json.loads(run_path.read_text(encoding="utf-8"))
-            dumped["video"] = rec["video"]
+            dumped["video"] = rec.get("video")
+            dumped["video_official"] = rec.get("video_official")
             dumped["ratio_api"] = rec["ratio_api"]
             dumped["resolution_api"] = rec["resolution_api"]
             run_path.write_text(json.dumps(dumped, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    # 无论是否出片，都写出提示词对比报告（可选视频对比会包含对应视频结果）。
+    write_report(
+        out_dir,
+        record=rec,
+        prompt_official=prompt_official,
+        prompt_local=prompt_local,
+        video_official=video_official,
+        video_local=video_local,
+    )
     return rec

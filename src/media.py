@@ -69,7 +69,9 @@ def user_parts(
     for p in images or []:
         parts.append({"type": "image_url", "image_url": {"url": as_data_uri(p, "image"), "detail": "high"}})
     for p in videos or []:
-        parts.append({"type": "image_url", "image_url": {"url": as_data_uri(p, "video"), "detail": "high"}})
+        # Gemini 多模态消息里视频需要用 `video_url`，否则上游会按“图片”解析。
+        parts.append({"type": "video_url", "video_url": {"url": as_data_uri(p, "video"), "detail": "high"}})
     for p in audios or []:
-        parts.append({"type": "image_url", "image_url": {"url": as_data_uri(p, "audio"), "detail": "high"}})
+        # Gemini 多模态消息里音频需要用 `audio_url`，否则上游会按“图片”解析。
+        parts.append({"type": "audio_url", "audio_url": {"url": as_data_uri(p, "audio"), "detail": "high"}})
     return parts

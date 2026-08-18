@@ -23,7 +23,7 @@ pip install -r requirements.txt
 # 方式一：环境变量（推荐）
 export GEMINI_API_KEY=...
 export GEMINI_ENDPOINT=...          # Cloudsway 网关 endpoint
-export MINIMAX_API_KEY=...          # 出片时需要
+export MINIMAX_API_KEY=...          # 云端出片时需要；使用本地 MiniMaxH3 时可不填（见下）
 
 # 方式二：复制示例配置
 cp configs/gemini.yaml.example configs/gemini.yaml
@@ -32,6 +32,12 @@ cp configs/h3.yaml.example configs/h3.yaml
 ```
 
 仓库内 `configs/gemini.yaml` / `configs/h3.yaml` 的 `api_key` 为空；密钥只放本地或环境变量。
+
+## 本地 MiniMaxH3（可选）
+如果你有一个本地的 MiniMax-H3 服务（HTTP 接口），且不需要鉴权，可以：
+- 把 `configs/h3.yaml` 的 `base_url` 指向本地服务（例如 `http://127.0.0.1:xxxx`）
+- 设置 `skip_auth: true`
+- 如本地服务接口路径不是默认 `/v2/video_generation` / `/v2/query/video_generation/{task_id}`，可配置 `generate_path` / `query_path_template`
 
 ## 调用
 
@@ -58,10 +64,13 @@ python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
 
 | 文件 | 内容 |
 | --- | --- |
-| `prompt.txt` | 喂 H3 的最终字段 |
+| `prompt.txt` | 本地优化后的最终字段（cleaned） |
+| `prompt_official_raw.txt` | 官方/raw 提示词（未清洗） |
 | `expanded.txt` | 第一次扩写稿 |
 | `inventory.txt` | i2va/r2va 的参考理解 |
 | `run.json` | 元数据 |
-| `out.mp4` | 成片（未加 `--no-video` 时） |
+| `out_local.mp4` | 成片（未加 `--no-video` 时，基于 local prompt） |
+| `out_official.mp4` | （可选）成片（加 `--compare-video` 时，基于 official/raw prompt） |
+| `report.json` / `report.md` / `prompt_diff.txt` | 提示词对比报告（总是生成） |
 
 出片走 MiniMax `/v2/video_generation`；画幅 `--ratio`、分辨率 `--resolution` 只进视频 API。
