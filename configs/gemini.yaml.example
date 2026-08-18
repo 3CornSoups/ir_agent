@@ -1,9 +1,13 @@
 # 复制为 gemini.yaml 并填写，或 export GEMINI_API_KEY / GEMINI_ENDPOINT
+# protocol: native（默认）走 Gemini 原生 generateContent（支持图/视频/音频/PDF）；
+#           openai 走 OpenAI 兼容 chat/completions（仅文本/图片）
 
 api_key: "YOUR_GEMINI_API_KEY"
 endpoint: YOUR_CLOUDSWAY_ENDPOINT
 model: MaaS_Ge_3.1_flash_lite_preview_20260303
 api_url: ""
+protocol: native
+native_api_url: ""
 timeout_sec: 300
 max_retries: 3
 
