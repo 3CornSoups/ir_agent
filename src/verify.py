@@ -35,7 +35,8 @@ _ALIGN_PREFIXES = (
     "How the reference pictures align with the target video",
 )
 _SHOT_TS_RE = re.compile(r"\[Shot\s+(\d+)\]\s*At\s+(\d{2}):(\d{2})\.(\d{3})", re.I)
-_LABEL_RE = re.compile(r"<(Picture|Video|Audio)\s+(\d+)>", re.I)
+# Subject 也纳入标签定义匹配：subject_definitions 行首定义以 <Subject N> 开头。
+_LABEL_RE = re.compile(r"<(Subject|Picture|Video|Audio)\s+(\d+)>", re.I)
 _DLANG_RE = re.compile(r"<d>\s*\[([A-Za-z]+)\]\s*(.*?)</d>", re.S)
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff]")
@@ -163,8 +164,9 @@ def check_label_numbers(
 def check_label_usage(prompt: str) -> list[VerifyIssue]:
     """r2va：subject_definitions 里「行首独立定义」的标签必须在正文被引用。
 
-    行内引用（如 <Subject 1> is the young woman in <Picture 1>）是官方允许的
-    素材来源引用方式，不作为独立定义，不参与该检查。
+    只有行首以 <Subject N> / <Picture N> / <Video N> / <Audio N> 开头的行才视为
+    独立定义；定义行内嵌的素材来源引用（如 <Subject 1> is ... in <Picture 1>）
+    只说明出处，不单独算作定义，不参与该检查。
     """
     text = (prompt or "").strip()
     m = re.search(r"subject_definitions:\s*(.*?)(?=\n\w+:|$)", text, re.S)
@@ -326,9 +328,12 @@ def verify_and_fix(
                 break  # 模型没有改动，避免死循环
             current = fixed
             rounds += 1
+            # 重新收集规则 + 意图问题：修复后不静默丢弃意图偏差，且对修复稿复检。
             issues = verify_prompt(
                 mode, current, duration=duration, images=images, videos=videos, audios=audios
             )
+            if check_intent_llm and chat is not None and (intent or "").strip():
+                issues.extend(check_intent_with_llm(chat, intent, current, inventory))
             if not any(i.severity == "error" for i in issues):
                 break
 

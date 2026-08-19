@@ -164,7 +164,12 @@ def main() -> int:
     local_prompt = rec["prompt"]
     if args.mode == "r2va":
         local_issues = verify_prompt(
-            args.mode, local_prompt, duration=rec["duration"], images=len(args.ref_image)
+            args.mode,
+            local_prompt,
+            duration=rec["duration"],
+            images=len(args.ref_image),
+            videos=len(args.ref_video),
+            audios=len(args.ref_audio),
         )
     elif args.mode in ("i2va", "fl2va", "l2va"):
         frames = [f for f in (args.first_frame, args.last_frame) if f]

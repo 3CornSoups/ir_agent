@@ -79,15 +79,15 @@ def _expand_user(
 
 def _format_user(
     mode: str,
-    expanded: str,
+    scene: str,
     *,
     inventory: str | None,
     duration: int | None,
 ) -> str:
-    """构造共用格式化 USER：模式 + 扩写稿 + 可选库存与时长约束。"""
+    """构造共用格式化 USER：模式 + 场景稿 + 可选库存与时长约束。"""
     lines = [
         f"MODE={mode}",
-        "Serialize the expanded scene into the MiniMax-H3 fields for this MODE.",
+        "Serialize the scene note into the MiniMax-H3 fields for this MODE.",
         "Follow the appended official writing guide. Do not mention aspect ratio, resolution, fps, or canvas size.",
     ]
     if duration is not None:
@@ -96,7 +96,7 @@ def _format_user(
             "Do not write the duration into the core fields. "
             f"If MODE is fl2va or l2va, the alignment line MUST use S.SS = {float(duration):.2f}."
         )
-    lines.extend(["", "Expanded scene:", expanded.strip()])
+    lines.extend(["", "Scene note:", scene.strip()])
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
         keep = grid_keep_subjects_note(inventory)
@@ -316,7 +316,8 @@ def enhance(
     steps.append({"stage": "elaborate", "text": elaborated})
 
     format_sys = compose_format_system(mode, load_prompt("format_h3"), extra_guides)
-    format_text = _format_user(mode, expanded, inventory=inventory, duration=dur)
+    # 格式化直接消费补细节稿（已含构图/镜头/声音/音乐细节），保证成果进入最终提示词。
+    format_text = _format_user(mode, elaborated, inventory=inventory, duration=dur)
     if mode in KEYFRAME_MODES:
         frame_images = [p for p in (first_frame, last_frame) if p]
         format_user: str | list[dict[str, Any]] = user_parts(
