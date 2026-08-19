@@ -6,13 +6,13 @@
 
 ## 管线
 
-感知（若需要）→ **风格 skill 路由**（可选）→ 扩写 → **补细节** → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay + 官方完整输出范例 few-shot）→ **质量校验**（规则硬校验 + 失败时自动 LLM 修复）。
+感知（若需要）→ **风格 skill 路由**（可选）→ **T8 机制路由**（可选）→ 扩写 → **补细节** → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay + 官方完整输出范例 few-shot）→ **质量校验**（规则硬校验 + 失败时自动 LLM 修复）。
 
 - 感知阶段在事实库存末尾追加 `What it can provide`，区分「可复用主体」与「帧锚点」，供 `subject_definitions` 正确抽象 `<Subject>`。
 - 扩写阶段明确要求写出声音层（环境声 / 动作声 / 配乐器乐速度节奏）。
-- 补细节阶段（`prompts/elaborate.txt`）把场景散文提升到官方 Context-IR 的详略级别（构图 / 环境层次 / 道具 / 微动作 / 镜头 / 光 / 声音）。
+- 补细节阶段（`prompts/elaborate.txt`）把场景散文提升到官方 Context-IR 的详略级别（构图 / 环境层次 / 道具 / 微动作 / 镜头 / 光 / 声音）；格式化阶段直接消费这份补细节稿（USER 中为 `Scene note`），保证构图 / 镜头 / 声音细节真正进入最终提示词。
 - 格式化阶段注入官方完整输出范例（`src/examples.py`），稳定字段顺序与详略级别。
-- 质量校验（`src/verify.py`）规则层免费：字段骨架与顺序、关键帧对齐句、时间戳单调、参考标签编号与使用、`<d>[语言]` 匹配、画幅残留；有 error 时自动让模型修一次（`prompts/verify_fix.txt`），修复后重新校验。
+- 质量校验（`src/verify.py`）规则层免费：字段骨架与顺序、关键帧对齐句、时间戳单调、参考标签编号与使用、`<d>[语言]` 匹配、画幅残留；其中 r2va 的「标签使用」检查会把 `subject_definitions` 行首独立定义的 `<Subject N>` / `<Picture N>` / `<Video N>` / `<Audio N>` 全部纳入「必须被正文引用」；有 error 时自动让模型修一次（`prompts/verify_fix.txt`），修复后重新校验。
 
 | 模式 | HTTP 次数（典型） | 步骤 |
 | --- | --- | --- |
@@ -22,9 +22,11 @@
 | l2va | 4–5 | 看尾帧 → 风格路由（可选）→ 扩写 → 补细节 → 格式化（附尾帧） |
 | r2va | 4–5 | 看参考图/视频/音频 → 风格路由（可选）→ 扩写 → 补细节 → 格式化（官方 ref 指南） |
 
-质量校验的 LLM 修复最多 1 次；`--verify-intent-llm` 可再开启一次意图一致性检查（对原始意图 vs 最终提示词，不新增剧情/不丢要点）。两种 LLM 调用都失败/无用时不影响出 prompt，结果记入 `run.json` 与 report。
+质量校验的 LLM 修复最多 1 次；开启 `--verify-intent-llm` 时会对「原始意图 vs 最终提示词」做一次 LLM 意图一致性检查（不新增剧情 / 不丢要点），且修复后会对修复稿**复检**，意图偏差结论不会被静默丢弃。两种 LLM 调用都失败 / 无用时不影响出 prompt，结果记入 `run.json` 与 report。
 
 风格路由在 `hybrid` 下：关键词能定则 **+0 次 HTTP**；未命中时前置模型读 `skills/catalog.yaml` 短描述并返回 JSON，**+1 次 HTTP**。`keyword` / `off` 不额外请求；`llm` 每次都 +1。
+
+**T8 Creative DNA 机制**（扩写/补细节的因果节拍增强，与题材 skill 正交）默认 `hybrid`：中文标题/标签 **≥2 次命中**才走关键词；否则再问前置模型读 `skills/t8/catalog.yaml`（**+0~1 次 HTTP**）。机制 overlay 只注入扩写/补细节，不改 H3 字段骨架。上游：[T8mars/minimax-h3-prompt-skill-T8](https://github.com/T8mars/minimax-h3-prompt-skill-T8) **v1.1.8**（109 个稳定 selector）。同步命令：`python scripts/sync_t8_mechanisms.py`。
 
 参考图若是四宫格 / 九宫格，感知会按格扫完并列出该 `<Picture>` 里出现的全部 `<Subject>`；漏格时自动再扫一次（多 1 次 HTTP）。
 
@@ -71,6 +73,35 @@ python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" --skill 3d-animatio
 
 可选 id：`brand-promo`、`minimalist-product-ad`、`3d-animation`、`papercraft-stop-motion`、`paper-collage`、`music-video-subtitle`、`co-op-game-intro`、`handdrawn-live`。
 
+### T8 Creative DNA 机制（基模增强）
+
+在 **扩写 + 补细节** 阶段注入 T8 案例库的因果锚点（beat / proof / transition），提升叙事结构密度；**不**替代官方 `h3-prompt-writing` 格式化，也 **不**直接输出 T8 终稿 prompt。
+
+| 路由 | 行为 |
+| --- | --- |
+| `hybrid`（默认） | 中文标题/标签 ≥2 命中则加载；否则前置模型返回 `{"mechanisms":[...]}` |
+| `keyword` | 只靠触发词（保守，避免 slug 拆词误命中） |
+| `llm` | 每次都问前置模型 |
+| `off` | 不自动选；仍可用 `--mechanism` 强制加载 |
+
+```bash
+# 自动：产品证据递进类意图（关键词足够明确时）
+python3 scripts/run.py -m t2va --intent "产品广告｜功能证据递进，先给结果再逐层证明" --no-video
+
+# 强制指定机制（与 --skill 可叠加）
+python3 scripts/run.py -m t2va --intent "深海潜水员在维修码头..." \
+  --mechanism sensory-seal-location-swap-resumption --mechanism-router off --no-video
+```
+
+| 路径 | 用途 |
+| --- | --- |
+| `skills/t8/catalog.yaml` | 109 机制目录（id / 中文标题 / summary / triggers） |
+| `skills/t8/overlays/*.txt` | 各机制的 Mandatory anchors overlay |
+| `skills/t8/VERSION` | 上游版本 pin（当前 v1.1.8） |
+| `prompts/route_mechanisms.txt` | 机制路由 SYSTEM |
+| `src/mechanism_router.py` | 关键词 / LLM / 强制指定 |
+| `scripts/sync_t8_mechanisms.py` | 从上游拉取/刷新目录与 overlay |
+
 #### 本仓库目录
 
 | 路径 | 用途 |
@@ -91,6 +122,7 @@ python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" --skill 3d-animatio
 | [MiniMax-AI/MiniMax-H3](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills) 八个题材 skill | 8 个题材的叙事/画风方法论，压缩为 `skills/overlays/` | 逐步确认门、`AskUserQuestion`、自动生图/剪辑/出片 |
 | [swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) | 「只产出提示词、不调用出片 API」的分层思路；题材 skill 与 `h3-prompt-writing` 解耦 | WorkBuddy 安装路径、交付物门、`image-prompt-writer-local` / `ace-step-1.5-prompt-writer`（未接入本管线） |
 | [sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill) | 中文分镜 → 终稿字段的「先题材写法、再压三字段/六段」顺序 | 独立分镜 Markdown 交付物；运行时仍由本仓库统一格式化 |
+| [T8mars/minimax-h3-prompt-skill-T8](https://github.com/T8mars/minimax-h3-prompt-skill-T8) @ v1.1.8 | 109 个 Creative DNA selector 的 summary + 结构锚点，压缩为 `skills/t8/overlays/` | Electron 桌面版、Seedance 伴侣 skill、ComfyUI 节点、API Workbench 出片流程 |
 
 其它可参考但未直接 vend 的仓库：[joeVenner/awesome-minimax-h3](https://github.com/joeVenner/awesome-minimax-h3)（API 编排 skill）、[ComfyUI Wiki 官方 skill 说明](https://comfyui-wiki.com/en/news/2026-08-10-minimax-h3-official-skills)。
 
@@ -235,6 +267,8 @@ CLI 风格与校验相关参数：
 ## 可选：对照官方 Context-IR（`scripts/compare_context_ir.py`）
 
 对同一组「意图 + 素材」，分别生成本地 agent 提示词与官方 H3-Context-IR 提示词，输出并排对照报告（结构校验 / 估算 token / 差异）：
+
+- r2va 的结构校验会分别按 `--ref-image` / `--ref-video` / `--ref-audio` 的实际数量校验 `<Picture/Video/Audio N>` 编号，避免把合法引用误报为越界。
 
 ```bash
 # 只生成本地提示词（无官方 key）
