@@ -69,7 +69,7 @@
 
 | 用例 | 首尾帧 | 短意图 | 官方增强稿 | 成片 |
 | --- | --- | --- | --- | --- |
-| 用例01_棉花领域模型 | 棉花开花 → NVIDIA 机房+棉株 | `03_短意图/fl2va_input_zh.txt` | `04_ContextIR增强/enhanced_en.txt` | `05_生成视频/fl2va_cotton.mp4` |
+| 用例01_棉花领域模型 | 棉花开花 → NVIDIA 机房+棅株 | `03_短意图/fl2va_input_zh.txt` | `04_ContextIR增强/enhanced_en.txt` | `05_生成视频/fl2va_cotton.mp4` |
 | 用例02_董事总经理吵架 | 双女高管对峙 → 短发愤怒特写 | 同上 | `04_ContextIR增强/enhanced_en.txt` | `05_生成视频/fl2va_quarrel.mp4` |
 
 ## 5. 特殊光影 T2VA 双管线对照（`母仓/out/special_light/`）
@@ -118,8 +118,8 @@
 | --- | --- | --- | --- | --- |
 | t2va | ✅ | ✅ | ✅ | agent 三字段对齐官方 |
 | i2va | ✅ | ✅ | ✅ | agent 三字段 + 首帧对齐句 |
-| fl2va | ✅ | ✅ | ❌ | 官方独有（首尾帧），agent 暂不覆盖 |
-| l2va | ✅ | ✅ | ❌ | 官方独有（尾帧），agent 暂不覆盖 |
+| fl2va | ✅ | ✅ | ✅ | 首尾帧 + 官方对齐句 |
+| l2va | ✅ | ✅ | ✅ | 尾帧 + 官方对齐句 |
 | r2va | ✅ | ✅ | ✅ | agent 六段对齐官方 |
 
 ## 8. 如何复用这些资产
