@@ -24,6 +24,8 @@ htmlcov/
 *.pid
 # 仅放开 runs/generated_media 测试素材（! 规则须位于全局媒体忽略之后）
 runs/*
+!runs/batch_report.json
+!runs/batch_report.md
 !runs/generated_media/
 runs/generated_media/*
 !runs/generated_media/cases/
