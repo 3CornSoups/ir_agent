@@ -1,18 +1,23 @@
-# Gemini → MiniMax-H3 Agent（t2va / i2va / r2va）
+# Gemini → MiniMax-H3 Agent（t2va / i2va / fl2va / l2va / r2va）
 
-短意图先扩写，再整理成官方字段；画幅、分辨率、时长只走视频 API，不写进 prompt。
+短意图先扩写，再按官方 `h3-prompt-writing` skill 整理成字段；画幅、分辨率、时长只走视频 API，不写进 prompt。
 
 ## 管线
 
+格式化阶段会注入官方英文指南（`h3-prompt-writing/references/base-en.txt` 或 `ref-en.txt`），而不是只靠精简 overlay。关键帧模式会把静帧再附到格式化一步，避免身份/构图跑偏。
+
 | 模式 | HTTP 次数 | 步骤 |
 | --- | --- | --- |
-| t2va | 2 | 扩写意图 → 共用格式化 |
-| i2va | 3 | Flash Lite 看首帧 → 扩写（图描述+意图）→ 共用格式化 |
-| r2va | 3 | 看参考图/视频/音频 → 扩写 → 共用格式化 |
+| t2va | 2 | 扩写意图 → 共用格式化（官方 base 指南） |
+| i2va | 3 | Flash Lite 看首帧 → 扩写 → 共用格式化（附首帧） |
+| fl2va | 3 | 看首尾帧 → 扩写 → 共用格式化（附首尾帧） |
+| l2va | 3 | 看尾帧 → 扩写 → 共用格式化（附尾帧） |
+| r2va | 3 | 看参考图/视频/音频 → 扩写 → 共用格式化（官方 ref 指南） |
 
-三模式最后一步共用 `prompts/format_h3.txt`，按 `MODE=` 切换输出骨架：
+五模式最后一步共用 `prompts/format_h3.txt` + 官方指南，按 `MODE=` 切换输出骨架：
 
-- t2va / i2va：三字段（i2va 多一行 Picture 1 对齐句）
+- t2va：三字段
+- i2va / fl2va / l2va：官方对齐句 + 三字段（i2va 从首帧向前；fl2va 写首尾帧之间的路径；l2va 收敛到尾帧）
 - r2va：六段（subject_definitions … non_diegetic_music）
 
 ## 配置
@@ -81,6 +86,14 @@ python3 scripts/run.py -m t2va --intent "雨夜涩谷，红巴士穿过路口，
 # i2va
 python3 scripts/run.py -m i2va --intent "人物向前走，镜头缓推" \
   --first-frame /path/to/first.png --duration 5 --no-video
+
+# fl2va
+python3 scripts/run.py -m fl2va --intent "从站立走到坐下" \
+  --first-frame first.png --last-frame last.png --duration 8 --no-video
+
+# l2va
+python3 scripts/run.py -m l2va --intent "杯子从桌边滑落摔碎" \
+  --last-frame last.png --duration 6 --no-video
 
 # r2va
 python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \

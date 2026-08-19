@@ -189,7 +189,7 @@ def build_cases() -> list[dict[str, Any]]:
     # ---- 1. 母仓四模式基准 ----------------------------------------------------
     for mode_id, meta in _FOUR_MODE_SETS.items():
         set_dir = MUCA / meta["set"]
-        agent_supported = meta["mode"] in ("t2va", "i2va", "r2va")
+        agent_supported = meta["mode"] in ("t2va", "i2va", "fl2va", "l2va", "r2va")
         case: dict[str, Any] = {
             "id": mode_id,
             "mode": meta["mode"],
@@ -204,8 +204,7 @@ def build_cases() -> list[dict[str, Any]]:
             "local_qwen_prompt": _qwen_v1(mode_id),
             "official_video": _gold_video(mode_id),
             "local_qwen_video": _qwen_video(mode_id),
-            "note": f"母仓 {meta['set']}：官方稿/本地 Qwen 稿/双管线成片齐全"
-                    + ("" if agent_supported else "；fl2va/l2va 为官方独有模式，agent 暂不覆盖"),
+            "note": f"母仓 {meta['set']}：官方稿/本地 Qwen 稿/双管线成片齐全",
         }
         # R2VA 对照项目另有 agent 实测稿与官方稿副本（同一批短意图）
         if mode_id == "wuxia_t2va":
@@ -288,7 +287,7 @@ def build_cases() -> list[dict[str, Any]]:
             "id": case_id,
             "mode": "fl2va",
             "source": "zwb-asset",
-            "agent_supported": False,
+            "agent_supported": True,
             "intent": read_intent(str(root / meta["intent"])),
             "first_frame": str(root / meta["first_frame"]),
             "last_frame": str(root / meta["last_frame"]),
@@ -296,24 +295,24 @@ def build_cases() -> list[dict[str, Any]]:
             "ratio": meta["ratio"],
             "official_prompt": str(root / meta["official_prompt"]),
             "official_video": str(root / meta["official_video"]),
-            "note": f"自建 FL2VA（{meta['root']}）：短意图→Context-IR→本地成片 全链路留档；fl2va 为官方独有模式",
+            "note": f"自建 FL2VA（{meta['root']}）：短意图→Context-IR→本地成片 全链路留档",
         })
 
-        # 特殊光影 T2VA（backlight/neon/dusk）-----------------------------------
-        light_root = MUCA_ROOT / "out" / "special_light"
-        for case_id, stem in _LIGHT_CASES.items():
-            cases.append({
-                "id": case_id,
-                "mode": "t2va",
-                "source": "zwb-asset",
-                "agent_supported": True,
-                "intent": read_intent(str(light_root / "intents" / f"{stem}.txt")),
-                "duration": 6,
-                "ratio": "16:9",
-                "official_prompt": str(light_root / "official" / f"{stem}.txt"),
-                "local_qwen_prompt": str(light_root / "qwen" / f"{stem}.txt"),
-                "note": f"特殊光影 T2VA（{stem}）：官方/本地 Qwen 双稿在 special_light/",
-            })
+    # 特殊光影 T2VA（backlight/neon/dusk）-----------------------------------
+    light_root = MUCA_ROOT / "out" / "special_light"
+    for case_id, stem in _LIGHT_CASES.items():
+        cases.append({
+            "id": case_id,
+            "mode": "t2va",
+            "source": "zwb-asset",
+            "agent_supported": True,
+            "intent": read_intent(str(light_root / "intents" / f"{stem}.txt")),
+            "duration": 6,
+            "ratio": "16:9",
+            "official_prompt": str(light_root / "official" / f"{stem}.txt"),
+            "local_qwen_prompt": str(light_root / "qwen" / f"{stem}.txt"),
+            "note": f"特殊光影 T2VA（{stem}）：官方/本地 Qwen 双稿在 special_light/",
+        })
 
     return [_relocate_media(c) for c in cases]
 

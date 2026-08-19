@@ -41,11 +41,11 @@
 | --- | --- | --- |
 | `wuxia_t2va` | T2VA 9s | `母仓/out/gold_ir/wuxia_t2va.txt`（对照项目另有 agent 实测稿） |
 | `wuxia_i2va` | I2VA 9s | `gold_ir/wuxia_i2va.txt` |
-| `wuxia_fl2va` | FL2VA 9s | `gold_ir/wuxia_fl2va.txt`（官方独有） |
-| `wuxia_l2va` | L2VA 9s | `gold_ir/wuxia_l2va.txt`（官方独有） |
+| `wuxia_fl2va` | FL2VA 9s | `gold_ir/wuxia_fl2va.txt` |
+| `wuxia_l2va` | L2VA 9s | `gold_ir/wuxia_l2va.txt` |
 | `neon_t2va` | T2VA 6s | `gold_ir/neon_t2va.txt`（对照项目另有 agent 实测稿） |
-| `cotton_fl2va` | FL2VA 8s | `gold_ir/cotton_fl2va.txt`（官方独有） |
-| `office_fl2va` | FL2VA 6s | `gold_ir/office_fl2va.txt`（官方独有） |
+| `cotton_fl2va` | FL2VA 8s | `gold_ir/cotton_fl2va.txt` |
+| `office_fl2va` | FL2VA 6s | `gold_ir/office_fl2va.txt` |
 
 ### R2VA 对照项目（官方六段稿 + 素材）
 
@@ -97,7 +97,7 @@ cd /kwkj-k8s/zwb/项目/agent/new_agent0818
 pytest -q test/test_agent_vs_official.py test/test_local_model_cases.py
 ```
 
-期望：全部通过；`-rs` 可看是否有 skip（fl2va/l2va 官方独有模式 + 本地素材缺失）。
+期望：全部通过；`-rs` 可看是否有 skip（本地素材缺失）。
 
 ### 2. 用本地模型生成素材（可选，需 GPU 约 30 分钟）
 
@@ -136,4 +136,4 @@ GPU 选择可通过 `LOCAL_H3_T2VA_GPUS` / `LOCAL_H3_FL2VA_GPUS` / `LOCAL_H3_REF
 ```
 
 素材路径必须真实存在，`test_case_asset_files_exist` 会自动校验。
-fl2va/l2va 需设 `agent_supported: False`（官方独有，agent 暂不覆盖）。
+fl2va 需提供 `first_frame` 与 `last_frame`；l2va 需提供 `last_frame`。
