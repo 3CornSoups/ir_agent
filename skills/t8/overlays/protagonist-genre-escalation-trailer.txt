@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 类型预告｜同一主角跨场景升级到片名
+Summary: 以同一核心人物和少数关系锚点贯穿多场景预告：先建立关系，再扩展城市活动与私人压力，随后把冲突升级到公共危险和大尺度奇观，最终用独立片名卡封口；不依赖未转写对白意义。
+
+Recommended beat pattern: `固定主角与关系锚点 + 公共世界扩展 + 私人脆弱阶段 + 物理危险升级 + 独立原创片名终卡`
+
+Mandatory structural anchors (keep order and causality):
+- Introduce one protagonist and one relationship anchor before the location count expands.
+- Return to the protagonist while broadening public settings and group size.
+- Escalate from interpersonal pressure to visible public physical danger.
+- Separate the maximum spectacle from a held, original title lockup.

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 人物档案｜能力逐层点亮
+Summary: 固定档案界面不换主体，按身份、诊断、能力、工具和待命状态逐层激活。
+
+Recommended beat pattern: `稳定人物 + 固定档案界面 + 身份→诊断→能力→工具→待命状态`
+
+Mandatory structural anchors (keep order and causality):
+- 人物身份稳定
+- 档案框架固定
+- 信息层级按功能递进
+- 终态是可执行的待命状态

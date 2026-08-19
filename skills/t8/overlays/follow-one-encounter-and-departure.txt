@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 纪实跟拍｜行进中偶遇再离开
+Summary: 侧面跟拍同一人物离开狭窄空间，镜头漂到身后并揭示更大路线；只发生一次偶遇和一次克制回应，人物随后继续离开。
+
+Recommended beat pattern: `侧面连续跟拍 + 狭窄起点 + 行进中空间揭示 + 一次偶发横穿 + 一次克制回应 + 继续离开`
+
+Mandatory structural anchors (keep order and causality):
+- 先侧面跟拍再揭示更大路线
+- 人物在镜头转换中保持行走
+- 全片只发生一次偶遇
+- 回应克制且不停止路线
+- 结尾人物继续经过或远离镜头

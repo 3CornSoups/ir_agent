@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 反差喜剧｜越从容越失控
+Summary: 正式场合中连锁失控不断升级，但主体始终镇定，反差本身构成笑点。
+
+Recommended beat pattern: `正式场合 + 附着负担 + 至少2次连锁后果 + 可见失效 + 主体始终从容`
+
+Mandatory structural anchors (keep order and causality):
+- 正式场合与沉着主体
+- 负担始终附着主体
+- 至少两次因果连锁
+- 失效可见但主体不慌

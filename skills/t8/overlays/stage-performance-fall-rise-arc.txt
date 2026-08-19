@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 舞台表演｜远景起势到倒地复起
+Summary: 单人表演先用大远景建立身体与空间，再推进近景表达、完成一次受控倒地和俯拍停留，最后在独立光束中复起。
+
+Recommended beat pattern: `单人表演者 + 巨大空场 + 远景起势 + 近景表达 + 一次受控倒地 + 俯拍确认 + 连续复起`
+
+Mandatory structural anchors (keep order and causality):
+- 开场先证明全身与巨大场地尺度
+- 近景必须晚于动作语言建立
+- 全片只有一次决定性下降
+- 用俯拍或地面机位证明落地
+- 结尾连续复起且不回到开场构图

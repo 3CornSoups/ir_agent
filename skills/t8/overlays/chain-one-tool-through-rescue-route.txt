@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 多功能救援线｜跨裂隙送补给再撤离
+Summary: 同一根绳索从发射、攀爬、摆荡到进入持续承担路线职责，短接触建立跟随后由一人带领双方共同离开。
+
+Recommended beat pattern: `不可达目标 + 单一绳线工具 + 至少3种路线职责 + 救援接触 + 独立路线共同离开`
+
+Mandatory structural anchors (keep order and causality):
+- Introduce one unreachable destination and one compact traversal tool together.
+- Keep one tether and one stable attachment through launch and its first visible route role.
+- Make one brief contact inside the destination establish the rescue choice.
+- After contact, keep both subjects visibly leaving together with one subject leading.

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 复古手持｜日常送别回眸
+Summary: 观察者先发现人物日常，外部信号改变人物目标，一次回应后以有动机的拍摄失误结束。
+
+Recommended beat pattern: `观察者媒介 + 日常人物/地点 + 两个日常动作 + 外部信号改变目标 + 一次回应 + 有动机录制失误`
+
+Mandatory structural anchors (keep order and causality):
+- 先建立观察者媒介
+- 至少两个普通日常动作
+- 外部信号改变目标
+- 一次回应后以有动机失误收尾

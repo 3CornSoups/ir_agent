@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 表情校准｜固定身份下的动作单元序列
+Summary: 锁定人物、光线和视角，只让眼睑、眉部、下颌、视线和唇形等局部动作单元分段变化；中间用微小复位防止表情混成连续表演，末段收紧景别检验身份与细节仍稳定。
+
+Recommended beat pattern: `单一稳定人像 + 固定光线背景视角 + 至少4组分离面部动作 + 1次微小复位 + 后段细节近景`
+
+Mandatory structural anchors (keep order and causality):
+- Lock one face, background, lighting direction and camera axis before any expression change.
+- Separate the expression into readable local units rather than morphing the whole face continuously.
+- Keep head motion subordinate to eye, brow, mouth and cheek evidence.
+- Use a late closer crop only after identity has been repeatedly proven.

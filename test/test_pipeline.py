@@ -113,6 +113,7 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         "短意图",
         duration=7,
         out_dir=out_dir,
+        mechanism_router="off",
     )
 
     assert rec["mode"] == "t2va"
@@ -127,7 +128,7 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
 def test_enhance_i2va_requires_first_frame(tmp_path: Path) -> None:
     """i2va 模式缺少 first_frame 应直接报错。"""
     with pytest.raises(ValueError):
-        enhance("i2va", "短意图", duration=6, out_dir=tmp_path / "unused")
+        enhance("i2va", "短意图", duration=6, out_dir=tmp_path / "unused", mechanism_router="off")
 
 
 def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -169,6 +170,7 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         first_frame=str(first_frame),
         duration=6,
         out_dir=out_dir,
+        mechanism_router="off",
     )
 
     assert rec["mode"] == "i2va"
@@ -184,15 +186,15 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
 def test_enhance_fl2va_requires_both_frames(tmp_path: Path) -> None:
     """fl2va 缺少首帧或尾帧应直接报错。"""
     with pytest.raises(ValueError):
-        enhance("fl2va", "短意图", first_frame="a.png", duration=6, out_dir=tmp_path / "unused")
+        enhance("fl2va", "短意图", first_frame="a.png", duration=6, out_dir=tmp_path / "unused", mechanism_router="off")
     with pytest.raises(ValueError):
-        enhance("fl2va", "短意图", last_frame="b.png", duration=6, out_dir=tmp_path / "unused")
+        enhance("fl2va", "短意图", last_frame="b.png", duration=6, out_dir=tmp_path / "unused", mechanism_router="off")
 
 
 def test_enhance_l2va_requires_last_frame(tmp_path: Path) -> None:
     """l2va 模式缺少 last_frame 应直接报错。"""
     with pytest.raises(ValueError):
-        enhance("l2va", "短意图", duration=6, out_dir=tmp_path / "unused")
+        enhance("l2va", "短意图", duration=6, out_dir=tmp_path / "unused", mechanism_router="off")
 
 
 def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -238,6 +240,7 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
         last_frame=str(last_frame),
         duration=8,
         out_dir=out_dir,
+        mechanism_router="off",
     )
 
     assert rec["mode"] == "fl2va"
@@ -284,6 +287,7 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         last_frame=str(last_frame),
         duration=6,
         out_dir=out_dir,
+        mechanism_router="off",
     )
     assert rec["mode"] == "l2va"
     assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
@@ -423,6 +427,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
         reference_images=[str(pic)],
         duration=5,
         out_dir=tmp_path / "out_grid",
+        mechanism_router="off",
     )
     assert calls["perceive"] == 2
     assert [s["stage"] for s in rec["steps"]] == [
@@ -473,6 +478,7 @@ def test_enhance_loads_brand_skill_from_intent(
         duration=8,
         out_dir=tmp_path / "out_brand",
         skill_router="hybrid",
+        mechanism_router="off",
     )
     assert rec["style_skills"] == ["brand-promo"]
     assert rec["style_skill_source"] == "keyword"
@@ -518,6 +524,7 @@ def test_enhance_forced_skill_off_router(
         out_dir=tmp_path / "out_forced",
         skills=["3d-animation"],
         skill_router="off",
+        mechanism_router="off",
     )
     assert rec["style_skills"] == ["3d-animation"]
     assert rec["style_skill_source"] == "forced"

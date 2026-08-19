@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 连续脱险｜假安全后升级为尺度威胁
+Summary: 让同一主体沿单一逃生方向连续穿过多种局部危险，每次恢复都只是临时安全；晚段抵达看似更快或更安全的载具后，再用一次更大尺度的环境威胁重新定义整条路线。
+
+Recommended beat pattern: `同一逃生方向 + 至少两种局部危险 + 可见恢复 + 临时安全载具 + 更大尺度终端威胁`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one subject and one persistent escape direction before the hazard chain.
+- Use at least two materially different local hazards with visible recoveries between them.
+- Provide one brief apparent safety upgrade or open platform late in the sequence.
+- Use one terminal scale reveal to reclassify the apparent safety state without inventing survival beyond the visible ending.

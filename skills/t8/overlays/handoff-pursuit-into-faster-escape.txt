@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 雨夜追逐｜街巷近战到机车脱身
+Summary: 追逐先建立方向，中段用一次近身阻断改变节奏，再把主体交接到更快载具完成脱身。
+
+Recommended beat pattern: `被追主体 + 单一追逐轴线 + 一次紧凑阻断 + 立即步行→更快载具交接 + 持续加速结尾`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one readable pursuit axis before any combat.
+- Use one narrow threshold to compress the lead and threat.
+- Complete an immediate, visible foot-to-faster-carrier handoff after the encounter.
+- End with sustained carrier acceleration along the established travel direction.

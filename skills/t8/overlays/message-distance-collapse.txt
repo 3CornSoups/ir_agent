@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 信息逼近｜远端警告压缩到当前空间
+Summary: 先让远端信息给出模糊空间警告，主体据此检查一个仍为空的方向；第二条信息必须更精确地把发送者位置压缩到主体当前空间，最后只保留转身前的反应与未揭示威胁。
+
+Recommended beat pattern: `独处主体 + 远端模糊警告 + 空场验证 + 当前盲区精确警告 + 不揭示来源的反应`
+
+Mandatory structural anchors (keep order and causality):
+- Establish stable local geography before any message changes its meaning.
+- Use one bounded first message that warns about a direction but keeps the sender remote or ambiguous.
+- Use a second message to locate the sender inside the subject's current blind spot.
+- End on a held reaction or beginning turn before the sender is revealed.

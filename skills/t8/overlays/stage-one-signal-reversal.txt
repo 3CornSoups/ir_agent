@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 一对多反转｜单一证据胜出
+Summary: 多个喧闹方案看似占优，单一克制信号通过校准和物理证明完成反转。
+
+Recommended beat pattern: `喧闹多数 + 克制单一信号 + 校准动作 + 可见物理证明`
+
+Mandatory structural anchors (keep order and causality):
+- 多数方案先制造噪声或冲突
+- 单一信号保持克制
+- 有明确校准动作
+- 最终用物理结果而非口号证明胜出

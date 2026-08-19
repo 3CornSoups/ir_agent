@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 计划对照｜固定分镜条见证执行升级
+Summary: 让一条静态计划板持续可读，执行区按计划顺序逐步完成动作，并用不断累积的现场变化证明执行正在推进；最后让实际结果与计划末项形成可读闭合。
+
+Recommended beat pattern: `持续可读的计划板 + 独立执行区 + 计划顺序推进 + 至少三项可见状态变化 + 计划与终态同框`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one persistent planning artifact and one separate execution field in the opening.
+- Advance the execution field while keeping the planning artifact unchanged and readable.
+- Accumulate at least two further state changes while preserving subject identity, route and plan visibility.
+- Hold a terminal result with the persistent plan still visible for direct comparison.

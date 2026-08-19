@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 力量反差｜小体型用杠杆反制
+Summary: 先证明巨大质量差与可用支点，让重型对手完整承诺攻击，小体型主角进入转弯半径并用杠杆重定向动量，最后形成非致命控制。
+
+Recommended beat pattern: `巨大重型对手 + 小型主角 + 提前可见支点 + 重型攻击承诺 + 近身预判 + 杠杆重定向 + 非致命控制`
+
+Mandatory structural anchors (keep order and causality):
+- 开场先证明质量差和可用支点
+- 重型对手必须先完整承诺动作
+- 至少一次冲击证明动量和恢复成本
+- 反转只能来自杠杆与重定向
+- 结尾非致命且支点因果仍可见

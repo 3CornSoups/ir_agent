@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 踏面异变｜重复触点到基底破裂
+Summary: 先让稳定步伐反复触发同一种局部表面反应，以可数接触建立规则；随后一次更强的接触让承载面发生不可逆破裂，镜头越过同一边界进入下层世界并以新介质状态收束。
+
+Recommended beat pattern: `单一主体与连续承载面 + 至少3次可数触点反应 + 1次不可逆破裂 + 同一边界穿越 + 下层介质终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one subject, one travel direction and one continuous support surface.
+- Repeat the same localized response at multiple contact points.
+- Make one contact irreversibly breach the previously proven support rule.
+- Carry the camera through the same boundary and hold the new medium.

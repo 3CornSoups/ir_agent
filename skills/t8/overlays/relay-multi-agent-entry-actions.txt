@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 多人攻势接力｜独立入场后同步收束
+Summary: 先建立稳定的中央威胁几何与外围团队，再让不同成员以独立入场路线完成各自证明动作；角色职责清楚后才允许路线重叠，最终以同步投入而不是混乱群殴收束。
+
+Recommended beat pattern: `固定中央挑战 + 至少3个角色/系统 + 各自独立入场路线与职责 + 延迟的高位路线 + 同步收束`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one spatially persistent challenge field and the full team before any individual entry.
+- Give the first participant one complete entry path and proof action.
+- Delay the most displaced entry until earlier roles are readable.
+- End with synchronized commitment while preserving each participant's route identity.

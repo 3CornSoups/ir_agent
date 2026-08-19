@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 尺度球局｜共享球体串联反差挑战
+Summary: 用一个持续可见的球体把尺度反差对手、固定目标和动作阶段串在同一场地：控球建立规则、巨体封锁空间、小体型改变路线、抛物线把挑战推向目标，最后以双方可见反应收束但不臆测得分。
+
+Recommended beat pattern: `两种明显尺度 + 共享球体或令牌 + 固定目标 + 可见变线 + 单一轨迹 + 不虚构结果的反应终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish two clearly different scales, one shared token and one fixed target in the same arena.
+- Use repeated token control to prove who currently owns the action.
+- Show one readable token trajectory toward the fixed target.
+- End on a visible shared reaction state and only claim success if the target result is directly shown.

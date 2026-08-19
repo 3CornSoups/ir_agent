@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 分层接力｜小物体穿越多区域完成传递
+Summary: 在同一可读空间建立多个相连区域，让一个小物体从首位角色出发；物体通过可见表面改变路线，后续见证者持续追踪，最终交给自主载体，并以全景闭合完整接力。
+
+Recommended beat pattern: `至少3个分层区域 + 1个可数物体 + 2次路线改变 + 后段重定向 + 自主载体终点`
+
+Mandatory structural anchors (keep order and causality):
+- Show at least three connected zones in one readable geography.
+- Launch one countable token from a clear first participant.
+- Keep the same token visible through a later witness zone and into its descending segment.
+- End with an autonomous final carrier and a wide path closure.

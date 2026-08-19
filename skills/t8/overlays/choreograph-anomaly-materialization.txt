@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 形态奇观｜平面升级到现实
+Summary: 同一载体从平面、空间、体积一路升级到环境峰值，再回到原位留下残留。
+
+Recommended beat pattern: `现实锚点 + 单一载体 + 平面→空间→体积→环境峰值 + 回到原位的残留`
+
+Mandatory structural anchors (keep order and causality):
+- 同一载体贯穿
+- 形态按维度升级
+- 峰值改变环境
+- 回到初始锚点并留下残留

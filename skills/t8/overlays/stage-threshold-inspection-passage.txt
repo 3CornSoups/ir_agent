@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 第一视角探险｜穿越后巡检
+Summary: 从入口跨过阈值后连续通行，局部检查异常，再给出可见但不武断的路线终态。
+
+Recommended beat pattern: `远景入口 + 跨过阈值 + 连续通行 + 局部异常检查 + 可见路线终态（不下诊断）`
+
+Mandatory structural anchors (keep order and causality):
+- 入口与阈值清楚
+- 阈值后保持空间连续
+- 只检查一个局部线索
+- 结尾显示路线状态但不虚构诊断

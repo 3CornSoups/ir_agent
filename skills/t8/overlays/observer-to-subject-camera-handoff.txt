@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 镜头交接｜外部观察转为主体掌镜
+Summary: 先由外部观察镜头发现并跟随主体，让主体完成一次地点专属的环境交互，再给出环境尺度证明；随后使用遮挡、设备安装或载体交接等有动机的连续桥，片尾只把拍摄权交给主体一次。
+
+Recommended beat pattern: `外部观察跟随 + 一次场景专属控制交换 + 一次环境广角证明 + 动机明确的遮挡或载体交接 + 片尾一次主体控制镜头`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one subject through an external trailing or observational camera.
+- Use one site-specific exchange while the observer still owns the view; the exchange may be adjustment, response, installation, activation or material contact and must not require picking up or presenting an object.
+- Use one motivated continuity bridge immediately before the switch, such as occlusion, equipment installation, mounting or carrier handoff.
+- Switch exactly once to a subject-controlled capture and keep stable identity plus environmental context readable.

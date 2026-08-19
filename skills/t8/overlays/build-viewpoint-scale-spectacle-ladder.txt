@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 尺度奇观阶梯｜每镜重置参照再逼近
+Summary: 每个短段先重置熟悉视点与尺度参照，再让一个不可能的空中形态进入；通过观察距离与遮挡变化逐步逼近，最终以近距离视点遭遇收束。
+
+Recommended beat pattern: `5个熟悉尺度参照 + 每镜1个巨型原创形态 + 视点变化 + 距离逐步缩短 + 近距离终态`
+
+Mandatory structural anchors (keep order and causality):
+- Give each vignette an immediately familiar scale anchor.
+- Use one dominant impossible silhouette per vignette.
+- Increase proximity, not just nominal size.
+- End with a viewpoint-level encounter that preserves spatial legibility.

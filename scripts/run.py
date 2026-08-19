@@ -38,6 +38,19 @@ def main() -> int:
         choices=("off", "keyword", "hybrid", "llm"),
         help="风格 skill 路由：off / keyword / hybrid（默认，关键词未命中才问模型） / llm",
     )
+    p.add_argument(
+        "--mechanism",
+        action="append",
+        default=[],
+        dest="mechanisms",
+        help="强制加载 T8 Creative DNA 机制 id，可重复",
+    )
+    p.add_argument(
+        "--mechanism-router",
+        default="hybrid",
+        choices=("off", "keyword", "hybrid", "llm"),
+        help="T8 机制路由：off / keyword / hybrid（默认） / llm",
+    )
     p.add_argument("--duration", type=int, default=None, help="出片秒数 4–15；省略则从意图推断")
     p.add_argument("--ratio", default=None, help="出片画幅，只走视频 API；t2va 默认 16:9")
     p.add_argument("--resolution", default=None, choices=("768P", "2K"), help="出片分辨率")
@@ -77,12 +90,19 @@ def main() -> int:
         compare_video=args.compare_video,
         skills=args.skills or None,
         skill_router=args.skill_router,
+        mechanisms=args.mechanisms or None,
+        mechanism_router=args.mechanism_router,
         enable_verify=not args.no_verify,
         verify_intent_llm=args.verify_intent_llm,
     )
     print(f"[{rec['mode']}] prompt → {Path(rec['out_dir']) / 'prompt.txt'}")
     if rec.get("style_skills"):
         print(f"[{rec['mode']}] skills → {', '.join(rec['style_skills'])} ({rec.get('style_skill_source')})")
+    if rec.get("mechanisms"):
+        print(
+            f"[{rec['mode']}] mechanisms → {', '.join(rec['mechanisms'])} "
+            f"({rec.get('mechanism_source')})"
+        )
     verify = rec.get("verify") or {}
     if verify:
         status = verify.get("status", "?")

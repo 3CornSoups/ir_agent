@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 世界悬停｜持续靠近到末端复流
+Summary: 先让一个本应高速运动的复杂环境整体悬停，以连续第一视角推进和重复地标证明时间仍被锁住；局部手部只负责对齐与观察，最后只在片尾发生一次全局复流和速度跃迁。
+
+Recommended beat pattern: `复杂环境整体悬停 + 第一视角连续移动 + 至少3个冻结地标 + 局部对齐但不强称接触 + 末端只复流一次`
+
+Mandatory structural anchors (keep order and causality):
+- Open on a complex environment whose normally moving elements are visibly suspended.
+- Move one embodied observer continuously while at least three environmental landmarks remain frozen.
+- Sustain the suspended comparison long enough to show that many independent elements share the same state.
+- Resume the world only once at the end, with distributed object motion and camera-speed change occurring together.

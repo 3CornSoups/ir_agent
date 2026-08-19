@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 群演聚焦接力｜全场到主位再回合奏
+Summary: 先建立完整群体与观众或工作场，再让两名中心贡献者进入共享动作；镜头隔离其中一名主位完成完整证明段，随后重新引入共同主位，并以更宽的同步群体终态收束。
+
+Recommended beat pattern: `全体建立 + 主位聚焦 + 次主位回归 + 群体节奏持续 + 回到全体合奏终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish the full ensemble and surrounding response field before isolating a lead.
+- Bring two central contributors into one shared action before ownership narrows.
+- Reintroduce the co-lead before the ending.
+- Finish wide enough to show the ensemble responding in one synchronized state.

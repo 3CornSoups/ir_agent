@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 单目标逃生｜前后灾害交替逼近
+Summary: 终点始终可读，身后封闭与前方危险交替出现，以一次恢复和近失结果证明推进能力。
+
+Recommended beat pattern: `主体 + 可见终点 + 身后封闭 + 前方危险 + 一次全身恢复 + 近失结果证明`
+
+Mandatory structural anchors (keep order and causality):
+- 单一终点持续可读
+- 前后危险交替而非同时混乱
+- 有一次完整恢复动作
+- 近失结果可见并证明保护能力

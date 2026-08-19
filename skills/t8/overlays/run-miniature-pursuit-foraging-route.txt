@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 微缩逃亡｜巨物追赶到资源补给
+Summary: 先用巨物校准微缩尺度，再让同一人物连续改变跑、弹、爬、平衡等动作，最终抵达可用资源。
+
+Recommended beat pattern: `微缩主体 + 巨型移动压力 + 3种材质动作动词 + 连续路线 + 取得并使用资源`
+
+Mandatory structural anchors (keep order and causality):
+- Calibrate miniature scale with one ordinary oversized moving force in the opening.
+- Change the movement verb at every material handoff.
+- Preserve one travel direction and subject identity across scale changes.
+- End with an earned resource that the subject visibly secures or uses.

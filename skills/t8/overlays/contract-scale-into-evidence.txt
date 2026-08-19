@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 景别收紧｜从世界到眼神
+Summary: 景别从宏大环境逐步收紧，按人物、局部发现、自有装置和眼神反应形成证据漏斗。
+
+Recommended beat pattern: `宏大环境 + 稳定人物/双人 + 地面或局部发现 + 人物自有装置 + 最后近景反应`
+
+Mandatory structural anchors (keep order and causality):
+- 景别持续收紧
+- 人物空间关系稳定
+- 证据从环境转到局部再到装置
+- 最后用近景反应闭合

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 未来来信｜私密警告被外部世界兑现
+Summary: 用一个私密记录装置先给出来自未来自身的警告，再让主体主动转向可核查的外部窗口；先以熟悉城市的异常版本证明时间错位，最后让更大天空证据出现，使警告从信息升级为现实威胁。
+
+Recommended beat pattern: `当下主体 + 未来自身消息 + 主动外部验证 + 局部未来环境 + 更大尺度威胁`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one private proof record with a visibly impossible future origin.
+- Bind the record to a future version or unmistakable continuation of the present subject.
+- First reveal a familiar environment in a clearly altered future state.
+- Introduce one larger external anomaly only after the environment confirms the time shift, and end unresolved.

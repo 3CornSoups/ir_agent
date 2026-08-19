@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 轮廓接力｜闪光换形后完成攻势闭环
+Summary: 先用武器与披风轮廓建立动作基准，再通过可数的落地姿态推进；一次中央闪光只负责换形交接，新形态以能量弧与腾空段得到证明，最后回到可读的落地终态。
+
+Recommended beat pattern: `原创动作主体 + 清楚工具轮廓 + 2个落地动作几何 + 1次遮挡换形 + 效果动作与位移证明 + 落地终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one countable full-body action silhouette and its tool before escalation.
+- Advance through at least two materially different grounded action geometries.
+- Prove the later state through both a committed effect action and a displaced body path.
+- End on a readable grounded state that recalls at least one opening silhouette anchor.

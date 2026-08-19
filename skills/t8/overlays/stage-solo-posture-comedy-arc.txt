@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 单人表演弧｜坐起前倾再释放
+Summary: 固定直视镜头里，单人用躺靠、坐起、前倾、手势和后仰释放完成完整表演弧，不依赖来源台词。
+
+Recommended beat pattern: `锁定单人镜头 + 躺靠基线 + 连续坐起前倾 + 单一物证动作 + 停顿后带变化回位`
+
+Mandatory structural anchors (keep order and causality):
+- Keep one locked seated-eye-level direct-address frame.
+- Move from reclined to upright in one continuous visible shift.
+- Insert a readable still pause after the peak.
+- Return body depth toward the opening while changing expression.

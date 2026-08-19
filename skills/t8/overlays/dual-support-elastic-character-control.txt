@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 双支座弹性偶｜控制器驱动形变复位
+Summary: 让两个图形角色分别绑定到持续可见的物理支座；每轮只改变一种可读控制参数，以共同响应、独立响应和第三种关系测试证明绑定规则，最后让两支座重新稳定并恢复可辨双角色终态。
+
+Recommended beat pattern: `两个可见支座绑定双角色 + 共享响应 + 独立响应 + 第三种关系测试 + 所有权不互换 + 配对终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish two distinct graphic characters, each visibly bound to one stable physical support.
+- Change one measurable support parameter and make both characters answer through a readable shared response.
+- Apply a third materially different support relation or controller path without repeating the prior response.
+- Synchronize both supports and finish with two legible characters still attached to their original sides.

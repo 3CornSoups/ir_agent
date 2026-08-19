@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 对决节奏｜静止密战一击定局
+Summary: 先安静建立，进入连续密集交换，再用一次决定性干预、短暂假稳定和延迟结果终结。
+
+Recommended beat pattern: `两个主体/系统 + 可读静止 + 连续密集交换 + 一次决定性干预 + 短暂假稳定 + 延迟结果`
+
+Mandatory structural anchors (keep order and causality):
+- 安静建立可读
+- 中段交换连续且高密
+- 决定性干预只有一次
+- 假稳定后才出现不可逆结果

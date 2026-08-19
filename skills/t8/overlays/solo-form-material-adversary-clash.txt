@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 独演成敌｜动作材质凝成对手后碰撞
+Summary: 先用单一主体的完整动作建立可辨招式与材质签名，再让环境材质积累并凝成独立对手；中后段通过一次空间跃迁把双方拉入正面对抗，最后引入第二能量材质完成碰撞并回到主体可读终态。
+
+Recommended beat pattern: `单体招式与材质签名 + 环境材质凝成独立对手 + 空间跃迁建立对抗 + 第二能量材质碰撞 + 主体可读终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one subject's complete movement signature and its material trace before an opponent appears.
+- Accumulate the same environmental material around the subject before it gains agency.
+- Reserve a contrasting second material for one late clash peak.
+- After the collision, restore one readable subject state with the signature action or tool still identifiable.

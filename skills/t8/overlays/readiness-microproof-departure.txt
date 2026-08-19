@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 载具启程｜微观检查累积到离场证明
+Summary: 先建立载具与操作者，再用多个局部检查镜头逐项证明准备状态；一次明确激活把静态部件转成联动运动，最后以远景离场证明整套系统已投入使用。
+
+Recommended beat pattern: `原创操作者与载具 + 至少3项不同准备检查 + 1次明确激活 + 至少2个组件联动 + 广角持续离场证明`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one operator and one inactive carrier in a shared frame.
+- Give each close insert a different readiness job rather than repeating beauty details.
+- After activation, show at least two components responding in the same causal direction.
+- End with sustained travel in a wider spatial proof, not another static close-up.

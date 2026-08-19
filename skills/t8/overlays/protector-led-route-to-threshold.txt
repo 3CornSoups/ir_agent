@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 护送穿行｜关系确认到发光门槛
+Summary: 先用近距离动作建立保护者与需要护送者的关系，再让保护者转身确认路线、持续保持可见接触并穿过熟悉空间；晚段只跨越一个视觉明确的门槛，保持两人共同进入的证据。
+
+Recommended beat pattern: `保护者与被护送者 + 关系基线 + 路线确认 + 持续引导接触 + 共同跨越单一门槛`
+
+Mandatory structural anchors (keep order and causality):
+- Establish the protector and dependent role through visible contact before travel.
+- Show the protector choose or confirm one route before escorting.
+- Keep both identities and recurring landmarks traceable.
+- Cross one distinct threshold together and hold connection.

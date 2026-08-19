@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 世界换材｜主体不断线穿过环境突变
+Summary: 先用稳定地形和连续跟拍锁定主体路线，在一次明确冲击点让周围世界整体换成另一套物质规则；主体运动、方向和速度连续不断，最终用新世界中的可读出口证明不是普通转场。
+
+Recommended beat pattern: `连续移动主体 + 原世界基线 + 单次全局换材 + 方向速度不断线 + 新世界终点`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one subject, one travel axis and one ordinary environmental rule before conversion.
+- Keep subject identity, direction and motion continuous through the decisive instant.
+- Use passing geometry or material response to prove the new world persists around the same route.
+- End on continued travel toward a readable destination under the converted rule, not a reset to the opening world.

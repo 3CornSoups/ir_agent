@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 双人递进｜共享接触从地面升到空中峰值
+Summary: 先建立两个主体的深度差，再让同一次共享接触从低位逐级升高到唯一空中峰值，最后回到地面并停留在可读的关系终态。
+
+Recommended beat pattern: `两个身份稳定的主体 + 初始距离差 + 低位共同接触 + 至少1次中段升高 + 共享空中峰值 + 落地关系停留`
+
+Mandatory structural anchors (keep order and causality):
+- Establish two stable roles and a readable depth or distance gap before contact.
+- Use one committed approach to create the first low shared contact state.
+- Reserve one shared airborne or otherwise clearly highest joint event as the apex.
+- Return both roles to a grounded or baseline plane and hold their post-apex relationship without asserting an unsupported result.

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 动态承载｜平衡升级到失败落点
+Summary: 先让参与者在固定路线和稳定踏板上建立能力，再把她交给一个会滚动的动态承载面；用多机位持续证明平衡与位移，随后只做一次离开承载面的转移尝试，以清楚的腾空、落水和本人反应完成失败证明。
+
+Recommended beat pattern: `主体/路线/危险介质/终点 + 稳定穿越基线 + 动态承载面 + 持续平衡证明 + 单次转移失败 + 本人反应`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one participant, route direction, hazard medium and destination before the hard section.
+- Show a stable traversal phase before the moving support.
+- Sustain balance long enough to prove repeated body correction while preserving support and destination in shared geography.
+- Use one terminal transfer attempt and show miss, impact medium and the participant's reaction without an invented outcome claim.

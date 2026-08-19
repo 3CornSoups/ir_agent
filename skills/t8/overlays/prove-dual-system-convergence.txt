@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 双系统碰撞｜同时证明两种规则
+Summary: 先分别建立两个对立系统的独立规则，再让它们一次汇聚形成持久第三状态。
+
+Recommended beat pattern: `系统A材质/规则 + 系统B材质/规则 + 分别建立 + 一次汇聚碰撞 + 双方共同形成的第三状态`
+
+Mandatory structural anchors (keep order and causality):
+- 两个系统先独立成立
+- 材质或运动规则明确不同
+- 只发生一次关键汇聚
+- 第三状态同时保留双方证据

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 图形复位｜身份卡与动作证明交替
+Summary: 从一次紧凑的身份激活开始，让稳定的图形身份复位与短促的实拍动作证明交替出现；后段提高动作难度，最后把峰值动作轮廓收回到一帧完整主体锁定图中。
+
+Recommended beat pattern: `同一原创角色或机器 + 固定图形身份卡 + 至少2段不同动作证明 + 图形复位分隔 + 后段能力升级 + 动作轮廓回收到最终全身锁定`
+
+Mandatory structural anchors (keep order and causality):
+- Begin with one compact identity activation before showing the complete subject.
+- Establish one clearly different graphic reset mode that preserves subject silhouette and proportions.
+- Raise physical demand in the later action proof while keeping the same defining silhouette and direction cues.
+- Carry the peak action contour into the final graphic state and hold a complete-subject lockup.

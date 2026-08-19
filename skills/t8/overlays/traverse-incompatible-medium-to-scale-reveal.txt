@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 异质航行｜维修出发到巨尺度揭示
+Summary: 先用维修准备建立载具与成员，再让同一载具在不相容材质环境中持续航行；近景证明操控，远景证明速度与尺度，最后用巨尺度环境或生命体重构旅程大小。
+
+Recommended beat pattern: `载具与操作员 + 出发前准备 + 明确启动 + 不相容介质持续航行 + 近/远尺度证明 + 巨尺度揭示`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one carrier, its crew and a visible readiness task before departure.
+- Show an unambiguous engine or control engagement followed by departure.
+- Alternate local control proof with wider speed-and-scale proof.
+- Use a late giant-scale environmental, living or working-form reveal to reframe the journey's scale.

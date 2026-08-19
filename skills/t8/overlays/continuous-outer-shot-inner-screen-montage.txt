@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 屏中蒙太奇｜外层连续内屏切换
+Summary: 让一台带屏设备始终占据前景并保持外层镜头连续，只允许设备内屏在不同人物或状态间切换；外层背景、手部微调和真实视差持续证明同一现场，最后让内外两层的群体能量形成可读呼应。
+
+Recommended beat pattern: `实体显示设备 + 连续外层镜头 + 至少三种内屏状态 + 外层独立视差/遮挡 + 内外两层终态同框`
+
+Mandatory structural anchors (keep order and causality):
+- Introduce one physical display carrier and clearly separate its inner image from the outer world.
+- Keep the outer shot continuous with stable device, operator contact and environmental anchors.
+- Accumulate at least three distinguishable inner states without losing the display boundary.
+- End with the inner result, physical carrier and outer context readable together.

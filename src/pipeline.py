@@ -22,6 +22,12 @@ from .skill import (
     grid_coverage_gap,
     grid_keep_subjects_note,
 )
+from .mechanism_router import (
+    ROUTER_MODES as MECHANISM_ROUTER_MODES,
+    mechanism_block_for_user,
+    select_mechanisms,
+    writing_blocks_for_user,
+)
 from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
 from .verify import verify_and_fix
 from .video import generate_video
@@ -57,9 +63,9 @@ def _expand_user(
     *,
     inventory: str | None = None,
     mode: str,
-    style_block: str | None = None,
+    writing_block: str | None = None,
 ) -> str:
-    """构造扩写 USER：短意图 + 官方模式写作路径 + 可选库存与风格 skill。"""
+    """构造扩写 USER：短意图 + 官方模式写作路径 + 可选库存与写法块。"""
     lines = [
         f"Mode: {mode}. Expand the short intent. Do not output MiniMax fields yet.",
         f"Writing path: {expand_hint(mode)}",
@@ -72,8 +78,8 @@ def _expand_user(
         keep = grid_keep_subjects_note(inventory)
         if keep:
             lines.extend(["", keep])
-    if style_block:
-        lines.extend(["", style_block.rstrip()])
+    if writing_block:
+        lines.extend(["", writing_block.rstrip()])
     return "\n".join(lines)
 
 
@@ -191,14 +197,18 @@ def enhance(
     out_dir: Path | None = None,
     skills: list[str] | None = None,
     skill_router: str = "hybrid",
+    mechanisms: list[str] | None = None,
+    mechanism_router: str = "hybrid",
     enable_verify: bool = True,
     verify_intent_llm: bool | None = None,
 ) -> dict[str, Any]:
     """
-    跑完感知（若需要）→ 风格 skill 路由 → 扩写 → 注入官方指南后格式化。
+    跑完感知（若需要）→ 风格/机制路由 → 扩写 → 补细节 → 注入官方指南后格式化。
 
     skills: 强制加载的风格 skill id。
     skill_router: off / keyword / hybrid / llm。hybrid 时关键词未命中才问前置模型。
+    mechanisms: 强制加载的 T8 Creative DNA 机制 id。
+    mechanism_router: 机制路由模式，默认同 skill_router。
 
     Returns:
         含 prompt、各步原文、mode
@@ -298,10 +308,30 @@ def enhance(
             }
         )
 
+    mech_router_mode = (mechanism_router or "hybrid").strip().lower()
+    if mech_router_mode not in MECHANISM_ROUTER_MODES:
+        raise ValueError(f"mechanism_router 须为 {' / '.join(MECHANISM_ROUTER_MODES)}")
+    mech_sel = select_mechanisms(
+        intent,
+        inventory=inventory,
+        forced=mechanisms,
+        router=mech_router_mode,
+        classify=chat if mech_router_mode in {"hybrid", "llm"} else None,
+    )
+    mechanism_block = mechanism_block_for_user(mech_sel)
+    writing_block = writing_blocks_for_user(style_block, mechanism_block)
+    if mech_sel.ids:
+        steps.append(
+            {
+                "stage": "mechanism_route",
+                "text": f"source={mech_sel.source}; mechanisms={', '.join(mech_sel.ids)}",
+            }
+        )
+
     expand_sys = load_prompt("expand_intent")
     expanded = chat(
         expand_sys,
-        _expand_user(intent, inventory=inventory, mode=mode, style_block=style_block),
+        _expand_user(intent, inventory=inventory, mode=mode, writing_block=writing_block),
         stage="expand",
     )
     steps.append({"stage": "expand", "text": expanded})
@@ -377,6 +407,8 @@ def enhance(
         "elaborated": elaborated,
         "style_skills": style_sel.ids,
         "style_skill_source": style_sel.source,
+        "mechanisms": mech_sel.ids,
+        "mechanism_source": mech_sel.source,
         "prompt_official": official_prompt,
         "prompt": prompt,
         "verify": verify_result,
@@ -424,6 +456,8 @@ def run_job(
     compare_video: bool = False,
     skills: list[str] | None = None,
     skill_router: str = "hybrid",
+    mechanisms: list[str] | None = None,
+    mechanism_router: str = "hybrid",
     enable_verify: bool = True,
     verify_intent_llm: bool | None = None,
 ) -> dict[str, Any]:
@@ -445,6 +479,8 @@ def run_job(
         out_dir=out_dir,
         skills=skills,
         skill_router=skill_router,
+        mechanisms=mechanisms,
+        mechanism_router=mechanism_router,
         enable_verify=enable_verify,
         verify_intent_llm=verify_intent_llm,
     )

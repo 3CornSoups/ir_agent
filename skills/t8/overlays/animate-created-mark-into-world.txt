@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 画中物成真｜小光点变奇观
+Summary: 被创作的小标记获得自主性，跨出实体边界，扩张并改变真实环境。
+
+Recommended beat pattern: `被创作的小标记 + 获得自主性 + 越过实体边界 + 扩大/复制 + 改变环境`
+
+Mandatory structural anchors (keep order and causality):
+- 起点明确是被创作的标记
+- 先出现自主动作
+- 必须跨过真实边界
+- 扩张后改变环境而非只放大

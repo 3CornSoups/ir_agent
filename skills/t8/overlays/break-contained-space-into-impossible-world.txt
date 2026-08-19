@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 气闸异境｜物理异常后空间崩坏
+Summary: 先锁定普通密闭空间与遗留物，普通操作后让室内积累物理异常，再经短黑场开向不可能异境，用遗留物证明空间连续。
+
+Recommended beat pattern: `锁定密闭空间 + 普通操作检查 + 室内物理异常 + 连续见证物 + 不可能外部`
+
+Mandatory structural anchors (keep order and causality):
+- Lock one familiar enclosed-room geometry before the anomaly begins.
+- Place one ordinary operation or control check before the physical anomaly.
+- Preserve one inert witness object across the interruption.
+- Hold the impossible exterior and unchanged interior together after the occupant is absent or displaced.

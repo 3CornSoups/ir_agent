@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 固定机位｜从线稿生成成品
+Summary: 锁定构图，用不可逆的制作阶段让同一对象从草图逐步成为成品。
+
+Recommended beat pattern: `对象 + 固定构图 + 4个不可逆制作阶段 + 终态小动作`
+
+Mandatory structural anchors (keep order and causality):
+- 构图锁定
+- 同一对象连续成长
+- 至少四个不可逆阶段
+- 终态有轻微活化动作

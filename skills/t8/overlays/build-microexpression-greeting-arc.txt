@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 微表情问候｜侧身发现到笑容回稳
+Summary: 用近乎锁定的人像镜头完成五段微表情问候：侧身开始、建立直视、短暂垂眼停顿、闭眼笑容达到峰值，再回到开放而放松的表情；不换场景、不加大动作。
+
+Recommended beat pattern: `单一人像 + 侧身开始 + 稳定直视 + 垂眼停顿 + 1次峰值表情 + 开放表情回稳`
+
+Mandatory structural anchors (keep order and causality):
+- Begin from a readable side orientation rather than immediate frontal address.
+- Reach and hold direct gaze before the emotional peak.
+- Use one countable peak expression without a large body gesture.
+- Recover to an open relaxed state and hold.

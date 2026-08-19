@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 升级讽刺｜新物登场旧爱被移走
+Summary: 先建立对旧物的真诚依恋，再让升级与移走同时发生；群体把掌声转向新物，最后用完全认真的制度化终态保留未解决的反差。
+
+Recommended beat pattern: `被珍爱的旧物 + 一个具体依恋动作 + 新旧同时进出 + 群体掌声转移 + 真诚但不解决依恋的终态`
+
+Mandatory structural anchors (keep order and causality):
+- 先证明旧物被真诚珍爱
+- 用一个具体身体动作锁定依恋
+- 新物进入与旧物移走必须同镜同时发生
+- 群体掌声转向新物且不回应被移走者
+- 结尾保持制度化真诚并保留未解决依恋

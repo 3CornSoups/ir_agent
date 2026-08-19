@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 微缩闯关｜同一材质连续变形
+Summary: 让一个微型主体穿越同一巨型地形，地形依次变成路面、阻力、载体和弹性过渡，最后由一个外部尺度工具只进入一次完成跨越。
+
+Recommended beat pattern: `微型主体 + 单一巨型地形 + 同一材质至少3种连续物理角色 + 一次晚段外部桥梁 + 恢复自主的稳定结尾`
+
+Mandatory structural anchors (keep order and causality):
+- 开场先证明主体与地形尺度
+- 同一材质至少承担三种连续物理角色
+- 每次解决动作必须引出下一个材质状态
+- 外部尺度工具只在后段进入一次
+- 结尾主体恢复自主稳定状态

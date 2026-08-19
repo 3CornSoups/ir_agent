@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 渲染扫描｜局部带逐段改写整体
+Summary: 让一条边界清楚的活动带沿主体移动，带内即时显示转换后的媒介，带外继续保留原状态；多次通过累积覆盖整体，最后让扫描带退出以证明完整、稳定的转换结果。
+
+Recommended beat pattern: `稳定主体 + 边界清楚的转换带 + 新旧状态同框 + 单向累积覆盖 + 载体退出后的完整结果`
+
+Mandatory structural anchors (keep order and causality):
+- Establish a stable subject and composition before the first conversion pass.
+- Keep one readable moving boundary with old and new states visible at the same time.
+- Accumulate converted coverage in an ordered progression rather than resetting each pass.
+- Remove or deactivate the carrier only after the whole target region is converted and hold the stable result.

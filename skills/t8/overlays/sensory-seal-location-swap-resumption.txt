@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 感官封闭｜人群静止点到异地恢复
+Summary: 先让稳定主体成为高速群流中的静止参照，再用一次主动封闭感官的动作建立触发；镜头持续靠近并让环境运动加压，只在主体完全静止时发生一次全画幅换境，最后用同一身份、轴线和恢复动作证明空间已改变。
+
+Recommended beat pattern: `稳定主体与独立流动环境 + 一次完整感官封闭 + 环境继续运动 + 单次全画幅换境 + 同身份在新空间恢复动作`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one stable subject against independently moving surroundings before the trigger.
+- Use one deliberate bilateral or otherwise complete self-sealing gesture without changing location yet.
+- Replace the whole environment only once through a bounded full-frame perceptual wash while preserving the subject axis.
+- Restore the same identity in a materially different location and show one resumption action under the new physics.

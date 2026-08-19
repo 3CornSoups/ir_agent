@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 环境前沿｜局部点燃到全域占据
+Summary: 在同一地理中用一个可追踪的环境前沿逐阶段扩张：局部起点、连续蔓延、跨越地标、遮蔽更多空间，最终用广角证明场地状态已整体改变；不依赖来源中的战斗身份或火焰表面。
+
+Recommended beat pattern: `有边界环境 + 单一连续变化前沿 + 至少2个固定地标 + 占据面积逐级扩大 + 终态广角对照`
+
+Mandatory structural anchors (keep order and causality):
+- Establish a bounded environment, an untouched region and one localized starting front.
+- Grow one contiguous front instead of spawning unrelated effects everywhere.
+- Increase occupied area and material state, not just brightness.
+- Hold a final wide comparison showing transformed and residual untouched regions.

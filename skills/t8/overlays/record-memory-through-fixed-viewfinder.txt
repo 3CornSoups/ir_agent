@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 相机记忆｜固定取景框串联日常
+Summary: 一个固定相机取景界面贯穿多处日常空间，同一人物每到一处完成一个小动作，最后用手掌触镜物理结束记录。
+
+Recommended beat pattern: `同一人物 + 固定相机界面 + 至少3处连续路线空间 + 每处一个小动作 + 一个明确阈值过渡 + 触镜结束`
+
+Mandatory structural anchors (keep order and causality):
+- 同一原创相机界面全程不变
+- 同一人物穿过至少三处连续空间
+- 每处空间有一个小动作
+- 至少一次阈值或楼梯过渡
+- 结尾触镜物理结束记录

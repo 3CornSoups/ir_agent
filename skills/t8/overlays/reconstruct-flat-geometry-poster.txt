@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 平面重组｜几何节奏品牌片
+Summary: 稳定剪影与几何母题被反复拆解重组，在高密阶段后短暂停顿并收束为既有图形族。
+
+Recommended beat pattern: `单一几何母题 + 稳定剪影 + 反复拆解重组 + 高密阶段 + 短暂停顿 + 既有图形收束`
+
+Mandatory structural anchors (keep order and causality):
+- 只有一个几何母题
+- 主体剪影稳定
+- 拆解与重组多次发生
+- 高密后留短暂停顿并用既有图形收束

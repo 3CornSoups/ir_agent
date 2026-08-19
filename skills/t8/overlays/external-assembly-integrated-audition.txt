@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 外部装配｜逐件安装到整机动作验收
+Summary: 让大尺度外部操作手逐件改变一个稳定主体，每次安装都先用近景证明接合，再回到全身状态确认累积结果；完成细节校准后，必须用一段完整动作测试证明所有部件能共同工作。
+
+Recommended beat pattern: `稳定基础主体 + 分阶段外部装配 + 接合近景与全身复核 + 细节校准 + 整机动作验收`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one stable subject, assembly station and unmodified baseline.
+- Install major components one at a time and return to a whole-subject check after each stage.
+- Complete all small functional or decorative components before testing motion.
+- End with one integrated movement audition and a held complete state.

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 巨体攻防｜共享空间中的连续闪避
+Summary: 在不切断地理关系的连续镜头中，让巨体用慢而重的承诺动作占据空间，小体型主体则靠侧移、俯身和绕行依次穿过负空间；双方始终可定位，结尾保留持续对峙而非虚构胜负。
+
+Recommended beat pattern: `大小尺度明确的两主体 + 共享地面 + 巨体承诺动作 + 小体型可见变线 + 无虚构胜负的共享终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish the full scale difference and a common ground plane before the first exchange.
+- Give the large body one slow committed movement that visibly occupies a route.
+- Preserve both participants and the ground axis through each recovery.
+- Hold the final shared state without inventing defeat, rescue or alliance.

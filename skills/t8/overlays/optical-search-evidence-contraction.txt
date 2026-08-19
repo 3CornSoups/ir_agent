@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 光学搜索｜远景线索递进到细节确认
+Summary: 让同一受限光学视野承担完整搜索：先锁定远处地点，再沿一个可见异常逐级收紧到结构、主体和局部细节；每次靠近都回答一个更具体的问题，最后用极近特征完成确认而不是再切到全知镜头。
+
+Recommended beat pattern: `受限光学观察界面 + 远景地点线索 + 中景主体定位 + 近景身份细节 + 极近景反射或局部证据确认`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one persistent constrained optical interface and a distant geographic anchor.
+- Identify one unusual structural cue inside the same observed geography.
+- Stabilize one closer identity or function proof before the terminal detail.
+- End on one micro-detail that visibly echoes or verifies the opening geographic anchor.

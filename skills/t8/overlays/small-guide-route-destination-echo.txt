@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 微型引路｜重复现身到终点材质回声
+Summary: 用一个小型非语言向导先吸引注意，再让它在不同空间孔洞或路标处重复现身，带动主体与镜头沿连续路线深入；最终向导进入的目的地以同一材质、形状或色彩回声兑现前段承诺。
+
+Recommended beat pattern: `小型非语言向导 + 连续跟随路线 + 至少两次孔洞现身 + 向导先入终点 + 材质或图形回声`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one small moving guide and its scale relation before the destination is known.
+- Keep guide, follower and route direction spatially connected during movement.
+- Let the guide enter or indicate the final destination before the follower arrives.
+- Echo one established guide property in the destination result.

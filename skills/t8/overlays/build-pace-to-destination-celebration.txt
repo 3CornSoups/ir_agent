@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 步速到抵达｜目的地延迟出现并由环境庆祝
+Summary: 先建立安静旅人与尚未揭示的路线，再由步行提升到奔跑并扩大空间；目的地在投入行动后才出现，接近时由环境触发庆祝，最后三者同框收束。
+
+Recommended beat pattern: `安静旅人 + 步行转奔跑 + 延迟目的地揭示 + 环境庆祝 + 人路目的地同框`
+
+Mandatory structural anchors (keep order and causality):
+- Begin with a quiet traveler and no visible destination.
+- Increase pace while preserving one travel direction.
+- Use one environmental celebration triggered near approach.
+- Hold traveler, route and destination in one final field.

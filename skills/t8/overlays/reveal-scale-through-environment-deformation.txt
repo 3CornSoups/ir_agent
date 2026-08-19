@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 地貌变形揭示｜局部异常到巨体逼近
+Summary: 先让环境异常看起来仍像地貌，再只揭出一个身份特征；随后用高位或远景证明完整几何及其对环境的尺度影响，最后回到低位视点完成一次近距离逼近。
+
+Recommended beat pattern: `环境局部异常 + 单一身份特征 + 高位完整几何证明 + 环境尺度影响 + 低位近距离逼近`
+
+Mandatory structural anchors (keep order and causality):
+- Open on an environmental deformation that can still be mistaken for terrain.
+- Reveal one identifying feature while withholding most of the body.
+- Use one high or wide view to prove the complete geometry and its environmental consequence.
+- Return to a lower viewpoint for one bounded proximity breach.

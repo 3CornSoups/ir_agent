@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: UGC测评｜开箱到一口实证
+Summary: 真人与未开封产品同框起手，完整开箱后给一个关键微距证据，再完成真实使用，并让产品与变化后的反应一起收口。
+
+Recommended beat pattern: `出镜测评者 + 未开封产品 + 完整内容展示 + 一个产品专属微距证据 + 一次完整使用 + 产品与反应同框`
+
+Mandatory structural anchors (keep order and causality):
+- 开场测评者与未开封产品同框
+- 先完整展示内容再进入细节
+- 只有一个产品专属功能证据
+- 必须完成一次真实使用并保留结果
+- 结尾产品与变化后的反应同框

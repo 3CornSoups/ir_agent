@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 事故悬停｜主动取样后独自离场
+Summary: 把一次突发事故锁在最大混乱状态，让唯一仍能行动的主体穿过固定证据、主动取走其中几件物体并完成离场；悬停现场始终不复流，异常由主体独占行动权来证明。
+
+Recommended beat pattern: `日常多人场景 + 单次事故峰值悬停 + 唯一可动主体 + 两处主动取样 + 悬停不复流的离场`
+
+Mandatory structural anchors (keep order and causality):
+- Establish an ordinary routine and the routes of at least two participants before the accident.
+- Use one accident to distribute several independently readable objects across depth.
+- Have the mobile subject selectively remove at least two separated objects without releasing the rest.
+- End with the subject leaving while a wider view still proves the accident remains suspended.

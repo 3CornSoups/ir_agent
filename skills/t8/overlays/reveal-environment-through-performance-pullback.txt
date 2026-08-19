@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 表演让位于环境｜近脸到全景的连续退镜
+Summary: 从身份清楚的近脸表演开始，表演不中断，单次连续退镜把视觉主导权逐步从面部交给身体，再交给响应中的环境；结尾人物仍可辨，但环境成为主角。
+
+Recommended beat pattern: `近脸表演基准 + 连续后退镜头 + 逐层环境参照 + 人物动作不中断 + 人景关系全景终态`
+
+Mandatory structural anchors (keep order and causality):
+- Open close enough to establish one stable performer identity.
+- Keep one continuous performance thread through the camera retreat.
+- Transfer visual dominance through camera distance rather than a subject transformation.
+- End wide with both performer and responsive environment readable.

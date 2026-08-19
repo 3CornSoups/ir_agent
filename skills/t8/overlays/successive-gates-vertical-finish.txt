@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 连续变线｜逐层防守到垂直终结
+Summary: 先固定球场、球与篮筐关系，让持球者连续穿过多层可见防守门，每次用不同路线变化解决空间问题；最后只做一次垂直篮筐动作，并用人群反应与共享场地收束。
+
+Recommended beat pattern: `稳定主体与手持物 + 固定终点 + 至少3道可见空间门 + 每次不同变线 + 单次垂直终结 + 不虚构比分的反应终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one stable carrier, handled token and fixed terminal goal before escalation.
+- Use at least three visible spatial gates, each requiring a different route change.
+- Use the last route opening for one decisive vertical terminal action.
+- End on visible witness reaction and shared geography without asserting an unshown numerical result.

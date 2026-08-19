@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 互动图鉴｜固定菜单切换生物
+Summary: 菜单、数据区和主视窗固定不动，选择器逐项切换，每次让名称、参数与主视窗主体同步更新并完成一个定义动作。
+
+Recommended beat pattern: `固定选择菜单 + 固定数据区 + 固定主视窗 + 至少4个原创对象 + 每次可见选择 + 同步字段更新 + 一个定义动作`
+
+Mandatory structural anchors (keep order and causality):
+- 菜单、数据区和主视窗位置固定
+- 每次内容变化前必须有可见选择
+- 名称参数和主体同步更新
+- 每个被选主体完成一个定义动作
+- 结尾保持完整最终选择状态

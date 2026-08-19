@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 机械同行｜启动后稳定伴行
+Summary: 装置启动并达到阈值后带动负载，连续镜头证明它确实稳定跟随。
+
+Recommended beat pattern: `机械装置启动→达到可见阈值→负载起浮→连续镜头证明稳定跟随`
+
+Mandatory structural anchors (keep order and causality):
+- 启动过程可见
+- 阈值状态可读
+- 负载在阈值后才移动
+- 连续镜头证明稳定伴行

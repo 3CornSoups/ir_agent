@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 日程闭环｜重复锚点串联整日任务
+Summary: 从一个静止起点出发，用重复人物特征和随身物串联准备、出发、通勤与工作，并在片尾回到与开场相呼应的休息状态；高密度切换仍保持一天的因果顺序。
+
+Recommended beat pattern: `静止基地与时间提示 + 至少三项准备任务 + 身份/随身物锚点 + 通勤与目的地任务 + 返回基地休息`
+
+Mandatory structural anchors (keep order and causality):
+- Open on one inactive base state with a visible time or wake cue.
+- Build a readable readiness package through at least three distinct preparation duties.
+- Complete one visible destination duty before beginning the return.
+- Return the same identity and object anchors to the original base and settle into a resting state.

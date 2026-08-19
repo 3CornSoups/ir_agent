@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 工序递进｜多层处理到揭膜验收
+Summary: 固定同一处理表面，让不同工具或材料逐步改变下一步所需状态；晚段只揭除一次覆盖层，最后用独立检查动作证明稳定结果。
+
+Recommended beat pattern: `固定处理表面 + 多工具单一职责 + 层层累积 + 单次揭除 + 两种独立验收`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one stable treatment surface and baseline before application.
+- Give each tool or material a distinct visible duty.
+- Use one late covering-layer removal as the decisive reveal.
+- Verify the finished surface with a separate inspection action.

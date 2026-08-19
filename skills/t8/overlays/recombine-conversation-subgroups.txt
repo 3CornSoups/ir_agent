@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 分组对话覆盖｜两边接力后全桌合流
+Summary: 先用第一组双人镜头建立共享社交空间，在组内交接可见发言轮次，再切到桌对面的第二组完成独立回应阶段，最后用更宽构图让所有人物和同一桌面锚点合流；来源对白含义未知，只迁移可见轮次与覆盖顺序。
+
+Recommended beat pattern: `稳定群体空间 + 第一小组可见发言轮次 + 第二小组接力 + 1次非语言动作 + 全体同框收束`
+
+Mandatory structural anchors (keep order and causality):
+- Establish the first subgroup and shared table anchors before any cross-table cut.
+- Make speaking-turn ownership visibly readable within the first subgroup without assigning source meaning.
+- Give the second subgroup one distinct response phase and one listening witness.
+- Recombine all participants with the same spatial anchors in a held wide view.

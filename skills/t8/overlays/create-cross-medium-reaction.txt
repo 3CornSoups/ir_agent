@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 二维角色｜真人接触三级反应
+Summary: 真实世界一次接触触发平面角色的三级反应，并以媒介自身的变化收尾。
+
+Recommended beat pattern: `平面角色 + 真实场景 + 一次跨媒介接触 + 三级反应 + 媒介专属结尾`
+
+Mandatory structural anchors (keep order and causality):
+- 平面与真实媒介同框
+- 只有一次关键接触
+- 反应至少三级升级
+- 结尾由平面媒介自身完成

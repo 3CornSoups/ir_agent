@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 背景异常｜先被观众发现再由记录设备证实
+Summary: 先让异常出现在背景而人物继续日常活动，再用记录设备把异常隔离成证据；异常改变或离开记录画面后，人物才出现延迟反应。
+
+Recommended beat pattern: `背景异常先出现 + 前景保持日常 + 记录设备取证 + 证据场变化 + 延迟反应`
+
+Mandatory structural anchors (keep order and causality):
+- Reveal the anomaly to the viewer before the subjects notice it.
+- Keep foreground behavior ordinary during the first anomaly state.
+- Change the anomaly inside or against the evidence field.
+- Delay the human reaction until after the proof changes.

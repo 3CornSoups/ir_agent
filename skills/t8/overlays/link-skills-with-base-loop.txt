@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 技能展示｜基础动作串联升级
+Summary: 持续基础动作连接逐级高级技能，每个机位只证明一种运动，峰值后回到基础循环。
+
+Recommended beat pattern: `持续基础动作 + 3种高级技能 + 每次不同功能机位 + 节奏/接触声连续 + 回到基础动作`
+
+Mandatory structural anchors (keep order and causality):
+- 基础动作反复返回
+- 至少三项技能逐级变难
+- 每个机位只承担一种证明任务
+- 峰值后回到基础循环

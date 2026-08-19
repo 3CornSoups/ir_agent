@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 路线坍塌｜安全空间逐段消失
+Summary: 主体只朝固定终点前进，走过的路线单调消失，完全跨过阈值后最后连接才断开。
+
+Recommended beat pattern: `载体 + 固定方向和终点 + 已走路线逐段消失 + 当前段一次失稳 + 完全过阈值后最后断开`
+
+Mandatory structural anchors (keep order and causality):
+- 方向与终点固定
+- 后方路线只减不增
+- 当前段最多一次可恢复失稳
+- 主体完全过阈值后才断开最后连接

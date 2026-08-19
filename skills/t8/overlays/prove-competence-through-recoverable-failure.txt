@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 角色登场｜失误后借身体特征破局
+Summary: 先用居所、醒来反应和移动方式建立原创角色，再让技术任务发生可恢复失误；角色把自身独特身体特征当成工具完成破局，并以成果同框收束。
+
+Recommended beat pattern: `原创角色居所与移动 + 技术任务 + 可恢复失误 + 身体特征破局 + 成果同框`
+
+Mandatory structural anchors (keep order and causality):
+- Establish habitat, intimate reaction and locomotion before the technical task.
+- Show one skilled task with a readable intermediate state.
+- Use one identity-defining body feature as a practical tool in the solution.
+- End with the repaired or transformed object and a restrained competence pose together.

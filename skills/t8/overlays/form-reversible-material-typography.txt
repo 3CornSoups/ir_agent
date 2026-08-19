@@ -1,0 +1,18 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 材质字效｜霜花成字再归位
+Summary: 固定竖直玻璃先建立清晰基线，霜晶从同一表面长成一个短词，保持可读后融成真实水珠，最终恢复开场窗口形成闭环。
+
+Recommended beat pattern: `固定镜头 + 单一材质基线 + 同材质形成1个短词 + 可读停留 + 同一物理法则溶解 + 回到开场`
+
+Mandatory structural anchors (keep order and causality):
+- 先保持无字的固定材质基线
+- 所有字母由同一材质形成
+- 全片只出现一个可读短词
+- 用同一材料法则完成溶解
+- 镜头和空间锚点回到开场状态

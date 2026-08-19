@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 移动兑现｜载具跃迁到生活结果
+Summary: 用极短篇幅把载具身份、出发、性能跃迁、地理抵达和人的最终使用结果串成一条因果链；技术奇观必须被具体生活结果兑现，结尾不能停在无目的飞驰。
+
+Recommended beat pattern: `载具与起点 + 1次改变通行方式的能力跃迁 + 可追踪路线 + 抵达物微距 + 人物实际使用结果`
+
+Mandatory structural anchors (keep order and causality):
+- Establish the carrier and departure point before accelerating the route.
+- Use one visible capability upgrade that changes how the carrier traverses space.
+- Present the delivered object or service in tactile close detail at arrival.
+- End with a beneficiary visibly using the result.

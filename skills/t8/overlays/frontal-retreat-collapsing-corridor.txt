@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 正面撤退｜通道坍缩逼向唯一庇护
+Summary: 让主体面向威胁、背向目标持续后退，镜头以匹配速度倒退保持脸和来袭环境同框；危险从远端向前逐段占据通道，余量不断缩小，最终主体跨入唯一可见庇护并由边界闭合结束。
+
+Recommended beat pattern: `主体面向威胁后退 + 同轴危险逼近 + 分阶段空间压缩 + 唯一庇护门槛 + 单次边界闭合`
+
+Mandatory structural anchors (keep order and causality):
+- Establish a subject facing the threat while moving backward toward a visible route.
+- Advance the environmental hazard along the same corridor axis as the retreat.
+- Keep one protective threshold readable behind the subject before the final crossing.
+- Use one terminal crossing and visible boundary separation from the hazard.

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 窄路追逐｜连续压缩后豁然释放
+Summary: 让高速载具与镜头始终绑定在同一狭窄路线，连续用贴墙、拱洞、垂落物与隧道压缩可用空间；最后只经过一次最窄出口，突然释放到无遮挡的大尺度环境。
+
+Recommended beat pattern: `同一载具与路线轴 + 至少三种逐步收窄障碍 + 唯一最窄门槛 + 开阔空间释放`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one fast carrier, forward route and coupled camera before the first hard constriction.
+- Reduce usable clearance progressively with side, overhead and route obstacles.
+- Use one final tunnel or aperture as the narrowest visible compression.
+- Cross once into an obstacle-free large environment and let the camera widen or slow.

@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 风险揭晓｜证据交给人物反应
+Summary: 一次干预阻止风险，可读证据随后由有动机的镜头交接给人物反应。
+
+Recommended beat pattern: `紧急干预 + 隐藏风险 + 可视证据 + 有动机镜头交接 + 简短反应`
+
+Mandatory structural anchors (keep order and causality):
+- 先有干预冲突
+- 风险通过可视证据证明
+- 镜头交接有物理动机
+- 反应简短且改变后续行为

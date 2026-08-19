@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 尺度展开｜微小材质扩张后原样回收
+Summary: 先锁定一个可辨认的微小材质锚点与触发动作，让同一材质逐级扩张为更大结构和完整世界，再沿可追踪的反向路径把所有尺度层收回，最终回到与开场一致的原始锚点。
+
+Recommended beat pattern: `微小材质锚点 + 可见触发 + 至少两级尺度扩张 + 最大世界保持 + 沿同一谱系精确回收原点`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one compact material anchor, surrounding surface and visible trigger before expansion.
+- Let fragments of the anchor visibly generate the first larger structure.
+- Hold one complete maximum-scale world before contraction begins.
+- Reverse the same lineage and optical axis to restore the original anchor and trigger relationship.

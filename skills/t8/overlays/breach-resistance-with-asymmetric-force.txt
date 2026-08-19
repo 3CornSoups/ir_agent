@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 非对称突破｜密集阻力到空间制度改变
+Summary: 先建立防守目标与密集阻力场，再引入一个非对称运动力量；局部接触证明动量，广角证明推进，突破后改变空间制度，并以近景后果收束。
+
+Recommended beat pattern: `固定目标 + 密集阻力场 + 单一非对称力量 + 3次局部接触 + 突破改变空间`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one fixed objective and a dense visible resistance field.
+- Introduce one asymmetric force with a clear motion axis.
+- Return wide to show progress toward the boundary.
+- Let one breach change the spatial regime and hold the consequence.

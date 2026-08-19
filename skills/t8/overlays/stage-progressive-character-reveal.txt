@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 角色登场｜细节到全身揭晓
+Summary: 从标志细节开始，逐层扩展到面部、动作和全身英雄定格。
+
+Recommended beat pattern: `标志细节→局部轮廓→面部→一次动作→全身英雄定格`
+
+Mandatory structural anchors (keep order and causality):
+- 从可识别细节开始
+- 揭晓尺度逐步扩大
+- 角色只做一次代表动作
+- 以全身定格完成身份确认

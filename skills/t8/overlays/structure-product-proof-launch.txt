@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 产品广告｜功能证据递进
+Summary: 先给结果，再用多个可见证据逐层证明产品功能，最后收束到行动。
+
+Recommended beat pattern: `产品/服务 + 目标人群 + 3个不同证明状态 + 最终行动`
+
+Mandatory structural anchors (keep order and causality):
+- 先结果后证据
+- 至少三个不同证明状态
+- 证据必须可见且递进
+- 结尾有明确行动或产品收束

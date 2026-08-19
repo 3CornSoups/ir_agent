@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 连续推进｜重复地标计时并抵达更深通道
+Summary: 在受限通道中持续前进，以重复固定地标和门洞视差作为进度时钟；接近结尾时只转向或跨越一次可见边界，并停在材质更深的次级通道，不虚构检查、诊断或隐藏威胁。
+
+Recommended beat pattern: `连续受限通道 + 重复地标进度时钟 + 门洞视差逼近 + 单次边界跨越 + 更深次级通道终态`
+
+Mandatory structural anchors (keep order and causality):
+- Use one continuous constrained passage and stable travel axis.
+- Repeat fixed landmarks as a progress clock.
+- Turn or cross only once at the late visible threshold.
+- End inside a materially deeper secondary passage while retaining one prior-route edge.

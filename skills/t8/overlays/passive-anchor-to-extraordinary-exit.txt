@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 静态伏击｜从被动锚点升级到异能出口
+Summary: 先用长停留把主角固定在一个可读地点，再让威胁进入同一空间并逐次压缩活动余地；主角通过连续恢复和环境锚点维持身份与方向，最后只允许一次超常出口改变冲突状态。
+
+Recommended beat pattern: `被动主角与固定地点 + 威胁进入同一空间 + 连续受挫与恢复 + 至少2个环境锚点 + 仅1次超常出口`
+
+Mandatory structural anchors (keep order and causality):
+- Hold one passive protagonist and a stable location long enough to establish a true calm baseline.
+- Let threats enter the already established geography rather than cutting to a new arena.
+- Keep at least two environmental anchors readable through the action.
+- Reserve one extraordinary device or exit for the final state change.

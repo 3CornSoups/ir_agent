@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 手势对齐｜前景动作触发后景状态
+Summary: 固定分层构图先给出一个后景基准状态，前景动作沿清楚路径完成视线对齐，只触发一次状态变化，再通过保持、清开与回指确认结果持续。
+
+Recommended beat pattern: `固定前后景 + 可读基准状态 + 单一前景动作路径 + 一次对齐触发 + 状态保持 + 清开后确认`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one stable subject-target geography and one readable baseline state before the effector enters.
+- Use one unambiguous effector path that ends in a clean foreground-to-background alignment with the target.
+- Change exactly one target state during or immediately after the alignment, without asserting literal contact that is not shown.
+- End on the persistent changed state with one brief acknowledgment or recall gesture, not a second state change.

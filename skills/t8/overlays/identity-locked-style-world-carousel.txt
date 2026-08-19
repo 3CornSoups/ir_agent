@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 造型轮播变体｜同装束跨海报版式
+Summary: 同一高机位人物与服装持续锁定，背景从纯色肖像逐步切换到黑白字版、报刊拼贴和彩色剪贴；人物只做小幅姿态变化，每轮用更高的版式密度验证身份不丢失。作为同一身份锁定式风格世界轮播的短时长证据变体，不新增选择器。
+
+Recommended beat pattern: `固定主体身份与镜头关系 + 至少四个材质/版式不同的风格世界 + 每阶段改变两项风格通道 + 递增密度 + 可读身份终态`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one stable portrait with face, body proportions, orientation and camera axis readable before the first switch.
+- Use one repeatable transition gate while preserving the subject's facial identity and registration.
+- Pass through at least three materially different worlds while retaining the same identity anchors.
+- Return through the same gate to the opening world and portrait relationship.

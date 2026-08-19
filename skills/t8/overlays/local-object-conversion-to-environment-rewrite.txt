@@ -1,0 +1,17 @@
+T8 Creative DNA mechanism — scene-writing overlay only.
+
+Do not output MiniMax field names or final H3 prompts.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not reskin a reference case; preserve the user's subject and intent.
+Apply anchors as causal beat order, not as copied props or dialogue.
+
+Mechanism: 逐物改写｜局部对象到整片环境
+Summary: 保持同一第一视角和真实环境，使用一个持续可见的触发工具依次选中不同尺度对象；每次只改写一个局部对象并保留其位置关系，最后把相同转换规则扩大到整片环境。
+
+Recommended beat pattern: `连续真实环境 + 可见选择工具 + 至少三次局部对象改写 + 原位空间配准 + 一次整片环境改写`
+
+Mandatory structural anchors (keep order and causality):
+- Establish one continuous real environment and one visible selection tool.
+- Align the tool with one object before each local conversion.
+- Repeat the rule across at least three materially different object scales while keeping geography traceable.
+- Apply the established rule once to a whole environmental region and hold the boundary.
