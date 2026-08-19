@@ -1,0 +1,18 @@
+Hand-drawn glowing animation fused with live-action — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Must-haves:
+- A real lived-in space plus flat hand-drawn glowing animation.
+- First ~0–3s: a readable physical contact between a real hand/object and the drawing.
+- One entity continuously morphs and flees, leaving traces of earlier forms.
+- Handheld camera follows a half-beat late; do not dead-center lock.
+- Same or adjacent space, like walking while filming.
+
+Material sentence: crayon / chalk / colored pencil / pastel / rough brush; jittered lines, uneven fill, frayed edges, redrawn-frame feel.
+Tone: cute, domestic, nostalgic, gentle.
+End with a spatial spread of the drawing plus a small leftover gag.
+
+Forbidden: 3D CG, plush photoreal, even vector, smooth neon, horror eyes/teeth, black-frame jump scares.
+Sound: light room tone + contact; N/A if the user wants silence.

@@ -1,0 +1,11 @@
+Papercraft stop-motion explainer — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Look lock: cut-paper / cardstock / paper-toy materials, visible edges, slight stepped stop-motion increments, tabletop scale, craft lighting. Keep character costume, color, and set pieces continuous across shots.
+
+Explain by showing: one idea per beat, readable silhouette, handmade joints and folds. Camera is a physical craft camera (gentle push, tabletop pan), not a cinematic drone unless asked.
+
+Sound: paper rustle, light taps, stop-motion increments; optional naive instrument loop. N/A if the user wants silence.
+Negatives: photoreal skin, CGI metal, motion blur like live-action 24fps, watermark.

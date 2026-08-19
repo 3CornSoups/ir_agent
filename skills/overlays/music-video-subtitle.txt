@@ -1,0 +1,14 @@
+Lyric / beat-synced music-video typography — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Write three layers that stay in sync:
+- Vocal: who sings/speaks; lyrics inside <d> stay verbatim in the original language.
+- Typography: on-screen lyric or title placement, hold, and exit; treat type as a subject with composition, not as burned-in subtitles dumped at the bottom.
+- Visual: the picture that the lyric is scoring.
+
+Prefer beat-aware cuts or type hits. Do not invent lyrics. If the user gave no lyric text, describe vocal texture only and keep on-screen words N/A or user-supplied titles.
+
+non_diegetic_music should match the requested track (instruments/tempo) or N/A if the song is diegetic / already in <Audio>.
+Negatives: wrong lyrics, karaoke progress bar clutter, unreadable stacked lines, watermark.

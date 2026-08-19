@@ -140,8 +140,16 @@ def load_official_guide(mode: str) -> str:
     return path.read_text(encoding="utf-8").strip() + "\n"
 
 
-def compose_format_system(mode: str, overlay: str) -> str:
-    """把 agent 约束 overlay 与官方指南拼成 format 阶段的 SYSTEM。"""
+def compose_format_system(
+    mode: str,
+    overlay: str,
+    extra_guides: list[tuple[str, str]] | None = None,
+) -> str:
+    """把 agent 约束 overlay、官方指南、按需风格 skill 拼成 format 阶段的 SYSTEM。
+
+    优先级：官方字段名/对齐句/标签 > overlay > 风格 skill 写法。风格稿只提供题材方法论，不得改骨架。
+    extra_guides: (skill_id, 正文) 列表，通常来自 skill_router。
+    """
     guide = load_official_guide(mode)
     parts = [
         overlay.rstrip(),
@@ -151,6 +159,18 @@ def compose_format_system(mode: str, overlay: str) -> str:
         guide.rstrip(),
         "",
     ]
+    extras = [(sid, body) for sid, body in (extra_guides or []) if (body or "").strip()]
+    if extras:
+        parts.extend(
+            [
+                "--- Style skill overlays (methodology only; official field names/alignment still win) ---",
+                "Do not change MODE fields, [Shot N] spelling, <Picture>/<Subject> labeling, or alignment lines.",
+                "Do not mention aspect ratio, resolution, fps, or canvas size.",
+                "",
+            ]
+        )
+        for sid, body in extras:
+            parts.extend([f"### style skill: {sid}", body.rstrip(), ""])
     return "\n".join(parts)
 
 

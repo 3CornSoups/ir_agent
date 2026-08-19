@@ -6,15 +6,17 @@
 
 ## 管线
 
-格式化阶段会注入官方英文指南（`h3-prompt-writing/references/base-en.txt` 或 `ref-en.txt`），而不是只靠精简 overlay。关键帧模式会把静帧再附到格式化一步，避免身份/构图跑偏。
+感知（若需要）→ **风格 skill 路由**（可选）→ 扩写 → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay）。格式化阶段注入官方英文指南（`h3-prompt-writing/references/base-en.txt` 或 `ref-en.txt`），而不是只靠精简 overlay。关键帧模式会把静帧再附到格式化一步，避免身份/构图跑偏。
 
-| 模式 | HTTP 次数 | 步骤 |
+| 模式 | HTTP 次数（典型） | 步骤 |
 | --- | --- | --- |
-| t2va | 2 | 扩写意图 → 共用格式化（官方 base 指南） |
-| i2va | 3 | Flash Lite 看首帧 → 扩写 → 共用格式化（附首帧） |
-| fl2va | 3 | 看首尾帧 → 扩写 → 共用格式化（附首尾帧） |
-| l2va | 3 | 看尾帧 → 扩写 → 共用格式化（附尾帧） |
-| r2va | 3 | 看参考图/视频/音频 → 扩写 → 共用格式化（官方 ref 指南） |
+| t2va | 2–3 | 风格路由（可选）→ 扩写 → 格式化（官方 base 指南） |
+| i2va | 3–4 | 看首帧 → 风格路由（可选）→ 扩写 → 格式化（附首帧） |
+| fl2va | 3–4 | 看首尾帧 → 风格路由（可选）→ 扩写 → 格式化（附首尾帧） |
+| l2va | 3–4 | 看尾帧 → 风格路由（可选）→ 扩写 → 格式化（附尾帧） |
+| r2va | 3–4 | 看参考图/视频/音频 → 风格路由（可选）→ 扩写 → 格式化（官方 ref 指南） |
+
+风格路由在 `hybrid` 下：关键词能定则 **+0 次 HTTP**；未命中时前置模型读 `skills/catalog.yaml` 短描述并返回 JSON，**+1 次 HTTP**。`keyword` / `off` 不额外请求；`llm` 每次都 +1。
 
 参考图若是四宫格 / 九宫格，感知会按格扫完并列出该 `<Picture>` 里出现的全部 `<Subject>`；漏格时自动再扫一次（多 1 次 HTTP）。
 
@@ -33,6 +35,78 @@
 | `SKILL_en.md` / `SKILL_cn.md` | 工作流：定模式 → 读对应指南 → 保留字段名/顺序/标签 |
 | `references/base-en.txt` | T2VA / I2VA / FL2VA / L2VA 三字段写法 |
 | `references/ref-en.txt` | Ref2VA 六段、`<Subject>` / `<Picture>` / `<Video>` / `<Audio>` |
+
+中文 `base-cn.txt` / `ref-cn.txt` 只给人读；**运行时只注入英文指南**，避免 `[镜头 1]` 与官方英文骨架冲突。
+
+Ref2VA 标签跟官方一致：上传顺序只用来编号源素材；人设/风格图不要单独建 `<Picture>` 行，写进对应 `<Subject>`；只有真正当首帧/关键帧/尾帧/分镜锚点的图才出独立 Picture 行。
+
+### 动态风格 skill
+
+前置路由在扩写之前按意图加载题材写法（**不**加载 Hub 出片工具或确认门）。底座始终是 `h3-prompt-writing`；风格 overlay 只补叙事/画风，字段名仍以官方指南为准。
+
+写法压缩自 [MiniMax 官方 8 个题材 skill](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)、[swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) 与 [sjh00 分镜提示词技能集](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill)。
+
+| 路由 | 行为 |
+| --- | --- |
+| `hybrid`（默认） | 关键词命中则直接加载；未命中才让前置模型看 `skills/catalog.yaml` 短描述并返回 JSON |
+| `keyword` | 只靠触发词 |
+| `llm` | 每次都问前置模型 |
+| `off` | 不自动选；仍可用 `--skill` 强制加载 |
+
+```bash
+# 自动：品牌宣传意图会加载 brand-promo
+python3 scripts/run.py -m t2va --intent "给产品拍一支品牌宣传片，结尾 CTA" --no-video
+
+# 强制 3D 动画写法
+python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" --skill 3d-animation --skill-router off --no-video
+```
+
+可选 id：`brand-promo`、`minimalist-product-ad`、`3d-animation`、`papercraft-stop-motion`、`paper-collage`、`music-video-subtitle`、`co-op-game-intro`、`handdrawn-live`。
+
+#### 本仓库目录
+
+| 路径 | 用途 |
+| --- | --- |
+| `skills/catalog.yaml` | 风格 skill 目录：id、description、triggers、overlay 路径 |
+| `skills/overlays/*.txt` | 各题材的写法 overlay（只进扩写/格式化，不改 H3 字段骨架） |
+| `prompts/route_skills.txt` | 前置路由 SYSTEM：只返回 `{"skills":[...]}` JSON |
+| `src/skill_router.py` | 关键词 / LLM / 强制指定 三路合并 |
+| `src/skill.py` → `compose_format_system()` | overlay + 官方指南 + 风格 overlay 拼接 |
+
+#### 参考仓库与本仓库的对应关系
+
+写法与目录结构参考了以下开源仓库；**本仓库是「Gemini 扩写 + 官方 H3 格式化 + 可选 H3 出片」管线**，不是 WorkBuddy / MiniMax Hub 的逐步确认工作流。
+
+| 参考仓库 | 借了什么 | 刻意没借什么（避免冲突） |
+| --- | --- | --- |
+| [MiniMax-AI/MiniMax-H3](https://github.com/MiniMax-AI/MiniMax-H3) `skills/h3-prompt-writing` | `h3-prompt-writing/references/base-en.txt`、`ref-en.txt`；字段名/对齐句/标签规则 | Hub 工具（`hub_generate_*`）、`agents/openai.yaml` 运行时依赖 |
+| [MiniMax-AI/MiniMax-H3](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills) 八个题材 skill | 8 个题材的叙事/画风方法论，压缩为 `skills/overlays/` | 逐步确认门、`AskUserQuestion`、自动生图/剪辑/出片 |
+| [swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) | 「只产出提示词、不调用出片 API」的分层思路；题材 skill 与 `h3-prompt-writing` 解耦 | WorkBuddy 安装路径、交付物门、`image-prompt-writer-local` / `ace-step-1.5-prompt-writer`（未接入本管线） |
+| [sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill) | 中文分镜 → 终稿字段的「先题材写法、再压三字段/六段」顺序 | 独立分镜 Markdown 交付物；运行时仍由本仓库统一格式化 |
+
+其它可参考但未直接 vend 的仓库：[joeVenner/awesome-minimax-h3](https://github.com/joeVenner/awesome-minimax-h3)（API 编排 skill）、[ComfyUI Wiki 官方 skill 说明](https://comfyui-wiki.com/en/news/2026-08-10-minimax-h3-official-skills)。
+
+#### 已消解的提示词冲突
+
+| 冲突点 | 旧行为 / 风险 | 当前行为 |
+| --- | --- | --- |
+| Ref2VA `<Picture>` | overlay 写「一个附件 = 一个 Picture」，与官方「人设图只进 Subject」矛盾 | `format_h3.txt` 对齐官方：仅首/关键/尾/分镜锚点才独立 Picture 行 |
+| 中文指南注入 | `base-cn.txt` 含 `[镜头 1]`、部分对齐句中译，会与英文骨架冲突 | 运行时 **只** 注入 `base-en.txt` / `ref-en.txt`；中文文件仅供人读 |
+| 风格 skill vs 官方字段 | 题材 skill 可能自带字段名或画幅 | 优先级：官方指南 > `format_h3.txt` overlay > 风格 overlay；overlay 内禁止改 MODE 骨架与画幅 |
+| Hub 题材 skill 全文 | 含 `allowed-tools`、确认门、出片步骤 | 只提取「写法」段落，写入 `skills/overlays/`，不进入感知/路由 SYSTEM |
+
+#### 官方题材 skill → 本仓库 overlay 映射
+
+| 官方 / 分镜版 skill 名 | 本仓库 id | overlay 文件 |
+| --- | --- | --- |
+| `brand-promo-video-generator` | `brand-promo` | `skills/overlays/brand-promo.txt` |
+| `minimalist-product-ad-generator` | `minimalist-product-ad` | `skills/overlays/minimalist-product-ad.txt` |
+| `3d-animation-short-generator` | `3d-animation` | `skills/overlays/3d-animation.txt` |
+| `papercraft-stop-motion-explainer` | `papercraft-stop-motion` | `skills/overlays/papercraft-stop-motion.txt` |
+| `paper-collage-explainer-generator` | `paper-collage` | `skills/overlays/paper-collage.txt` |
+| `music-video-subtitle-generator` | `music-video-subtitle` | `skills/overlays/music-video-subtitle.txt` |
+| `co-op-game-intro-generator` | `co-op-game-intro` | `skills/overlays/co-op-game-intro.txt` |
+| `handdrawn-live-video-generator` | `handdrawn-live` | `skills/overlays/handdrawn-live.txt` |
 
 ### 宫格 / 多主体
 
@@ -124,7 +198,25 @@ python3 scripts/run.py -m l2va --intent "杯子从桌边滑落摔碎" \
 # r2va（可附四宫格 / 九宫格人设图）
 python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
   --ref-image face.png --ref-video walk.mp4 --duration 5 --no-video
+
+# 风格 skill：自动路由（默认 hybrid）
+python3 scripts/run.py -m t2va --intent "给产品拍一支品牌宣传片，结尾 CTA" --no-video
+
+# 风格 skill：强制指定 + 关闭自动路由
+python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" \
+  --skill 3d-animation --skill-router off --no-video
+
+# 风格 skill：只用关键词，不问路由模型
+python3 scripts/run.py -m t2va --intent "Apple 风极简产品广告" \
+  --skill-router keyword --no-video
 ```
+
+CLI 风格相关参数：
+
+| 参数 | 说明 |
+| --- | --- |
+| `--skill ID` | 强制加载风格 skill，可重复（最多 2 个，见 `catalog.yaml`） |
+| `--skill-router MODE` | `hybrid`（默认）/ `keyword` / `llm` / `off` |
 
 ## 可选：对比本地/官方提示词 + 视频（report 里会自动包含 diff）
 
@@ -142,7 +234,7 @@ python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compa
 | `prompt_official_raw.txt` | 官方/raw 提示词（未清洗） |
 | `expanded.txt` | 第一次扩写稿 |
 | `inventory.txt` | 关键帧 / r2va 的参考理解（宫格会含 Layout 与各格 Subject） |
-| `run.json` | 元数据 |
+| `run.json` | 元数据（含 `style_skills`、`style_skill_source` 若命中题材） |
 | `out_local.mp4` | 成片（未加 `--no-video` 时，基于 local prompt） |
 | `out_official.mp4` | （可选）成片（加 `--compare-video` 时，基于 official/raw prompt） |
 | `report.json` / `report.md` / `prompt_diff.txt` | 提示词对比报告（总是生成） |
@@ -154,6 +246,9 @@ python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compa
 ```bash
 pip install -r test/requirements.txt
 ./test/run_tests.sh
+
+# 风格路由与 R2VA Picture 规则
+pytest -q test/test_skill_router.py test/test_pipeline.py
 ```
 
 默认不跑本地 MiniMax-H3 出片。需要时：

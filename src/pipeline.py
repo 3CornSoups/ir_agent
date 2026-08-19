@@ -22,6 +22,7 @@ from .skill import (
     grid_coverage_gap,
     grid_keep_subjects_note,
 )
+from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -53,8 +54,9 @@ def _expand_user(
     *,
     inventory: str | None = None,
     mode: str,
+    style_block: str | None = None,
 ) -> str:
-    """构造扩写 USER：短意图 + 官方模式写作路径 + 可选库存。"""
+    """构造扩写 USER：短意图 + 官方模式写作路径 + 可选库存与风格 skill。"""
     lines = [
         f"Mode: {mode}. Expand the short intent. Do not output MiniMax fields yet.",
         f"Writing path: {expand_hint(mode)}",
@@ -67,6 +69,8 @@ def _expand_user(
         keep = grid_keep_subjects_note(inventory)
         if keep:
             lines.extend(["", keep])
+    if style_block:
+        lines.extend(["", style_block.rstrip()])
     return "\n".join(lines)
 
 
@@ -173,9 +177,14 @@ def enhance(
     reference_audios: list[str] | None = None,
     duration: int | None = None,
     out_dir: Path | None = None,
+    skills: list[str] | None = None,
+    skill_router: str = "hybrid",
 ) -> dict[str, Any]:
     """
-    跑完感知（若需要）→ 扩写 → 注入官方指南后格式化。
+    跑完感知（若需要）→ 风格 skill 路由 → 扩写 → 注入官方指南后格式化。
+
+    skills: 强制加载的风格 skill id。
+    skill_router: off / keyword / hybrid / llm。hybrid 时关键词未命中才问前置模型。
 
     Returns:
         含 prompt、各步原文、mode
@@ -255,15 +264,35 @@ def enhance(
             inventory = rescanned
             steps.append({"stage": rescan, "text": inventory})
 
+    router_mode = (skill_router or "hybrid").strip().lower()
+    if router_mode not in ROUTER_MODES:
+        raise ValueError(f"skill_router 须为 {' / '.join(ROUTER_MODES)}")
+    style_sel = select_style_skills(
+        intent,
+        inventory=inventory,
+        forced=skills,
+        router=router_mode,
+        classify=chat if router_mode in {"hybrid", "llm"} else None,
+    )
+    style_block = style_block_for_user(style_sel)
+    extra_guides = style_sel.overlay_pairs()
+    if style_sel.ids:
+        steps.append(
+            {
+                "stage": "skill_route",
+                "text": f"source={style_sel.source}; skills={', '.join(style_sel.ids)}",
+            }
+        )
+
     expand_sys = load_prompt("expand_intent")
     expanded = chat(
         expand_sys,
-        _expand_user(intent, inventory=inventory, mode=mode),
+        _expand_user(intent, inventory=inventory, mode=mode, style_block=style_block),
         stage="expand",
     )
     steps.append({"stage": "expand", "text": expanded})
 
-    format_sys = compose_format_system(mode, load_prompt("format_h3"))
+    format_sys = compose_format_system(mode, load_prompt("format_h3"), extra_guides)
     format_text = _format_user(mode, expanded, inventory=inventory, duration=dur)
     if mode in KEYFRAME_MODES:
         frame_images = [p for p in (first_frame, last_frame) if p]
@@ -292,6 +321,8 @@ def enhance(
         "reference_audios": audios,
         "inventory": inventory,
         "expanded": expanded,
+        "style_skills": style_sel.ids,
+        "style_skill_source": style_sel.source,
         "prompt_official": official_prompt,
         "prompt": prompt,
         "steps": steps,
@@ -335,6 +366,8 @@ def run_job(
     make_video: bool = True,
     wait_video: bool = True,
     compare_video: bool = False,
+    skills: list[str] | None = None,
+    skill_router: str = "hybrid",
 ) -> dict[str, Any]:
     """增强 prompt，可选调用 H3 出片。画幅/分辨率只进视频 API。"""
     h3 = h3_settings()
@@ -352,6 +385,8 @@ def run_job(
         reference_audios=reference_audios,
         duration=dur,
         out_dir=out_dir,
+        skills=skills,
+        skill_router=skill_router,
     )
     rec["ratio_api"] = ratio or (h3["default_ratio"] if mode == "t2va" else "adaptive")
     rec["resolution_api"] = resolution or h3["default_resolution"]

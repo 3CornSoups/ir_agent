@@ -1,0 +1,15 @@
+Two-player co-op game intro / main menu — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Priority: user visual style > menu layout lock > character identity anchors from references (face/hair/glasses only; redraw faces in the chosen style).
+
+Layout lock unless the user overrides: dual characters as the center, player cards, a vertical menu, Continue as the visual focus. Left/right identities and names must not swap. Menu labels stay single-line. Color count stays small; red only as a danger accent.
+
+A useful 15s event spine (compress if the duration hint is shorter):
+establish both characters and readable menu → P1 light loadout → P2 heavy loadout → confirm / pulse / stand → LOADING as 2D menu continuously becomes the 3D world → third-person enter world + HUD.
+
+Do not describe split-screen gameplay unless asked. Do not copy real commercial UI chrome.
+Sound: menu UI ticks → mechanical lock → world ambience.
+Negatives: swapped identities, identical body types, garbled menu type, watermark.

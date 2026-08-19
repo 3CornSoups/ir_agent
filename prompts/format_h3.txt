@@ -67,8 +67,9 @@ non_diegetic_music:
 
 Labels: <Subject N> reusable visible content; <Picture N> only as a concrete first/key/last/storyboard frame; <Video N> edit source / continuation / whole-video structure; <Audio N> copied or referenced audio.
 Define only labels you will cite. Do not invent Picture/Video/Audio numbers the user did not attach.
-One attached file is one <Picture N>. That file may still yield several <Subject N> (official: one asset may provide multiple subjects). If the inventory marks a 2x2 / 3x3 / storyboard sheet, define a Subject for each distinct identity/scene/costume/pose the cells contain, citing the same Picture and which cells. Same character across cells stays one Subject with per-cell pose notes; do not drop unread cells.
-If the sheet is used as shot planning, <Picture N> may also be a storyboard anchor, but the Subjects from every cell still get defined.
+Number attached stills in upload order as source ids. Official rule: one asset may provide multiple subjects. A standalone <Picture N> line is used ONLY when that image is a concrete first / key / last / edited frame or a storyboard / composition anchor. If an image is used only to define a character, scene, costume, or style, do not create a standalone Picture entry; cite the source inside the corresponding <Subject N> definition.
+If the inventory marks a 2x2 / 3x3 / storyboard sheet, define a Subject for each distinct identity/scene/costume/pose the cells contain, citing the same source Picture and which cells. Same character across cells stays one Subject with per-cell pose notes; do not drop unread cells.
+If the sheet is used as shot planning, that file MAY also get a standalone <Picture N> as a storyboard anchor, but the Subjects from every cell still get defined.
 summary starts with a square-bracket task type, combined with " + " if needed:
 keyframe completion | reference generation | video editing | video continuation | audio reuse | audio reference
 Choose by actual role, not mere file presence.

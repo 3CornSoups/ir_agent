@@ -1,0 +1,16 @@
+Stylized 3D animation short — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Default look (unless the user specifies another 3D style):
+Pixar-inspired 3D cartoon, C4D+Octane look, stylized proportions, warm SSS skin, clear hair silhouette, elastic squash-and-stretch. NOT photoreal, NOT flat anime, NOT plastic toy.
+
+Writing path inside the scene note:
+- Lock character identity (silhouette, costume, face) and scene landmarks (door frame, ground plane, light side).
+- Prefer a six-column mental shot table: duration, continuity handoff, spatial anchors, hook, per-second action, audio/dialogue.
+- Per second cover pose/expression, camera, space, and sound. No empty seconds.
+- Important speaking characters ≤ 3. Hooks such as reveal / reversal / callback / chase / tender.
+
+Final prose must be natural English identity/scene locks. Do not emit storyboard tags like [char:] [scene:] [hook:].
+Negatives: photoreal skin, stiff anatomy, storyboard overlay labels, watermark.

@@ -25,6 +25,19 @@ def main() -> int:
     p.add_argument("--ref-image", action="append", default=[], help="r2va 参考图，可重复")
     p.add_argument("--ref-video", action="append", default=[], help="r2va 参考视频，可重复")
     p.add_argument("--ref-audio", action="append", default=[], help="r2va 参考音频，可重复")
+    p.add_argument(
+        "--skill",
+        action="append",
+        default=[],
+        dest="skills",
+        help="强制加载风格 skill id（如 brand-promo），可重复",
+    )
+    p.add_argument(
+        "--skill-router",
+        default="hybrid",
+        choices=("off", "keyword", "hybrid", "llm"),
+        help="风格 skill 路由：off / keyword / hybrid（默认，关键词未命中才问模型） / llm",
+    )
     p.add_argument("--duration", type=int, default=None, help="出片秒数 4–15；省略则从意图推断")
     p.add_argument("--ratio", default=None, help="出片画幅，只走视频 API；t2va 默认 16:9")
     p.add_argument("--resolution", default=None, choices=("768P", "2K"), help="出片分辨率")
@@ -55,8 +68,12 @@ def main() -> int:
         make_video=not args.no_video,
         wait_video=not args.no_wait,
         compare_video=args.compare_video,
+        skills=args.skills or None,
+        skill_router=args.skill_router,
     )
     print(f"[{rec['mode']}] prompt → {Path(rec['out_dir']) / 'prompt.txt'}")
+    if rec.get("style_skills"):
+        print(f"[{rec['mode']}] skills → {', '.join(rec['style_skills'])} ({rec.get('style_skill_source')})")
     if rec.get("video", {}).get("video_path"):
         print(f"[{rec['mode']}] video → {rec['video']['video_path']}")
     elif rec.get("video", {}).get("task_id"):

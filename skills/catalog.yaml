@@ -1,0 +1,155 @@
+# 风格 skill 目录：前置路由只看 id/description/triggers，命中后再读 overlay。
+# 底座 h3-prompt-writing 始终在 format 阶段加载，不走本表。
+# 写法压缩自官方 MiniMax-H3 skills 与 sjh00 分镜版，去掉 Hub/确认门/出片工具。
+
+max_skills: 2
+
+skills:
+  - id: brand-promo
+    title: Brand promo
+    overlay: overlays/brand-promo.txt
+    description: >
+      Brand / product / website / app launch or campaign short. Logo lockup,
+      official claims, CTA, product proof, SaaS capability reel.
+    triggers:
+      - 品牌
+      - 宣传片
+      - 广告片
+      - 发布会
+      - 官网
+      - 卖点
+      - 号召
+      - CTA
+      - brand promo
+      - promotional
+      - product launch
+      - logo lockup
+      - call to action
+      - campaign
+
+  - id: minimalist-product-ad
+    title: Minimalist product ad
+    overlay: overlays/minimalist-product-ad.txt
+    description: >
+      Apple-keynote / minimal negative-space product film. Preserve product
+      body color; single-line on-screen copy; no grid or split-screen.
+    triggers:
+      - 极简
+      - 苹果风
+      - 产品广告
+      - 产品片
+      - 留白
+      - Apple
+      - keynote
+      - minimalist product
+      - product ad
+      - product film
+      - negative space
+
+  - id: 3d-animation
+    title: Stylized 3D animation
+    overlay: overlays/3d-animation.txt
+    description: >
+      Stylized 3D cartoon short (Pixar/C4D look), character lock, per-second
+      shot table. Not photoreal live-action.
+    triggers:
+      - 三维动画
+      - 3D动画
+      - 3D 动画
+      - 卡通短片
+      - 皮克斯
+      - Pixar
+      - stylized 3D
+      - 3D cartoon
+      - C4D
+      - squash and stretch
+      - 定格感三维
+
+  - id: papercraft-stop-motion
+    title: Papercraft stop-motion
+    overlay: overlays/papercraft-stop-motion.txt
+    description: >
+      Papercraft / paper-toy stop-motion explainer. Craft materials, stepped
+      motion, character and set continuity.
+    triggers:
+      - 纸艺
+      - 定格
+      - 纸模型
+      - 手工纸
+      - papercraft
+      - stop-motion
+      - stop motion
+      - paper toy
+      - paper craft
+
+  - id: paper-collage
+    title: Paper collage explainer
+    overlay: overlays/paper-collage.txt
+    description: >
+      Halftone paper-collage explainer. Cut paper, printed texture, collage
+      camera, educational beats.
+    triggers:
+      - 纸拼贴
+      - 拼贴
+      - 半调
+      - 科普动画
+      - paper collage
+      - collage explainer
+      - halftone
+      - cut paper
+
+  - id: music-video-subtitle
+    title: Lyric / MV subtitle
+    overlay: overlays/music-video-subtitle.txt
+    description: >
+      Music video with on-screen lyrics or beat-synced typography. Vocal /
+      typography / visual layers.
+    triggers:
+      - 歌词
+      - 卡点
+      - MV
+      - 字幕 MV
+      - 音乐视频
+      - lyric video
+      - music video
+      - karaoke
+      - typography
+      - beat-synced
+      - beat synced
+
+  - id: co-op-game-intro
+    title: Co-op game intro
+    overlay: overlays/co-op-game-intro.txt
+    description: >
+      Two-player co-op game main-menu or intro: dual identities, menu UI,
+      load-in to world. Not a playable build spec.
+    triggers:
+      - 双人
+      - 合作游戏
+      - 主菜单
+      - 开场动画
+      - co-op
+      - coop
+      - game intro
+      - main menu
+      - character select
+      - split-screen game
+
+  - id: handdrawn-live
+    title: Hand-drawn × live-action
+    overlay: overlays/handdrawn-live.txt
+    description: >
+      Live-action space fused with glowing hand-drawn animation; physical
+      contact in the first seconds; half-beat handheld follow.
+    triggers:
+      - 手绘
+      - 实拍融合
+      - 蜡笔
+      - 粉笔
+      - 彩铅
+      - hand-drawn
+      - handdrawn
+      - live-action mix
+      - crayon
+      - chalk drawing
+      - mixed media doodle

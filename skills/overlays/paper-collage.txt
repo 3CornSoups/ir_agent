@@ -1,0 +1,10 @@
+Halftone paper-collage explainer — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Look lock: cut-out printed paper, halftone dots, glue-down layers, magazine/textbook texture, analog collage camera. Educational beats: introduce → show parts → recombine → takeaway.
+
+Keep type sparse and in-image. Transitions are layer lifts, wipes of paper, or matched cut-outs — not glossy UI cards.
+Sound: paper slides, scissors, light analog room; optional lo-fi bed. N/A if ambience-only.
+Negatives: photoreal live-action, 3D plastic, dense HUD, watermark.

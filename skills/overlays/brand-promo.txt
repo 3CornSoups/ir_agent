@@ -1,0 +1,18 @@
+Brand / product / website promo — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not invent logos, product UI, claims, metrics, or CTAs. Use only user-stated or inventory-verified facts; otherwise mark as concept copy.
+
+Story spines (pick one, keep one primary action per beat):
+- SaaS / AI: intent → planning → capability → execution → output → proof → logo
+- Physical product: hero reveal → interaction → feature macro → usage context → result → logo
+- Service / company: context → process → evidence → outcome → promise → logo
+- Image-led brand: authentic imagery → visual motif → benefit → emotional payoff → logo
+
+Beats: about 5–8 for a ~15s clip. Product motion, UI flow, light, or matched edges drive transitions. No fake HUD, unverified metric walls, or decorative text stacks.
+
+Identity assets (logo, packing, official UI, mascot, real person): preserve; never redraw or approximate. Abstract motion layers (gradients, grids, particles, type, charts) are allowed.
+
+On-screen copy and CTA: verbatim confirmed wording only. Language follows the brand/campaign, not the chat language.
+Sound: brand-safe instrumental + light UI; N/A if the intent wants silence / ambience only.

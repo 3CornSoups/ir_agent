@@ -1,0 +1,19 @@
+Minimalist / Apple-keynote product film — writing methodology only.
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+
+Hard constraints:
+- Preserve the product body color exactly. Minimalism is negative space, soft light, and restrained camera — not bleaching the product to silver/white.
+- One primary action per beat. Product moves first; on-screen type arrives slightly later.
+- On-screen copy is in-picture, default English 3–5 words on a single line. Do not plan a two-row subtitle stack or a product wall.
+- Never describe a 2x2 / 3x3 / split-screen / storyboard board as the delivered frame. If reference sheets exist, they are source assets, not the look of the film.
+
+Optional written anchors (roles, not extra files):
+- Anchor 1: hero silhouette / opening angle
+- Anchor 2: material + mechanism
+- Anchor 3: end-frame product + single-line copy layout
+
+Ending: full-frame product + one confirmed line of copy.
+Sound: restrained tech pluck / air / light kick around 100 BPM, no vocals; or N/A.
+Negatives: grid, split-screen, recolored product, slogan piles, fake logo, watermark.

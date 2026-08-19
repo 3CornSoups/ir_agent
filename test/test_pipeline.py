@@ -90,6 +90,8 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         return f"SYS_{stem}\n"
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            return '{"skills":[]}'
         if stage == "expand":
             return "EXPANDED 16:9 aspect ratio"
         if stage == "format":
@@ -130,6 +132,8 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         return f"SYS_{stem}\n"
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            return '{"skills":[]}'
         if stage == "perceive":
             return "INVENTORY"
         if stage == "expand":
@@ -185,6 +189,8 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
         return f"SYS_{stem}\n"
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            return '{"skills":[]}'
         if stage == "perceive":
             return "INVENTORY"
         if stage == "expand":
@@ -234,6 +240,8 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         return f"SYS_{stem}\n"
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            return '{"skills":[]}'
         if stage == "perceive":
             return "INVENTORY LAST"
         if stage == "expand":
@@ -279,6 +287,14 @@ def test_compose_format_system_injects_official_guide() -> None:
     assert load_official_guide("t2va") in t2va_sys
     assert "subject_definitions" in r2va_sys
     assert load_official_guide("r2va") in r2va_sys
+
+    extra = compose_format_system(
+        "t2va",
+        overlay,
+        extra_guides=[("brand-promo", "Use a product-proof story spine.")],
+    )
+    assert "style skill: brand-promo" in extra
+    assert "official field names/alignment still win" in extra
 
 
 def test_alignment_line_matches_official_wording() -> None:
@@ -326,6 +342,8 @@ def test_perceive_prompts_cover_grid_subjects() -> None:
     assert "3x3" in refs
     fmt = load_prompt("format_h3")
     assert "one asset may provide multiple subjects" in fmt
+    assert "do not create a standalone Picture" in fmt
+    assert "One attached file is one <Picture N>" not in fmt
     expand = load_prompt("expand_intent")
     assert "4-grid" in expand or "9-grid" in expand
 
@@ -342,6 +360,8 @@ def test_enhance_r2va_rescans_incomplete_grid(
         return f"SYS_{stem}\n"
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            return '{"skills":[]}'
         if stage == "perceive":
             calls["perceive"] += 1
             if calls["perceive"] == 1:
@@ -393,4 +413,87 @@ def test_enhance_r2va_rescans_incomplete_grid(
     ]
     assert "cell 2,2" in rec["inventory"]
     assert "orange tabby cat in four poses" in rec["inventory"]
+
+
+def test_enhance_loads_brand_skill_from_intent(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """品牌宣传意图应在扩写/格式化前注入 brand-promo overlay，且不再问路由模型。"""
+    import src.pipeline as pipeline_mod
+
+    seen: dict[str, str] = {}
+
+    def load_prompt_mock(stem: str) -> str:
+        return f"SYS_{stem}\n"
+
+    def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            raise AssertionError("关键词命中后不应再走前置路由模型")
+        if stage == "expand":
+            seen["expand_user"] = user if isinstance(user, str) else str(user)
+            return "EXPANDED brand reel"
+        if stage == "format":
+            seen["format_sys"] = system
+            return (
+                "integrated_multimodal_description: [Shot 1] product proof\n\n"
+                "overall_soundscape: light UI ticks\n\n"
+                "non_diegetic_music: N/A"
+            )
+        raise AssertionError(f"unexpected stage: {stage}")
+
+    monkeypatch.setattr(pipeline_mod, "load_prompt", load_prompt_mock)
+    monkeypatch.setattr(pipeline_mod, "chat", chat_mock)
+
+    rec = enhance(
+        "t2va",
+        "给产品拍一支品牌宣传片，结尾 CTA 和 logo lockup",
+        duration=8,
+        out_dir=tmp_path / "out_brand",
+        skill_router="hybrid",
+    )
+    assert rec["style_skills"] == ["brand-promo"]
+    assert rec["style_skill_source"] == "keyword"
+    assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "format"]
+    assert "style skill: brand-promo" in seen["expand_user"]
+    assert "style skill: brand-promo" in seen["format_sys"]
+    assert "Official H3 writing guide" in seen["format_sys"]
+
+
+def test_enhance_forced_skill_off_router(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """router=off 时只加载 --skill 指定的 overlay。"""
+    import src.pipeline as pipeline_mod
+
+    def load_prompt_mock(stem: str) -> str:
+        return f"SYS_{stem}\n"
+
+    def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage == "route":
+            raise AssertionError("off 模式不应调用路由模型")
+        if stage == "expand":
+            assert "style skill: 3d-animation" in (user if isinstance(user, str) else "")
+            return "EXPANDED"
+        if stage == "format":
+            assert "style skill: 3d-animation" in system
+            return (
+                "integrated_multimodal_description: [Shot 1] cartoon\n\n"
+                "overall_soundscape: N/A\n\n"
+                "non_diegetic_music: N/A"
+            )
+        raise AssertionError(f"unexpected stage: {stage}")
+
+    monkeypatch.setattr(pipeline_mod, "load_prompt", load_prompt_mock)
+    monkeypatch.setattr(pipeline_mod, "chat", chat_mock)
+
+    rec = enhance(
+        "t2va",
+        "一只橘猫在窗台晒太阳",
+        duration=5,
+        out_dir=tmp_path / "out_forced",
+        skills=["3d-animation"],
+        skill_router="off",
+    )
+    assert rec["style_skills"] == ["3d-animation"]
+    assert rec["style_skill_source"] == "forced"
 
