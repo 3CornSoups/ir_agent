@@ -45,6 +45,7 @@ def write_report(
             "official": prompt_official,
             "local": prompt_local,
         },
+        "verify": record.get("verify") or {},
         "video": {
             "official": video_official,
             "local": video_local,
@@ -74,6 +75,17 @@ def write_report(
     md.append(prompt_local.strip())
     md.append("```")
     md.append("")
+
+    verify = record.get("verify") or {}
+    if verify:
+        md.append("## 质量校验")
+        md.append("")
+        md.append(f"status: {verify.get('status')} (errors={verify.get('errors')}, warnings={verify.get('warnings')}, fixed={verify.get('fixed')})")
+        md.append("")
+        for issue in verify.get("issues") or []:
+            md.append(f"- [{issue.get('severity')}] {issue.get('code')}: {issue.get('message')}")
+        md.append("")
+
     md.append("### Unified Diff")
     md.append("```")
     md.append(diff_text.rstrip())

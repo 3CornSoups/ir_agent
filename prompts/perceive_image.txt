@@ -16,6 +16,8 @@ Role of each label:
 - FL2VA: <Picture 1> is the opening; <Picture 2> is the ending. Do not invent the motion path between them.
 - L2VA: <Picture 1> is the LAST frame only; it does not belong to Shot 1.
 
+For each labeled picture, after the factual notes, add a short paragraph starting with "What it can provide:" and list the reusable dimensions, for example: character identity / costume & style / lighting / environment / pose or action / first-or-last-frame anchor / storyboard structure. This feeds the later subject_definitions step, so distinguish "an image that defines a reusable subject" from "a concrete frame anchor".
+
 Do not invent a story beyond what is visible.
 Do not mention aspect ratio, resolution, fps, canvas size, or pixel dimensions.
 Do not output MiniMax field names. Plain labeled paragraphs only.

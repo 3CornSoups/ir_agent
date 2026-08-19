@@ -6,6 +6,8 @@ Canvas / aspect ratio / resolution / fps / pixel size never belong in any field 
 
 Shared constraints (all MODE values):
 - English prose. Keep original language inside <d> and for on-screen text; never translate it. Never write [Mandarin].
+- <d>[Language] content</d>: the language tag MUST match the actual written language of the content. Never label Chinese, Japanese, Korean, Arabic, or Cyrillic content as [English], and never write English-only content under a non-Latin tag.
+- integrated_multimodal_description is the main body: cover opening composition, subject appearance and position, environment layers, key props, actions and reactions, camera motion, and synchronized sound — not a plot summary. A 5-second single-shot clip should read like a full shot-by-shot production description.
 - [Shot 1] has no timestamp. Later shots: [Shot N] At 00:SS.mmm with strictly increasing times inside the duration hint.
 - Do not write the clip duration into the three core fields. Keyframe alignment lines MUST use S.SS = the duration hint, two decimal places.
 - Ordinary cuts: the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.

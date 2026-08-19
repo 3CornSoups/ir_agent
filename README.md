@@ -1,20 +1,28 @@
 # ir_agent：MiniMax-H3 官方增强管线的替代 Agent
 
-短意图先扩写，再按官方 [`h3-prompt-writing`](h3-prompt-writing/SKILL_en.md) skill 整理成 MiniMax-H3 Context-IR 字段；画幅、分辨率、时长只走视频 API，不写进 prompt。
+短意图先扩写、补细节，再按官方 [`h3-prompt-writing`](h3-prompt-writing/SKILL_en.md) skill 整理成 MiniMax-H3 Context-IR 字段，最后做一次质量校验；画幅、分辨率、时长只走视频 API，不写进 prompt。
 
 仓库：<https://github.com/3CornSoups/ir_agent>
 
 ## 管线
 
-感知（若需要）→ **风格 skill 路由**（可选）→ 扩写 → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay）。格式化阶段注入官方英文指南（`h3-prompt-writing/references/base-en.txt` 或 `ref-en.txt`），而不是只靠精简 overlay。关键帧模式会把静帧再附到格式化一步，避免身份/构图跑偏。
+感知（若需要）→ **风格 skill 路由**（可选）→ 扩写 → **补细节** → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay + 官方完整输出范例 few-shot）→ **质量校验**（规则硬校验 + 失败时自动 LLM 修复）。
+
+- 感知阶段在事实库存末尾追加 `What it can provide`，区分「可复用主体」与「帧锚点」，供 `subject_definitions` 正确抽象 `<Subject>`。
+- 扩写阶段明确要求写出声音层（环境声 / 动作声 / 配乐器乐速度节奏）。
+- 补细节阶段（`prompts/elaborate.txt`）把场景散文提升到官方 Context-IR 的详略级别（构图 / 环境层次 / 道具 / 微动作 / 镜头 / 光 / 声音）。
+- 格式化阶段注入官方完整输出范例（`src/examples.py`），稳定字段顺序与详略级别。
+- 质量校验（`src/verify.py`）规则层免费：字段骨架与顺序、关键帧对齐句、时间戳单调、参考标签编号与使用、`<d>[语言]` 匹配、画幅残留；有 error 时自动让模型修一次（`prompts/verify_fix.txt`），修复后重新校验。
 
 | 模式 | HTTP 次数（典型） | 步骤 |
 | --- | --- | --- |
-| t2va | 2–3 | 风格路由（可选）→ 扩写 → 格式化（官方 base 指南） |
-| i2va | 3–4 | 看首帧 → 风格路由（可选）→ 扩写 → 格式化（附首帧） |
-| fl2va | 3–4 | 看首尾帧 → 风格路由（可选）→ 扩写 → 格式化（附首尾帧） |
-| l2va | 3–4 | 看尾帧 → 风格路由（可选）→ 扩写 → 格式化（附尾帧） |
-| r2va | 3–4 | 看参考图/视频/音频 → 风格路由（可选）→ 扩写 → 格式化（官方 ref 指南） |
+| t2va | 3–4 | 风格路由（可选）→ 扩写 → 补细节 → 格式化（官方 base 指南） |
+| i2va | 4–5 | 看首帧 → 风格路由（可选）→ 扩写 → 补细节 → 格式化（附首帧） |
+| fl2va | 4–5 | 看首尾帧 → 风格路由（可选）→ 扩写 → 补细节 → 格式化（附首尾帧） |
+| l2va | 4–5 | 看尾帧 → 风格路由（可选）→ 扩写 → 补细节 → 格式化（附尾帧） |
+| r2va | 4–5 | 看参考图/视频/音频 → 风格路由（可选）→ 扩写 → 补细节 → 格式化（官方 ref 指南） |
+
+质量校验的 LLM 修复最多 1 次；`--verify-intent-llm` 可再开启一次意图一致性检查（对原始意图 vs 最终提示词，不新增剧情/不丢要点）。两种 LLM 调用都失败/无用时不影响出 prompt，结果记入 `run.json` 与 report。
 
 风格路由在 `hybrid` 下：关键词能定则 **+0 次 HTTP**；未命中时前置模型读 `skills/catalog.yaml` 短描述并返回 JSON，**+1 次 HTTP**。`keyword` / `off` 不额外请求；`llm` 每次都 +1。
 
@@ -209,14 +217,36 @@ python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" \
 # 风格 skill：只用关键词，不问路由模型
 python3 scripts/run.py -m t2va --intent "Apple 风极简产品广告" \
   --skill-router keyword --no-video
+
+# 质量校验：关闭校验 / 开启 LLM 意图一致性检查
+python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --no-verify --no-video
+python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --verify-intent-llm --no-video
 ```
 
-CLI 风格相关参数：
+CLI 风格与校验相关参数：
 
 | 参数 | 说明 |
 | --- | --- |
 | `--skill ID` | 强制加载风格 skill，可重复（最多 2 个，见 `catalog.yaml`） |
 | `--skill-router MODE` | `hybrid`（默认）/ `keyword` / `llm` / `off` |
+| `--no-verify` | 关闭质量校验（含规则与自动修复） |
+| `--verify-intent-llm` | 开启 LLM 意图一致性检查（对比原始意图与最终提示词，+1 次调用） |
+
+## 可选：对照官方 Context-IR（`scripts/compare_context_ir.py`）
+
+对同一组「意图 + 素材」，分别生成本地 agent 提示词与官方 H3-Context-IR 提示词，输出并排对照报告（结构校验 / 估算 token / 差异）：
+
+```bash
+# 只生成本地提示词（无官方 key）
+python3 scripts/compare_context_ir.py -m t2va --intent "一只橘猫在窗台晒太阳"
+
+# 同时调用官方 API
+python3 scripts/compare_context_ir.py -m r2va --intent "保持人设走路" \
+  --ref-image face.png --ref-video walk.mp4 --official-key 您的key \
+  --official-base-url https://api.minimaxi.com
+```
+
+输出在 `runs/compare_<时间>/`：`local_prompt.txt`、`official_prompt.txt`、`compare_report.md`、`compare.json`。之后可分别用本地 H3 与官方管线出片做人工质量对比。
 
 ## 可选：对比本地/官方提示词 + 视频（report 里会自动包含 diff）
 
@@ -230,11 +260,12 @@ python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compa
 
 | 文件 | 内容 |
 | --- | --- |
-| `prompt.txt` | 本地优化后的最终字段（cleaned） |
+| `prompt.txt` | 本地优化后的最终字段（cleaned，可能含校验修复） |
 | `prompt_official_raw.txt` | 官方/raw 提示词（未清洗） |
 | `expanded.txt` | 第一次扩写稿 |
+| `elaborated.txt` | 补细节后的场景散文 |
 | `inventory.txt` | 关键帧 / r2va 的参考理解（宫格会含 Layout 与各格 Subject） |
-| `run.json` | 元数据（含 `style_skills`、`style_skill_source` 若命中题材） |
+| `run.json` | 元数据（含 `style_skills`、`style_skill_source`、`verify` 校验结果） |
 | `out_local.mp4` | 成片（未加 `--no-video` 时，基于 local prompt） |
 | `out_official.mp4` | （可选）成片（加 `--compare-video` 时，基于 official/raw prompt） |
 | `report.json` / `report.md` / `prompt_diff.txt` | 提示词对比报告（总是生成） |
@@ -249,6 +280,9 @@ pip install -r test/requirements.txt
 
 # 风格路由与 R2VA Picture 规则
 pytest -q test/test_skill_router.py test/test_pipeline.py
+
+# 质量校验规则
+pytest -q test/test_verify.py
 ```
 
 默认不跑本地 MiniMax-H3 出片。需要时：

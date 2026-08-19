@@ -52,6 +52,8 @@ def gemini_settings() -> dict[str, Any]:
                 native_url = f"https://genaiapi.cloudsway.net/v1/ai/{endpoint}/generateContent"
     else:
         native_url = ""
+    # 质量校验行为配置（规则层无成本；LLM 层需显式开启）
+    verify_cfg = cfg.get("verify") or {}
     return {
         "api_key": api_key,
         "endpoint": endpoint,
@@ -62,6 +64,10 @@ def gemini_settings() -> dict[str, Any]:
         "timeout_sec": float(cfg.get("timeout_sec") or 300),
         "max_retries": int(cfg.get("max_retries") or 3),
         "decode": cfg.get("decode") or {},
+        "verify": {
+            "intent_llm": bool(verify_cfg.get("intent_llm", False)),
+            "max_fix_rounds": max(0, int(verify_cfg.get("max_fix_rounds", 1))),
+        },
     }
 
 

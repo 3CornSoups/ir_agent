@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 
 from .config import ROOT
+from .examples import official_example
 
 SKILL_DIR = ROOT / "h3-prompt-writing"
 BASE_MODES = ("t2va", "i2va", "fl2va", "l2va")
@@ -159,6 +160,17 @@ def compose_format_system(
         guide.rstrip(),
         "",
     ]
+    # 注入与当前模式匹配的官方完整范例，稳定字段结构与详略级别。
+    example = official_example(mode)
+    if example:
+        parts.extend(
+            [
+                "--- Example output (official, complete) — match its detail level and exact field layout ---",
+                "",
+                example.rstrip(),
+                "",
+            ]
+        )
     extras = [(sid, body) for sid, body in (extra_guides or []) if (body or "").strip()]
     if extras:
         parts.extend(

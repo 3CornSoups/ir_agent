@@ -107,6 +107,8 @@ def test_agent_prompt_structure_mocked(case_id: str, monkeypatch: pytest.MonkeyP
             return "INVENTORY: <Picture 1> 人物外观; <Video 1> 动作节奏"
         if stage == "expand":
             return "EXPANDED SCENE 16:9 768P"
+        if stage == "elaborate":
+            return "EXPANDED SCENE DETAIL"
         fields = expected_fields(case["mode"])
         return "\n\n".join(f"{f}: [Shot 1] placeholder 16:9 768P 24fps" for f in fields)
 

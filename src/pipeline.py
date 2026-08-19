@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .config import ROOT, h3_settings, load_prompt
+from .config import ROOT, gemini_settings, h3_settings, load_prompt
 from .gemini import chat
 from .media import user_parts
 from .report import write_report
@@ -23,12 +23,13 @@ from .skill import (
     grid_keep_subjects_note,
 )
 from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
+from .verify import verify_and_fix
 from .video import generate_video
 
 CANVAS_RE = re.compile(
-    r"(?:,\s*)?(?:\d+:\d+\s*)?(?:aspect ratio|canvas size|resolution|帧率|画幅)[^.;，。]*|"
-    r"(?:16:9|9:16|21:9|4:3|3:4|1:1)\s*(?:aspect ratio|横屏|竖屏)?|"
-    r"\b(?:768P|2K|1280x720|1920x1080|\d+\s*fps)\b",
+    r"(?:,\s*)?(?:\d+:\d+[ \t]*)?(?:aspect ratio|canvas size|resolution|帧率|画幅)[^.;，。\n]*|"
+    r"(?:16:9|9:16|21:9|4:3|3:4|1:1)[ \t]*(?:aspect ratio|横屏|竖屏)?|"
+    r"\b(?:768P|2K|1280x720|1920x1080|\d+[ \t]*fps)\b",
     re.I,
 )
 DURATION_RE = re.compile(r"(?:约|大概)?\s*(\d{1,2})\s*秒")
@@ -42,8 +43,10 @@ def infer_duration(intent: str, fallback: int = 5) -> int:
 
 
 def strip_canvas(text: str) -> str:
-    """去掉误写入字段的画幅/分辨率/帧率。"""
+    """去掉误写入字段的画幅/分辨率/帧率，保留段落换行结构。"""
     cleaned = CANVAS_RE.sub(" ", text)
+    cleaned = re.sub(r"[ \t]+\n", "\n", cleaned)
+    cleaned = re.sub(r"\n[ \t]+", "\n", cleaned)
     cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     return cleaned.strip() + "\n"
@@ -166,6 +169,15 @@ def _perceive_keyframes(
     return _rescan_if_grid_incomplete(system, inventory, text=text, images=images)
 
 
+def _elaborate_user(expanded: str, inventory: str | None) -> str:
+    """构造补细节 USER：扩写稿 + 可选库存。"""
+    lines = ["Expand the scene note below to official Context-IR detail level."]
+    if inventory:
+        lines.extend(["", "Reference inventory:", inventory.strip()])
+    lines.extend(["", "Scene note:", expanded.strip()])
+    return "\n".join(lines)
+
+
 def enhance(
     mode: str,
     intent: str,
@@ -179,6 +191,8 @@ def enhance(
     out_dir: Path | None = None,
     skills: list[str] | None = None,
     skill_router: str = "hybrid",
+    enable_verify: bool = True,
+    verify_intent_llm: bool | None = None,
 ) -> dict[str, Any]:
     """
     跑完感知（若需要）→ 风格 skill 路由 → 扩写 → 注入官方指南后格式化。
@@ -292,6 +306,15 @@ def enhance(
     )
     steps.append({"stage": "expand", "text": expanded})
 
+    # 补细节：把扩写稿提升到官方 Context-IR 的详略级别（散文，未进字段）。
+    elaborate_sys = load_prompt("elaborate")
+    elaborated = chat(
+        elaborate_sys,
+        _elaborate_user(expanded, inventory),
+        stage="elaborate",
+    )
+    steps.append({"stage": "elaborate", "text": elaborated})
+
     format_sys = compose_format_system(mode, load_prompt("format_h3"), extra_guides)
     format_text = _format_user(mode, expanded, inventory=inventory, duration=dur)
     if mode in KEYFRAME_MODES:
@@ -309,6 +332,35 @@ def enhance(
     prompt = ensure_alignment_prefix(mode, strip_canvas(raw_prompt), dur)
     steps.append({"stage": "format", "text": prompt})
 
+    # 质量校验：规则硬校验，存在 error 时自动 LLM 修复一次。
+    verify_cfg = gemini_settings().get("verify") or {}
+    max_fix_rounds = int(verify_cfg.get("max_fix_rounds", 1)) if enable_verify else 0
+    if verify_intent_llm is None:
+        verify_intent_llm = bool(verify_cfg.get("intent_llm", False))
+    if mode in KEYFRAME_MODES:
+        frame_images = [p for p in (first_frame, last_frame) if p]
+        verify_imgs, verify_vids, verify_auds = len(frame_images), 0, 0
+    else:
+        verify_imgs = len(images) if mode == "r2va" else 0
+        verify_vids = len(videos) if mode == "r2va" else 0
+        verify_auds = len(audios) if mode == "r2va" else 0
+    verify_result = verify_and_fix(
+        mode,
+        prompt,
+        duration=dur,
+        images=verify_imgs,
+        videos=verify_vids,
+        audios=verify_auds,
+        chat=chat if enable_verify else None,
+        intent=intent,
+        inventory=inventory,
+        check_intent_llm=bool(verify_intent_llm and enable_verify),
+        max_fix_rounds=max_fix_rounds,
+    )
+    if verify_result["prompt"] != prompt:
+        prompt = verify_result["prompt"]
+        steps.append({"stage": "verify_fix", "text": prompt})
+
     record: dict[str, Any] = {
         "mode": mode,
         "intent": intent,
@@ -321,10 +373,12 @@ def enhance(
         "reference_audios": audios,
         "inventory": inventory,
         "expanded": expanded,
+        "elaborated": elaborated,
         "style_skills": style_sel.ids,
         "style_skill_source": style_sel.source,
         "prompt_official": official_prompt,
         "prompt": prompt,
+        "verify": verify_result,
         "steps": steps,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -338,6 +392,7 @@ def enhance(
             encoding="utf-8",
         )
         (out_dir / "expanded.txt").write_text(expanded.strip() + "\n", encoding="utf-8")
+        (out_dir / "elaborated.txt").write_text(elaborated.strip() + "\n", encoding="utf-8")
         if inventory:
             (out_dir / "inventory.txt").write_text(inventory.strip() + "\n", encoding="utf-8")
         slim = {k: v for k, v in record.items() if k != "steps"}
@@ -368,6 +423,8 @@ def run_job(
     compare_video: bool = False,
     skills: list[str] | None = None,
     skill_router: str = "hybrid",
+    enable_verify: bool = True,
+    verify_intent_llm: bool | None = None,
 ) -> dict[str, Any]:
     """增强 prompt，可选调用 H3 出片。画幅/分辨率只进视频 API。"""
     h3 = h3_settings()
@@ -387,6 +444,8 @@ def run_job(
         out_dir=out_dir,
         skills=skills,
         skill_router=skill_router,
+        enable_verify=enable_verify,
+        verify_intent_llm=verify_intent_llm,
     )
     rec["ratio_api"] = ratio or (h3["default_ratio"] if mode == "t2va" else "adaptive")
     rec["resolution_api"] = resolution or h3["default_resolution"]

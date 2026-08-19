@@ -18,6 +18,17 @@ decode:
   expand:
     temperature: 0.7
     top_p: 0.95
+  elaborate:
+    temperature: 0.6
+    top_p: 0.9
   format:
     temperature: 0.2
     top_p: 0.9
+  verify:
+    temperature: 0.2
+    top_p: 0.9
+
+# 质量校验：规则层无额外调用；LLM 意图检查需显式开启
+verify:
+  intent_llm: false
+  max_fix_rounds: 1

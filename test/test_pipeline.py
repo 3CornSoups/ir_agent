@@ -83,7 +83,7 @@ def test_build_content_roles_and_types() -> None:
 
 
 def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """enhance 编排在 t2va 下应只走 expand + format 两步。"""
+    """enhance 编排在 t2va 下应走 expand + elaborate + format 三步。"""
     import src.pipeline as pipeline_mod
 
     def load_prompt_mock(stem: str) -> str:
@@ -94,8 +94,14 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return '{"skills":[]}'
         if stage == "expand":
             return "EXPANDED 16:9 aspect ratio"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB"
         if stage == "format":
-            return "RAW_PROMPT 16:9 resolution 768P fps 24."
+            return (
+                "integrated_multimodal_description: [Shot 1] cat 16:9\n\n"
+                "overall_soundscape: room tone\n\n"
+                "non_diegetic_music: N/A 768P fps 24."
+            )
         raise AssertionError(f"unexpected stage: {stage}")
 
     monkeypatch.setattr(pipeline_mod, "load_prompt", load_prompt_mock)
@@ -111,7 +117,7 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
 
     assert rec["mode"] == "t2va"
     assert rec["duration"] == 7
-    assert [s["stage"] for s in rec["steps"]] == ["expand", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["expand", "elaborate", "format"]
 
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
@@ -125,7 +131,7 @@ def test_enhance_i2va_requires_first_frame(tmp_path: Path) -> None:
 
 
 def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """enhance 在 i2va 下应走 perceive + expand + format。"""
+    """enhance 在 i2va 下应走 perceive + expand + elaborate + format。"""
     import src.pipeline as pipeline_mod
 
     def load_prompt_mock(stem: str) -> str:
@@ -138,8 +144,16 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return "INVENTORY"
         if stage == "expand":
             return "EXPANDED"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB"
         if stage == "format":
-            return "RAW_PROMPT 16:9"
+            return (
+                "For the target video, at 0.00 seconds into the target video, "
+                "<Picture 1> (from [Shot 1]) is fully referenced.\n\n"
+                "integrated_multimodal_description: [Shot 1] walk forward 16:9\n\n"
+                "overall_soundscape: street\n\n"
+                "non_diegetic_music: N/A"
+            )
         raise AssertionError(f"unexpected stage: {stage}")
 
     monkeypatch.setattr(pipeline_mod, "load_prompt", load_prompt_mock)
@@ -158,7 +172,7 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     )
 
     assert rec["mode"] == "i2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert prompt_text.startswith(
@@ -182,7 +196,7 @@ def test_enhance_l2va_requires_last_frame(tmp_path: Path) -> None:
 
 
 def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """enhance 在 fl2va 下应走 perceive + expand + format，并对齐句使用真实时长。"""
+    """enhance 在 fl2va 下应走 perceive + expand + elaborate + format，并对齐句使用真实时长。"""
     import src.pipeline as pipeline_mod
 
     def load_prompt_mock(stem: str) -> str:
@@ -195,6 +209,8 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
             return "INVENTORY"
         if stage == "expand":
             return "EXPANDED"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB"
         if stage == "format":
             return (
                 "How the reference pictures align with the target video — "
@@ -225,7 +241,7 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     )
 
     assert rec["mode"] == "fl2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert "8.00-second" in prompt_text.split("\n", 1)[0]
@@ -246,6 +262,8 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return "INVENTORY LAST"
         if stage == "expand":
             return "EXPANDED"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB"
         if stage == "format":
             return (
                 "integrated_multimodal_description: [Shot 1] open [Shot 2] At 00:03.000 land\n\n"
@@ -268,7 +286,7 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
         out_dir=out_dir,
     )
     assert rec["mode"] == "l2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
     first = rec["prompt"].split("\n", 1)[0]
     assert "<Picture 1> (from [Shot 2])" in first
     assert "6.00-second" in first
@@ -380,6 +398,8 @@ def test_enhance_r2va_rescans_incomplete_grid(
             )
         if stage == "expand":
             return "EXPANDED four poses of the cat"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB four poses"
         if stage == "format":
             return (
                 "subject_definitions:\n"
@@ -409,6 +429,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
         "perceive_refs",
         "perceive_grid_rescan",
         "expand",
+        "elaborate",
         "format",
     ]
     assert "cell 2,2" in rec["inventory"]
@@ -432,6 +453,8 @@ def test_enhance_loads_brand_skill_from_intent(
         if stage == "expand":
             seen["expand_user"] = user if isinstance(user, str) else str(user)
             return "EXPANDED brand reel"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB brand"
         if stage == "format":
             seen["format_sys"] = system
             return (
@@ -453,7 +476,7 @@ def test_enhance_loads_brand_skill_from_intent(
     )
     assert rec["style_skills"] == ["brand-promo"]
     assert rec["style_skill_source"] == "keyword"
-    assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "elaborate", "format"]
     assert "style skill: brand-promo" in seen["expand_user"]
     assert "style skill: brand-promo" in seen["format_sys"]
     assert "Official H3 writing guide" in seen["format_sys"]
@@ -474,6 +497,8 @@ def test_enhance_forced_skill_off_router(
         if stage == "expand":
             assert "style skill: 3d-animation" in (user if isinstance(user, str) else "")
             return "EXPANDED"
+        if stage == "elaborate":
+            return "EXPANDED_ELAB"
         if stage == "format":
             assert "style skill: 3d-animation" in system
             return (

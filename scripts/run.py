@@ -45,6 +45,13 @@ def main() -> int:
     p.add_argument("--no-video", action="store_true", help="只写 prompt，不出片")
     p.add_argument("--no-wait", action="store_true", help="出片只提交不轮询")
     p.add_argument("--compare-video", action="store_true", help="本地/官方 prompt 各出一次并做对比")
+    p.add_argument("--no-verify", action="store_true", help="关闭提示词质量校验（含规则与自动修复）")
+    p.add_argument(
+        "--verify-intent-llm",
+        action="store_true",
+        default=None,
+        help="开启 LLM 意图一致性检查（对比原始意图与最终提示词，+1 次调用）",
+    )
     args = p.parse_args()
 
     intent = args.intent.strip()
@@ -70,10 +77,20 @@ def main() -> int:
         compare_video=args.compare_video,
         skills=args.skills or None,
         skill_router=args.skill_router,
+        enable_verify=not args.no_verify,
+        verify_intent_llm=args.verify_intent_llm,
     )
     print(f"[{rec['mode']}] prompt → {Path(rec['out_dir']) / 'prompt.txt'}")
     if rec.get("style_skills"):
         print(f"[{rec['mode']}] skills → {', '.join(rec['style_skills'])} ({rec.get('style_skill_source')})")
+    verify = rec.get("verify") or {}
+    if verify:
+        status = verify.get("status", "?")
+        print(
+            f"[{rec['mode']}] verify → {status} "
+            f"(errors={verify.get('errors', 0)}, warnings={verify.get('warnings', 0)}, "
+            f"fixed={bool(verify.get('fixed'))})"
+        )
     if rec.get("video", {}).get("video_path"):
         print(f"[{rec['mode']}] video → {rec['video']['video_path']}")
     elif rec.get("video", {}).get("task_id"):
