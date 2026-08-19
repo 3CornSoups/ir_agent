@@ -1,6 +1,8 @@
-# Gemini → MiniMax-H3 Agent（t2va / i2va / fl2va / l2va / r2va）
+# ir_agent：MiniMax-H3 官方增强管线的替代 Agent
 
-短意图先扩写，再按官方 `h3-prompt-writing` skill 整理成字段；画幅、分辨率、时长只走视频 API，不写进 prompt。
+短意图先扩写，再按官方 [`h3-prompt-writing`](h3-prompt-writing/SKILL_en.md) skill 整理成 MiniMax-H3 Context-IR 字段；画幅、分辨率、时长只走视频 API，不写进 prompt。
+
+仓库：<https://github.com/3CornSoups/ir_agent>
 
 ## 管线
 
@@ -14,15 +16,39 @@
 | l2va | 3 | 看尾帧 → 扩写 → 共用格式化（附尾帧） |
 | r2va | 3 | 看参考图/视频/音频 → 扩写 → 共用格式化（官方 ref 指南） |
 
+参考图若是四宫格 / 九宫格，感知会按格扫完并列出该 `<Picture>` 里出现的全部 `<Subject>`；漏格时自动再扫一次（多 1 次 HTTP）。
+
 五模式最后一步共用 `prompts/format_h3.txt` + 官方指南，按 `MODE=` 切换输出骨架：
 
 - t2va：三字段
 - i2va / fl2va / l2va：官方对齐句 + 三字段（i2va 从首帧向前；fl2va 写首尾帧之间的路径；l2va 收敛到尾帧）
-- r2va：六段（subject_definitions … non_diegetic_music）
+- r2va：六段（`subject_definitions` … `non_diegetic_music`）
+
+### 官方 skill
+
+`h3-prompt-writing/` 是 MiniMax H3 Prompt Writing 官方 skill 的本地副本：
+
+| 文件 | 用途 |
+| --- | --- |
+| `SKILL_en.md` / `SKILL_cn.md` | 工作流：定模式 → 读对应指南 → 保留字段名/顺序/标签 |
+| `references/base-en.txt` | T2VA / I2VA / FL2VA / L2VA 三字段写法 |
+| `references/ref-en.txt` | Ref2VA 六段、`<Subject>` / `<Picture>` / `<Video>` / `<Audio>` |
+
+### 宫格 / 多主体
+
+一张参考图可以是 2×2、3×3、分镜表。视觉模型容易只盯住最显眼的一格。感知阶段会：
+
+1. 先报 `Layout: single scene | 2x2 grid | 3x3 grid | …`
+2. 按阅读顺序写 `cell r,c`
+3. 再列 **Subjects in this picture**（同一人跨格合并；不同人/物/场景拆开，都引用同一 `<Picture N>`）
+
+官方规则：一个素材可以提供多个 Subject。不要把未读的格子丢掉。
 
 ## 配置
 
 ```bash
+git clone https://github.com/3CornSoups/ir_agent.git
+cd ir_agent
 pip install -r requirements.txt
 
 # 方式一：环境变量（推荐）
@@ -65,7 +91,9 @@ Gemini 原生端点的 `inlineData` 单次上限为 **20MB**。当参考视频�
 - 该压缩只作用于 **Gemini 感知阶段**；MiniMax H3 出片用的参考视频**不做压缩**，保留原始质量。
 
 ## 本地 MiniMaxH3（可选）
+
 如果你有一个本地的 MiniMax-H3 服务（HTTP 接口），且不需要鉴权，可以：
+
 - 把 `configs/h3.yaml` 的 `base_url` 指向本地服务（例如 `http://127.0.0.1:xxxx`）
 - 设置 `skip_auth: true`
 - 或直接设置环境变量 `export H3_SKIP_AUTH=true`
@@ -74,8 +102,6 @@ Gemini 原生端点的 `inlineData` 单次上限为 **20MB**。当参考视频�
 ## 调用
 
 ```bash
-cd /kwkj-k8s/zwb/项目/agent/new_agent0818
-
 # 只出 prompt
 python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --no-video
 
@@ -95,13 +121,15 @@ python3 scripts/run.py -m fl2va --intent "从站立走到坐下" \
 python3 scripts/run.py -m l2va --intent "杯子从桌边滑落摔碎" \
   --last-frame last.png --duration 6 --no-video
 
-# r2va
+# r2va（可附四宫格 / 九宫格人设图）
 python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
   --ref-image face.png --ref-video walk.mp4 --duration 5 --no-video
 ```
 
 ## 可选：对比本地/官方提示词 + 视频（report 里会自动包含 diff）
+
 如果你希望除了生成 `out_local.mp4` 之外，再基于 `official_prompt(raw)` 额外生成 `out_official.mp4`，可以加 `--compare-video`：
+
 ```bash
 python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compare-video
 ```
@@ -113,7 +141,7 @@ python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compa
 | `prompt.txt` | 本地优化后的最终字段（cleaned） |
 | `prompt_official_raw.txt` | 官方/raw 提示词（未清洗） |
 | `expanded.txt` | 第一次扩写稿 |
-| `inventory.txt` | i2va/r2va 的参考理解 |
+| `inventory.txt` | 关键帧 / r2va 的参考理解（宫格会含 Layout 与各格 Subject） |
 | `run.json` | 元数据 |
 | `out_local.mp4` | 成片（未加 `--no-video` 时，基于 local prompt） |
 | `out_official.mp4` | （可选）成片（加 `--compare-video` 时，基于 official/raw prompt） |
@@ -122,7 +150,14 @@ python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compa
 出片走 MiniMax `/v2/video_generation`；画幅 `--ratio`、分辨率 `--resolution` 只进视频 API。
 
 ## 测试（本地离线）
+
 ```bash
 pip install -r test/requirements.txt
 ./test/run_tests.sh
+```
+
+默认不跑本地 MiniMax-H3 出片。需要时：
+
+```bash
+RUN_LOCAL_H3_MEDIA_TESTS=1 pytest -q test/test_local_h3_generation.py -k local_h3
 ```
