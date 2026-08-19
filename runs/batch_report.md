@@ -1,41 +1,27 @@
-# 批量运行报告
+# ir_agent 批量运行报告
 
-**运行时间**：2026-08-19T08:24:02Z
-**总用例**：5　**通过**：5　**失败**：0　**总耗时**：81.1s
+**运行时间**：2026-08-19T08:43:19Z
+**总用例**：1　**通过**：1　**失败**：0　**总耗时**：18.0s
+
+---
 
 ## 用例明细
 
-| ID | 模式 | 耗时 | 校验 | 问题 |
-| -- | ---- | ---- | ---- | ---- |
-| OK `t2va_cat` | t2va | 18.2s | passed | — |
-| OK `t2va_city_rain` | t2va | 18.7s | passed | — |
-| OK `t2va_ocean` | t2va | 15.2s | passed | — |
-| OK `t2va_dance` | t2va | 15.8s | passed | — |
-| OK `t2va_forest` | t2va | 13.3s | passed | — |
+| 状态 | ID | 模式 | 耗时 | 质量校验 | 输出目录 | 问题 |
+| ---- | -- | ---- | ---- | -------- | -------- | ---- |
+| OK | `t2va_cat` | t2va | 18.0s | passed | `t2va_20260819_164301` | — |
+
+---
 
 ## 提示词预览
 
-### t2va_cat
-```
-integrated_multimodal_description: [Shot 1] Cinematic, slice-of-life anime style, a medium close-up frames a fluffy orange tabby cat sitting upright on a polished dark-stained wooden windowsill. The camera zooms in with small amplitude at slow speed toward the cat’s face as the golden morning light illuminates its dense fur and translucent ear hairs. The cat’s amber eyes squint shut, its jaw…
-```
+> 以下为各用例生成的 `prompt.txt` 前 400 字预览，完整内容请查看对应的输出目录。
 
-### t2va_city_rain
-```
-integrated_multimodal_description: [Shot 1] Cinematic, live-action, a low-angle tracking shot follows a young woman from the side as she walks through a narrow, dark urban alleyway. She wears a thick, dark grey trench coat and carries a transparent umbrella that catches the warm glow of streetlights. The camera tracks her movement steadily as she walks across wet asphalt reflecting the building…
-```
+### [OK] t2va_cat
+- **模式**：t2va
+- **意图**：一只橘猫坐在阳光照耀的窗台上，懒洋洋地打了个哈欠，窗外樱花飘落
+- **提示词文件**：`D:\论文和代码项目\代码\ir_agent\runs\t2va_20260819_164301\prompt.txt`
 
-### t2va_ocean
 ```
-integrated_multimodal_description: [Shot 1] Live-action, cinematic, a high-angle wide-perspective drone shot looks down upon an infinite expanse of deep indigo and velvet-blue ocean. The camera descends slowly while pushing forward in a smooth, gliding motion toward the horizon. The setting sun, positioned just above the horizon line, casts shimmering ribbons of molten orange and burning red…
-```
-
-### t2va_dance
-```
-integrated_multimodal_description: [Shot 1] Cinematic, wide shot of a cavernous industrial stage with polished concrete floors reflecting flickering magenta and cyan neon rafters. A street dancer in an oversized black hoodie and cargo pants stands center as the camera pulls back slowly. [Shot 2] At 00:01.500, the camera pushes in rapidly to a tight medium shot of the dancer’s face, sweat…
-```
-
-### t2va_forest
-```
-integrated_multimodal_description: [Shot 1] Live-action, cinematic, a low-angle shot frames an ancient autumn forest with a carpet of russet-brown oak leaves in the foreground and moss-covered trunks in the midground. Volumetric god rays filter through amber canopy leaves, illuminating shimmering dust motes and drifting blue-grey mist. A sika deer with a sleek, chestnut-spotted coat enters from…
+integrated_multimodal_description: [Shot 1] Live-action, cinematic, a medium close-up frames a plush ginger cat resting on a weathered, dark-stained wooden windowsill. The cat is centered, its thick fur illuminated by warm golden-hour light from the left, creating a soft-focus halo effect against a creamy, bokeh-blurred garden background. The camera pushes in with small amplitude at slow speed...
 ```

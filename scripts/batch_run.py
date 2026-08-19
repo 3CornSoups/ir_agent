@@ -1,30 +1,101 @@
 #!/usr/bin/env python3
-"""批量运行 ir_agent 并自动检查结果、更新报告、提交到仓库。
+"""
+批量生成 MiniMax-H3 视频提示词，并自动检查结果质量、写报告、可选提交仓库。
 
-用法示例：
-    # 运行内置测试用例集（不出片，只生成提示词）
-    python scripts/batch_run.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【同事使用指南】
 
-    # 运行内置用例 + 出片
-    python scripts/batch_run.py --video
+1. 程序装在哪里？
+   服务器路径（示例）：/data/yourname/ir_agent/
+   本脚本路径：       /data/yourname/ir_agent/scripts/batch_run.py
 
-    # 运行自定义意图列表文件（每行一个意图，# 开头为注释）
-    python scripts/batch_run.py --intents-file my_intents.txt -m t2va
+2. 我的输入文件放哪里？
+   ┌──────────────────────────────────────────────────────┐
+   │  纯文字任务：写一个 TXT 文件，每行一条意图描述        │
+   │  示例：/data/yourname/ir_agent/input/my_tasks.txt    │
+   │                                                      │
+   │  带图片/视频的任务：把素材文件放到任意路径，          │
+   │  在意图文件里用绝对路径引用（见下方格式说明）         │
+   └──────────────────────────────────────────────────────┘
 
-    # 运行后自动 git commit + push
-    python scripts/batch_run.py --commit --push
+3. 输出文件在哪里？
+   ┌──────────────────────────────────────────────────────┐
+   │  每次运行会在 runs/ 下自动创建一个带时间戳的子目录：  │
+   │  runs/{模式}_{时间戳}/                               │
+   │    ├── prompt.txt       ← 最终生成的提示词（主产物）  │
+   │    ├── expand.txt       ← 扩写阶段草稿               │
+   │    ├── elaborate.txt    ← 补细节阶段草稿              │
+   │    └── run.json         ← 本次运行的完整元数据        │
+   │                                                      │
+   │  批量报告（汇总所有用例）：                           │
+   │    runs/batch_report.md   ← Markdown 汇总（推荐查看）│
+   │    runs/batch_report.json ← JSON 格式汇总            │
+   └──────────────────────────────────────────────────────┘
 
-    # 运行后只 commit 不 push
-    python scripts/batch_run.py --commit
+4. 意图文件格式（--intents-file 参数读取的 TXT 文件）：
 
-    # 静默模式（只显示摘要）
-    python scripts/batch_run.py --quiet
+   【纯文字（t2va 模式）】每行一条意图，# 开头为注释：
+   ─────────────────────────────
+   # 这是注释，会被跳过
+   一只橘猫坐在窗台上打哈欠，窗外樱花飘落
+   城市夜雨，霓虹倒映积水路面，女孩撑伞穿过人行横道
+   ─────────────────────────────
+
+   【带首帧图（i2va 模式）】格式：意图|||first=图片绝对路径：
+   ─────────────────────────────
+   猫咪从窗台跳下|||first=/data/yourname/photos/cat.png
+   ─────────────────────────────
+
+   【带首尾帧（fl2va 模式）】格式：意图|||first=图1路径|||last=图2路径：
+   ─────────────────────────────
+   人物走向远处|||first=/data/yourname/a.png|||last=/data/yourname/b.png
+   ─────────────────────────────
+
+   【带参考素材（r2va 模式）】格式：意图|||ref_image=路径（可多个 | 分隔）：
+   ─────────────────────────────
+   保持人设走路|||ref_image=/data/yourname/face.png|||ref_video=/data/yourname/walk.mp4
+   ─────────────────────────────
+
+5. 快速上手（3 条命令）：
+   # 第一步：进入项目目录
+   cd /data/yourname/ir_agent
+
+   # 第二步：准备意图文件（或直接用内置测试用例）
+   echo "一只橘猫在窗台晒太阳" > input/my_tasks.txt
+
+   # 第三步：运行
+   python scripts/batch_run.py --intents-file input/my_tasks.txt -m t2va
+
+6. 常用命令示例：
+   # 运行内置 5 个测试用例（验证环境是否正常）
+   python scripts/batch_run.py
+
+   # 运行自己的意图文件（t2va 文字生视频）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt -m t2va
+
+   # 运行自己的意图文件（i2va 图片转视频，文件里含 |||first= 路径）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt -m i2va
+
+   # 只运行内置用例里的某几条（用空格分隔 ID）
+   python scripts/batch_run.py --cases t2va_cat t2va_dance
+
+   # 不做质量校验（更快，省 1 次 API 调用）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt --no-verify
+
+   # 把结果 commit 到 git 仓库（方便对比不同版本效果）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt --commit
+
+   # 安静模式（只看最终汇总，不打印每条详情）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt -q
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -34,23 +105,31 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+# 项目根目录（本脚本在 scripts/ 下，向上一级就是根目录）
 ROOT = Path(__file__).resolve().parent.parent
+
+# 把项目根目录加入 Python 搜索路径，确保 `from src.xxx` 能找到
 sys.path.insert(0, str(ROOT))
 
-# 确保 h3.yaml 存在（仅占位；不出片时只读 default_duration）
+# ── 首次运行时自动创建 h3.yaml 占位文件 ──────────────────────
+# h3.yaml 是 MiniMax H3 出片 API 的配置文件。
+# 只生成提示词（不出片）时它仅用于读默认时长，所以用 example 占位就够了。
+# 如果你需要真正出片，请把 configs/h3.yaml 里的 api_key 替换为你的真实密钥。
 _H3_YAML = ROOT / "configs" / "h3.yaml"
 _H3_EXAMPLE = ROOT / "configs" / "h3.yaml.example"
 if not _H3_YAML.exists() and _H3_EXAMPLE.exists():
-    import shutil
     shutil.copy(_H3_EXAMPLE, _H3_YAML)
-    print(f"[提示] 已从 h3.yaml.example 创建占位 h3.yaml（如需出片请填入真实 API Key）")
+    print("[提示] 已从 h3.yaml.example 创建占位 h3.yaml")
+    print("       如需出片，请编辑 configs/h3.yaml 填入真实的 MINIMAX_API_KEY")
 
 from src.pipeline import run_job  # noqa: E402
 from src.skill import ALL_MODES  # noqa: E402
 
-# ──────────────────────────────────────────────
-# 内置测试用例（覆盖五种模式，均不需要本地图片文件）
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# 内置测试用例
+# 用途：验证当前环境是否正常（运行 `python scripts/batch_run.py` 即可触发）
+# 这些用例都是纯文字 t2va，不需要任何本地图片/视频文件。
+# ──────────────────────────────────────────────────────────
 BUILTIN_CASES: list[dict[str, Any]] = [
     {
         "id": "t2va_cat",
@@ -71,26 +150,27 @@ BUILTIN_CASES: list[dict[str, Any]] = [
         "id": "t2va_dance",
         "mode": "t2va",
         "intent": "霓虹灯舞台上，一名街舞少女随着强劲节拍做 Bboy 旋转，观众挥舞荧光棒",
-        "skills": ["street-dance"],
-        "skill_router": "off",
+        "skills": ["street-dance"],       # 强制加载街舞题材写法
+        "skill_router": "off",            # 关闭自动路由，直接用上方指定的 skill
     },
     {
         "id": "t2va_forest",
         "mode": "t2va",
         "intent": "深秋森林，阳光穿过金黄落叶，一只梅花鹿缓步走向溪边饮水，远处有雾气",
-        "mechanisms": ["因果节拍"],
+        "mechanisms": ["因果节拍"],       # 强制加载 T8 Creative DNA 机制
         "mechanism_router": "off",
     },
 ]
 
-# ──────────────────────────────────────────────
-# 结果数据结构
-# ──────────────────────────────────────────────
+
+# ──────────────────────────────────────────────────────────
+# 数据结构
+# ──────────────────────────────────────────────────────────
 
 
 @dataclass
 class CaseResult:
-    """单个用例的运行结果。"""
+    """单条用例的运行结果（内部使用）。"""
 
     case_id: str
     mode: str
@@ -110,7 +190,7 @@ class CaseResult:
 
 @dataclass
 class BatchReport:
-    """批量运行汇总报告。"""
+    """批量运行的汇总报告（内部使用）。"""
 
     run_at: str
     total: int
@@ -120,9 +200,9 @@ class BatchReport:
     total_elapsed_sec: float
 
 
-# ──────────────────────────────────────────────
-# 核心：运行单个用例
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# 运行单条用例
+# ──────────────────────────────────────────────────────────
 
 
 def run_case(
@@ -132,7 +212,7 @@ def run_case(
     no_verify: bool = False,
     verbose: bool = True,
 ) -> CaseResult:
-    """运行单条用例，返回结构化结果。"""
+    """调用管线运行单条用例，返回结构化结果。"""
     case_id = case["id"]
     mode = case["mode"]
     intent = case["intent"]
@@ -140,15 +220,35 @@ def run_case(
     skill_router = case.get("skill_router", "hybrid")
     mechanisms = case.get("mechanisms") or None
     mechanism_router = case.get("mechanism_router", "hybrid")
+    first_frame = case.get("first_frame")
+    last_frame = case.get("last_frame")
+    ref_images = case.get("ref_images") or None
+    ref_videos = case.get("ref_videos") or None
+    ref_audios = case.get("ref_audios") or None
 
     if verbose:
-        print(f"\n[{case_id}] 模式={mode}  意图=「{intent[:40]}{'…' if len(intent) > 40 else ''}」")
+        preview = intent[:50] + ("..." if len(intent) > 50 else "")
+        print(f"\n[{case_id}]  模式={mode}")
+        print(f"  意图：{preview}")
+        if first_frame:
+            print(f"  首帧：{first_frame}")
+        if last_frame:
+            print(f"  尾帧：{last_frame}")
+        if ref_images:
+            print(f"  参考图：{ref_images}")
+        if ref_videos:
+            print(f"  参考视频：{ref_videos}")
 
     t0 = time.monotonic()
     try:
         rec = run_job(
             mode,
             intent,
+            first_frame=first_frame,
+            last_frame=last_frame,
+            reference_images=ref_images,
+            reference_videos=ref_videos,
+            reference_audios=ref_audios,
             skills=skills,
             skill_router=skill_router,
             mechanisms=mechanisms,
@@ -200,67 +300,78 @@ def run_case(
 
 
 def _print_case_summary(r: CaseResult) -> None:
-    """打印单个用例的摘要行。"""
+    """打印单条用例运行完毕后的摘要行。"""
     status = "OK" if r.ok else "NG"
     verify_info = ""
     if r.verify_status:
-        fixed_tag = "（已修复）" if r.verify_fixed else ""
+        fixed_tag = "（已自动修复）" if r.verify_fixed else ""
         verify_info = (
-            f" | 校验={r.verify_status}{fixed_tag}"
-            f" err={r.verify_errors} warn={r.verify_warnings}"
+            f"  质量校验={r.verify_status}{fixed_tag}"
+            f" (error={r.verify_errors}, warning={r.verify_warnings})"
         )
-    skill_info = f" | skills={','.join(r.style_skills)}" if r.style_skills else ""
-    mech_info = f" | mechanisms={','.join(r.mechanisms)}" if r.mechanisms else ""
-    print(
-        f"  [{status}] {r.elapsed_sec:.1f}s"
-        f"{verify_info}{skill_info}{mech_info}"
-    )
+    skill_info = f"  skills={','.join(r.style_skills)}" if r.style_skills else ""
+    mech_info = f"  mechanisms={','.join(r.mechanisms)}" if r.mechanisms else ""
+
+    print(f"  [{status}] 耗时={r.elapsed_sec:.1f}s{verify_info}{skill_info}{mech_info}")
+
+    if r.out_dir:
+        print(f"  输出目录：{r.out_dir}")
+        print(f"  提示词文件：{r.out_dir / 'prompt.txt'}")
+
     if r.prompt_text:
-        # 打印提示词前 3 行预览
-        preview_lines = r.prompt_text.strip().splitlines()[:3]
-        for line in preview_lines:
-            print(f"    {line[:100]}")
+        # 打印提示词前 4 行，帮助快速判断内容是否合理
+        lines = r.prompt_text.strip().splitlines()[:4]
+        print("  提示词预览（前4行）：")
+        for line in lines:
+            print(f"    {line[:110]}")
 
 
-# ──────────────────────────────────────────────
-# 检查：判断每个用例是否合格
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# 质量检查（在已有的提示词质量校验之上，额外做简单完整性检查）
+# ──────────────────────────────────────────────────────────
 
 
 def check_result(r: CaseResult) -> list[str]:
-    """返回该用例的问题列表（空列表表示通过）。"""
+    """对单条结果做完整性检查，返回问题列表（空列表表示通过）。"""
     issues: list[str] = []
     if not r.ok:
         issues.append(f"运行异常：{r.error_msg}")
         return issues
 
     if not r.prompt_text.strip():
-        issues.append("prompt.txt 为空")
+        issues.append("prompt.txt 为空，未生成任何内容")
 
     if r.verify_status == "error" and not r.verify_fixed:
-        issues.append(f"质量校验 error（{r.verify_errors} 个），且修复失败")
+        issues.append(
+            f"提示词质量校验存在 {r.verify_errors} 个 error，且自动修复失败，"
+            "建议人工检查 prompt.txt"
+        )
 
-    # 检查提示词最低长度（官方示例通常 200+ tokens，这里用字符数做粗估）
-    if len(r.prompt_text.strip()) < 200:
-        issues.append(f"提示词过短（{len(r.prompt_text.strip())} 字符，期望 ≥200）")
+    # 字符数粗估（官方输出通常 500+ 字符，低于 200 基本说明内容不完整）
+    char_count = len(r.prompt_text.strip())
+    if char_count < 200:
+        issues.append(f"提示词内容过短（{char_count} 字符，期望 ≥200）")
 
     return issues
 
 
-# ──────────────────────────────────────────────
-# 报告：写入 runs/batch_report.json 与 Markdown
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# 写报告
+# 报告位置：
+#   runs/batch_report.md   （Markdown，推荐直接用浏览器/VSCode 查看）
+#   runs/batch_report.json （JSON，方便程序读取）
+# ──────────────────────────────────────────────────────────
 
 REPORT_JSON = ROOT / "runs" / "batch_report.json"
 REPORT_MD = ROOT / "runs" / "batch_report.md"
 
 
 def write_batch_report(report: BatchReport) -> None:
-    """将批量结果写成 JSON 和 Markdown 两份报告。"""
+    """将批量结果写成 JSON 和 Markdown 两份报告文件。"""
     report_dir = ROOT / "runs"
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    # JSON
+    # ── JSON ──
     data = {
         "run_at": report.run_at,
         "total": report.total,
@@ -275,6 +386,7 @@ def write_batch_report(report: BatchReport) -> None:
                 "ok": r.ok,
                 "elapsed_sec": r.elapsed_sec,
                 "out_dir": str(r.out_dir) if r.out_dir else None,
+                "prompt_file": str(r.out_dir / "prompt.txt") if r.out_dir else None,
                 "verify_status": r.verify_status,
                 "verify_errors": r.verify_errors,
                 "verify_warnings": r.verify_warnings,
@@ -289,58 +401,75 @@ def write_batch_report(report: BatchReport) -> None:
     }
     REPORT_JSON.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Markdown
+    # ── Markdown ──
     lines = [
-        "# 批量运行报告",
+        "# ir_agent 批量运行报告",
         "",
         f"**运行时间**：{report.run_at}",
-        f"**总用例**：{report.total}　**通过**：{report.passed}　**失败**：{report.failed}　"
-        f"**总耗时**：{report.total_elapsed_sec:.1f}s",
+        (
+            f"**总用例**：{report.total}　"
+            f"**通过**：{report.passed}　"
+            f"**失败**：{report.failed}　"
+            f"**总耗时**：{report.total_elapsed_sec:.1f}s"
+        ),
+        "",
+        "---",
         "",
         "## 用例明细",
         "",
-        "| ID | 模式 | 耗时 | 校验 | 问题 |",
-        "| -- | ---- | ---- | ---- | ---- |",
+        "| 状态 | ID | 模式 | 耗时 | 质量校验 | 输出目录 | 问题 |",
+        "| ---- | -- | ---- | ---- | -------- | -------- | ---- |",
     ]
     for r in report.results:
         issues = check_result(r)
         status_icon = "OK" if r.ok and not issues else "NG"
         verify_cell = r.verify_status if r.verify_status else "—"
         if r.verify_fixed:
-            verify_cell += "（已修复）"
+            verify_cell += "(已修复)"
         issue_cell = "；".join(issues) if issues else "—"
+        out_cell = f"`{r.out_dir.name}`" if r.out_dir else "—"
         lines.append(
-            f"| {status_icon} `{r.case_id}` | {r.mode} | {r.elapsed_sec:.1f}s"
-            f" | {verify_cell} | {issue_cell} |"
+            f"| {status_icon} | `{r.case_id}` | {r.mode} | {r.elapsed_sec:.1f}s"
+            f" | {verify_cell} | {out_cell} | {issue_cell} |"
         )
 
     lines += [
         "",
+        "---",
+        "",
         "## 提示词预览",
+        "",
+        "> 以下为各用例生成的 `prompt.txt` 前 400 字预览，完整内容请查看对应的输出目录。",
         "",
     ]
     for r in report.results:
-        lines.append(f"### {r.case_id}")
+        issues = check_result(r)
+        status_icon = "OK" if r.ok and not issues else "NG"
+        out_path = str(r.out_dir / "prompt.txt") if r.out_dir else "—"
+        lines.append(f"### [{status_icon}] {r.case_id}")
+        lines.append(f"- **模式**：{r.mode}")
+        lines.append(f"- **意图**：{r.intent}")
+        lines.append(f"- **提示词文件**：`{out_path}`")
         if r.ok and r.prompt_text:
-            preview = textwrap.shorten(r.prompt_text.strip(), width=400, placeholder="…")
-            lines += [f"```", preview, "```", ""]
+            preview = textwrap.shorten(r.prompt_text.strip(), width=400, placeholder="...")
+            lines += ["", "```", preview, "```", ""]
         elif r.error_msg:
-            lines += [f"> ⚠ {r.error_msg}", ""]
+            lines += ["", f"> 运行失败：{r.error_msg}", ""]
         else:
-            lines += ["> （无内容）", ""]
+            lines += ["", "> （无内容）", ""]
 
     REPORT_MD.write_text("\n".join(lines), encoding="utf-8")
-    print(f"\n报告已写入：{REPORT_JSON}")
-    print(f"报告已写入：{REPORT_MD}")
+    print(f"\n批量报告（Markdown）：{REPORT_MD}")
+    print(f"批量报告（JSON）    ：{REPORT_JSON}")
 
 
-# ──────────────────────────────────────────────
-# Git：提交 + 推送
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# Git 提交（可选功能）
+# ──────────────────────────────────────────────────────────
 
 
 def _git(*args: str, cwd: Path = ROOT) -> tuple[int, str]:
-    """运行 git 子命令，返回 (returncode, 合并 stdout+stderr)。"""
+    """执行 git 子命令，返回 (exit_code, stdout+stderr 合并文本)。"""
     result = subprocess.run(
         ["git", *args],
         cwd=str(cwd),
@@ -359,15 +488,12 @@ def git_commit_and_push(
     do_push: bool = False,
     verbose: bool = True,
 ) -> bool:
-    """将运行报告和输出文件添加到 git 并提交，可选 push。"""
-
-    # 1. 检测是否有可提交内容
+    """将报告文件加入 git 并提交，可选 push 到远程。"""
     rc, status = _git("status", "--porcelain")
     if not status.strip():
         print("\n[git] 工作区无变更，跳过 commit。")
         return True
 
-    # 2. git add 报告文件 + runs 目录下新增内容
     files_to_add = [
         str(REPORT_JSON.relative_to(ROOT)),
         str(REPORT_MD.relative_to(ROOT)),
@@ -375,111 +501,245 @@ def git_commit_and_push(
     ]
     rc, out = _git("add", *files_to_add)
     if verbose:
-        print(f"\n[git] add → {out or '(ok)'}")
+        print(f"\n[git] add  → {out or '(ok)'}")
 
-    # 3. 构造 commit 信息
     passed_rate = f"{report.passed}/{report.total}"
     commit_msg = (
-        f"chore: 批量运行报告 {report.run_at[:10]} "
-        f"({passed_rate} 通过, {report.total_elapsed_sec:.0f}s)"
+        f"chore: batch_run {report.run_at[:10]} "
+        f"({passed_rate} passed, {report.total_elapsed_sec:.0f}s)"
     )
     rc, out = _git("commit", "-m", commit_msg)
     if verbose:
         print(f"[git] commit → {out}")
     if rc != 0:
-        print(f"[git] ⚠ commit 失败（returncode={rc}）")
+        print(f"[git] commit 失败（code={rc}）")
         return False
 
-    # 4. 可选 push
     if do_push:
         rc, out = _git("push")
         if verbose:
             print(f"[git] push → {out}")
         if rc != 0:
-            print(f"[git] ⚠ push 失败（returncode={rc}）")
+            print(f"[git] push 失败（code={rc}）")
             return False
 
     return True
 
 
-# ──────────────────────────────────────────────
-# 加载自定义意图文件
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# 加载意图文件
+# ──────────────────────────────────────────────────────────
+
+_FIELD_SEP = "|||"  # 意图文件中字段的分隔符
 
 
 def load_intents_file(path: Path, mode: str) -> list[dict[str, Any]]:
-    """从文本文件加载意图列表，每行一个意图，# 开头为注释。"""
+    """
+    从文本文件加载意图列表。
+
+    文件格式（每行一条任务，# 开头为注释）：
+
+    纯文字（t2va）：
+        一只橘猫在窗台晒太阳
+
+    带首帧（i2va）：
+        猫咪从窗台跳下|||first=/data/yourname/cat.png
+
+    带首尾帧（fl2va）：
+        人物走向远处|||first=/data/yourname/a.png|||last=/data/yourname/b.png
+
+    带参考素材（r2va）：
+        保持人设走路|||ref_image=/data/yourname/face.png|||ref_video=/data/yourname/walk.mp4
+
+    多个同类字段用相同 key 重复出现即可（如两张参考图）：
+        保持风格|||ref_image=/data/face1.png|||ref_image=/data/face2.png
+    """
     cases = []
-    lines = path.read_text(encoding="utf-8").splitlines()
-    for i, line in enumerate(lines, 1):
-        line = line.strip()
-        if not line or line.startswith("#"):
+    raw_lines = path.read_text(encoding="utf-8").splitlines()
+
+    for lineno, raw in enumerate(raw_lines, 1):
+        raw = raw.strip()
+        if not raw or raw.startswith("#"):
             continue
-        cases.append(
-            {
-                "id": f"custom_{i:03d}",
-                "mode": mode,
-                "intent": line,
-            }
-        )
+
+        # 用 ||| 分割字段
+        parts = [p.strip() for p in raw.split(_FIELD_SEP)]
+        intent = parts[0]
+        if not intent:
+            print(f"[警告] 第 {lineno} 行意图为空，已跳过：{raw!r}")
+            continue
+
+        case: dict[str, Any] = {
+            "id": f"line_{lineno:04d}",
+            "mode": mode,
+            "intent": intent,
+        }
+
+        ref_images: list[str] = []
+        ref_videos: list[str] = []
+        ref_audios: list[str] = []
+
+        for field_str in parts[1:]:
+            if "=" not in field_str:
+                print(f"[警告] 第 {lineno} 行字段格式错误（缺少 =），已忽略：{field_str!r}")
+                continue
+            key, _, val = field_str.partition("=")
+            key = key.strip().lower()
+            val = val.strip()
+
+            if key == "first":
+                _check_file_exists(val, lineno, "首帧")
+                case["first_frame"] = val
+            elif key == "last":
+                _check_file_exists(val, lineno, "尾帧")
+                case["last_frame"] = val
+            elif key == "ref_image":
+                _check_file_exists(val, lineno, "参考图")
+                ref_images.append(val)
+            elif key == "ref_video":
+                _check_file_exists(val, lineno, "参考视频")
+                ref_videos.append(val)
+            elif key == "ref_audio":
+                _check_file_exists(val, lineno, "参考音频")
+                ref_audios.append(val)
+            else:
+                print(f"[警告] 第 {lineno} 行未知字段 key={key!r}，已忽略。")
+
+        if ref_images:
+            case["ref_images"] = ref_images
+        if ref_videos:
+            case["ref_videos"] = ref_videos
+        if ref_audios:
+            case["ref_audios"] = ref_audios
+
+        cases.append(case)
+
     return cases
 
 
-# ──────────────────────────────────────────────
+def _check_file_exists(path_str: str, lineno: int, label: str) -> None:
+    """检查用户指定的素材文件是否存在，不存在时打印警告（不中断）。"""
+    p = Path(path_str)
+    if not p.exists():
+        print(
+            f"[警告] 第 {lineno} 行 {label} 文件不存在：{path_str}\n"
+            "       请检查路径是否正确，运行时可能报错。"
+        )
+
+
+# ──────────────────────────────────────────────────────────
 # 主流程
-# ──────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
 
 
 def main() -> int:
-    """解析命令行，执行批量运行，生成报告，可选提交。"""
+    """解析命令行参数，执行批量运行，写报告，可选提交。"""
     p = argparse.ArgumentParser(
-        description="批量运行 ir_agent，检查结果，生成报告，可选 git commit/push。"
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+            "批量生成 MiniMax-H3 视频提示词，检查质量，写报告，可选 git commit/push。\n"
+            "详细使用说明见脚本顶部注释，或查阅 README.md。\n"
+            "\n"
+            "输出位置：runs/{模式}_{时间戳}/prompt.txt\n"
+            "报告位置：runs/batch_report.md  /  runs/batch_report.json"
+        ),
     )
     p.add_argument(
         "--intents-file",
         type=Path,
-        help="自定义意图列表文件（每行一条，# 注释），配合 -m 指定模式",
+        metavar="PATH",
+        help=(
+            "意图列表文件路径（TXT，每行一条任务）。\n"
+            "支持带素材路径，格式：意图|||first=图片路径|||ref_image=参考图路径\n"
+            "（详见脚本顶部说明）"
+        ),
     )
     p.add_argument(
         "-m",
         "--mode",
         choices=ALL_MODES,
         default="t2va",
-        help="用于 --intents-file 的生成模式（默认 t2va）",
+        metavar="MODE",
+        help=(
+            f"生成模式，仅对 --intents-file 有效（默认 t2va）。\n"
+            f"可选：{' / '.join(ALL_MODES)}\n"
+            "  t2va  = 纯文字 → 视频提示词\n"
+            "  i2va  = 首帧图 + 文字 → 视频提示词\n"
+            "  fl2va = 首帧 + 尾帧 + 文字 → 视频提示词\n"
+            "  l2va  = 尾帧图 + 文字 → 视频提示词\n"
+            "  r2va  = 参考图/视频/音频 + 文字 → 视频提示词"
+        ),
     )
     p.add_argument(
         "--cases",
         nargs="*",
-        help="只运行指定 ID 的内置用例（留空则运行全部内置用例）",
+        metavar="ID",
+        help=(
+            "只运行指定 ID 的内置测试用例（用空格分隔）。\n"
+            f"内置用例 ID：{' '.join(c['id'] for c in BUILTIN_CASES)}\n"
+            "不指定此参数且不指定 --intents-file 时，运行全部内置用例。"
+        ),
     )
-    p.add_argument("--video", action="store_true", help="同时出片（默认只生成提示词）")
-    p.add_argument("--no-verify", action="store_true", help="关闭质量校验")
-    p.add_argument("--commit", action="store_true", help="运行后 git commit 报告文件")
-    p.add_argument("--push", action="store_true", help="git commit 后 push（隐含 --commit）")
-    p.add_argument("--quiet", "-q", action="store_true", help="只显示摘要，不打印每条用例详情")
+    p.add_argument(
+        "--video",
+        action="store_true",
+        help="同时调用 H3 出片 API（默认只生成提示词，不出片）。需要配置好 configs/h3.yaml。",
+    )
+    p.add_argument(
+        "--no-verify",
+        action="store_true",
+        help="跳过提示词质量校验（节省 0~1 次 API 调用，速度更快）。",
+    )
+    p.add_argument(
+        "--commit",
+        action="store_true",
+        help="运行完成后将报告文件 git commit 到本地仓库。",
+    )
+    p.add_argument(
+        "--push",
+        action="store_true",
+        help="运行完成后将报告 commit 并 push 到远程仓库（自动隐含 --commit）。",
+    )
+    p.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="安静模式：只显示每条用例的单行摘要，不打印提示词预览。",
+    )
     args = p.parse_args()
 
     verbose = not args.quiet
     do_commit = args.commit or args.push
 
-    # 选择用例
+    # ── 选择要运行的用例 ──
     if args.intents_file:
+        if not args.intents_file.exists():
+            print(f"[错误] 意图文件不存在：{args.intents_file}")
+            print(f"       请检查路径是否正确。当前工作目录：{Path.cwd()}")
+            return 1
         cases = load_intents_file(args.intents_file, args.mode)
         if not cases:
-            print(f"[错误] 文件 {args.intents_file} 中没有有效意图行。")
+            print(f"[错误] 文件 {args.intents_file} 中没有有效的意图行。")
             return 1
-        print(f"从文件加载 {len(cases)} 条自定义用例（mode={args.mode}）")
+        print(f"从文件加载 {len(cases)} 条用例  模式={args.mode}")
+        print(f"文件路径：{args.intents_file.resolve()}")
     else:
         cases = BUILTIN_CASES
         if args.cases:
             cases = [c for c in cases if c["id"] in args.cases]
             if not cases:
-                print(f"[错误] 未找到指定 ID：{args.cases}")
+                print(f"[错误] 未找到指定的内置用例 ID：{args.cases}")
+                print(f"       可用 ID：{[c['id'] for c in BUILTIN_CASES]}")
                 return 1
 
-    print(f"将运行 {len(cases)} 个用例  make_video={args.video}  no_verify={args.no_verify}")
+    print(
+        f"\n将运行 {len(cases)} 个用例"
+        f"  出片={args.video}"
+        f"  质量校验={'关闭' if args.no_verify else '开启'}"
+    )
+    print(f"输出根目录：{ROOT / 'runs'}\n")
 
-    # 批量运行
+    # ── 批量运行 ──
     results: list[CaseResult] = []
     t_batch_start = time.monotonic()
     for case in cases:
@@ -493,7 +753,7 @@ def main() -> int:
 
     total_elapsed = time.monotonic() - t_batch_start
 
-    # 汇总
+    # ── 汇总统计 ──
     passed = sum(1 for r in results if r.ok and not check_result(r))
     failed = len(results) - passed
     run_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -507,21 +767,23 @@ def main() -> int:
         total_elapsed_sec=total_elapsed,
     )
 
-    # 打印总结
-    print("\n" + "=" * 60)
-    print(f"批量运行完成：{passed}/{len(results)} 通过  总耗时 {total_elapsed:.1f}s")
+    # ── 打印总结 ──
+    print("\n" + "=" * 65)
+    print(f"  批量运行完成：{passed}/{len(results)} 通过   总耗时 {total_elapsed:.1f}s")
     if failed:
-        print("失败用例：")
+        print(f"  失败用例：")
         for r in results:
             issues = check_result(r)
             if issues:
-                print(f"  [NG] {r.case_id}：{'；'.join(issues)}")
-    print("=" * 60)
+                print(f"    [NG] {r.case_id}：{'；'.join(issues)}")
+    if passed > 0:
+        print(f"  提示词输出目录：{ROOT / 'runs'}/")
+    print("=" * 65)
 
-    # 写入报告
+    # ── 写报告 ──
     write_batch_report(report)
 
-    # Git 操作
+    # ── Git 操作（可选）──
     if do_commit:
         git_commit_and_push(report, do_push=args.push, verbose=verbose)
 
