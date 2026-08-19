@@ -88,6 +88,18 @@
    # 安静模式（只看最终汇总，不打印每条详情）
    python scripts/batch_run.py --intents-file input/my_tasks.txt -q
 
+   # ────── 官方 Context-IR 管线 ──────
+
+   # 本地 + 官方同时跑，生成对照（需要 MiniMax API Key）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt --official --official-key YOUR_KEY
+
+   # 或者用环境变量传 Key
+   export MINIMAX_API_KEY=YOUR_KEY
+   python scripts/batch_run.py --intents-file input/my_tasks.txt --official
+
+   # 只走官方管线，不跑本地（纯测试官方效果）
+   python scripts/batch_run.py --intents-file input/my_tasks.txt --official-only --official-key YOUR_KEY
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
@@ -124,6 +136,13 @@ if not _H3_YAML.exists() and _H3_EXAMPLE.exists():
 
 from src.pipeline import run_job  # noqa: E402
 from src.skill import ALL_MODES  # noqa: E402
+
+# 官方 Context-IR 管线支持（复用 compare_context_ir.py 里的调用逻辑）
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("compare_context_ir", ROOT / "scripts" / "compare_context_ir.py")
+_mod = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)  # type: ignore[union-attr]
+call_official_context_ir = _mod.call_official_context_ir
 
 # ──────────────────────────────────────────────────────────
 # 内置测试用例
@@ -177,6 +196,7 @@ class CaseResult:
     intent: str
     ok: bool
     elapsed_sec: float
+    source: str = "local"  # "local" = 本地增强管线, "official" = 官方 Context-IR
     out_dir: Path | None = None
     prompt_text: str = ""
     verify_status: str = ""
@@ -299,6 +319,86 @@ def run_case(
         return result
 
 
+def run_case_official(
+    case: dict[str, Any],
+    *,
+    official_cfg: dict[str, Any],
+    verbose: bool = True,
+) -> CaseResult:
+    """调用官方 MiniMax H3-Context-IR API 生成提示词，返回结构化结果。"""
+    case_id = case["id"] + "_official"
+    mode = case["mode"]
+    intent = case["intent"]
+    first_frame = case.get("first_frame")
+    last_frame = case.get("last_frame")
+    ref_images = case.get("ref_images") or None
+    ref_videos = case.get("ref_videos") or None
+    ref_audios = case.get("ref_audios") or None
+
+    if verbose:
+        preview = intent[:50] + ("..." if len(intent) > 50 else "")
+        print(f"\n[{case_id}]  模式={mode}  (官方 Context-IR)")
+        print(f"  意图：{preview}")
+
+    t0 = time.monotonic()
+    try:
+        result = call_official_context_ir(
+            official_cfg,
+            mode,
+            intent,
+            duration=official_cfg.get("default_duration", 5),
+            first_frame=first_frame,
+            last_frame=last_frame,
+            reference_images=ref_images,
+            reference_videos=ref_videos,
+            reference_audios=ref_audios,
+        )
+        elapsed = time.monotonic() - t0
+
+        prompt_text = result.get("prompt", "")
+
+        # 写入输出目录
+        from datetime import datetime as _dt
+        stamp = _dt.now().strftime("%Y%m%d_%H%M%S")
+        out_dir = ROOT / "runs" / f"{mode}_official_{stamp}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "prompt.txt").write_text(prompt_text, encoding="utf-8")
+        (out_dir / "run.json").write_text(
+            json.dumps({"source": "official", "task_id": result.get("task_id", ""), "mode": mode, "intent": intent},
+                       ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        cr = CaseResult(
+            case_id=case_id,
+            mode=mode,
+            intent=intent,
+            ok=True,
+            elapsed_sec=round(elapsed, 1),
+            source="official",
+            out_dir=out_dir,
+            prompt_text=prompt_text,
+        )
+        if verbose:
+            _print_case_summary(cr)
+        return cr
+
+    except Exception as exc:  # noqa: BLE001
+        elapsed = time.monotonic() - t0
+        cr = CaseResult(
+            case_id=case_id,
+            mode=mode,
+            intent=intent,
+            ok=False,
+            elapsed_sec=round(elapsed, 1),
+            source="official",
+            error_msg=str(exc),
+        )
+        if verbose:
+            print(f"  [NG] 官方管线失败：{exc}")
+        return cr
+
+
 def _print_case_summary(r: CaseResult) -> None:
     """打印单条用例运行完毕后的摘要行。"""
     status = "OK" if r.ok else "NG"
@@ -312,7 +412,8 @@ def _print_case_summary(r: CaseResult) -> None:
     skill_info = f"  skills={','.join(r.style_skills)}" if r.style_skills else ""
     mech_info = f"  mechanisms={','.join(r.mechanisms)}" if r.mechanisms else ""
 
-    print(f"  [{status}] 耗时={r.elapsed_sec:.1f}s{verify_info}{skill_info}{mech_info}")
+    source_tag = "[本地]" if r.source == "local" else "[官方]"
+    print(f"  [{status}] {source_tag} 耗时={r.elapsed_sec:.1f}s{verify_info}{skill_info}{mech_info}")
 
     if r.out_dir:
         print(f"  输出目录：{r.out_dir}")
@@ -381,6 +482,7 @@ def write_batch_report(report: BatchReport) -> None:
         "results": [
             {
                 "id": r.case_id,
+                "source": r.source,
                 "mode": r.mode,
                 "intent": r.intent,
                 "ok": r.ok,
@@ -417,19 +519,20 @@ def write_batch_report(report: BatchReport) -> None:
         "",
         "## 用例明细",
         "",
-        "| 状态 | ID | 模式 | 耗时 | 质量校验 | 输出目录 | 问题 |",
-        "| ---- | -- | ---- | ---- | -------- | -------- | ---- |",
+        "| 状态 | ID | 来源 | 模式 | 耗时 | 质量校验 | 输出目录 | 问题 |",
+        "| ---- | -- | ---- | ---- | ---- | -------- | -------- | ---- |",
     ]
     for r in report.results:
         issues = check_result(r)
         status_icon = "OK" if r.ok and not issues else "NG"
+        source_cell = "本地" if r.source == "local" else "官方"
         verify_cell = r.verify_status if r.verify_status else "—"
         if r.verify_fixed:
             verify_cell += "(已修复)"
         issue_cell = "；".join(issues) if issues else "—"
         out_cell = f"`{r.out_dir.name}`" if r.out_dir else "—"
         lines.append(
-            f"| {status_icon} | `{r.case_id}` | {r.mode} | {r.elapsed_sec:.1f}s"
+            f"| {status_icon} | `{r.case_id}` | {source_cell} | {r.mode} | {r.elapsed_sec:.1f}s"
             f" | {verify_cell} | {out_cell} | {issue_cell} |"
         )
 
@@ -681,6 +784,35 @@ def main() -> int:
         ),
     )
     p.add_argument(
+        "--official",
+        action="store_true",
+        help=(
+            "同时走官方 MiniMax Context-IR 管线生成提示词。\n"
+            "每条意图会同时生成「本地」和「官方」两份提示词，方便对照。\n"
+            "需要配合 --official-key 或环境变量 MINIMAX_API_KEY 提供密钥。"
+        ),
+    )
+    p.add_argument(
+        "--official-only",
+        action="store_true",
+        help=(
+            "只走官方 Context-IR 管线，不走本地管线。\n"
+            "适合想单独测试官方效果时使用。"
+        ),
+    )
+    p.add_argument(
+        "--official-key",
+        default="",
+        metavar="KEY",
+        help="官方 MiniMax API Key（也可通过环境变量 MINIMAX_API_KEY 设置）。",
+    )
+    p.add_argument(
+        "--official-base-url",
+        default="https://api.minimaxi.com",
+        metavar="URL",
+        help="官方 API base URL（默认 https://api.minimaxi.com）。",
+    )
+    p.add_argument(
         "--video",
         action="store_true",
         help="同时调用 H3 出片 API（默认只生成提示词，不出片）。需要配置好 configs/h3.yaml。",
@@ -711,6 +843,27 @@ def main() -> int:
     verbose = not args.quiet
     do_commit = args.commit or args.push
 
+    # ── 官方管线配置 ──
+    import os
+    use_official = args.official or args.official_only
+    official_cfg: dict[str, Any] | None = None
+    if use_official:
+        api_key = args.official_key or os.environ.get("MINIMAX_API_KEY", "")
+        if not api_key:
+            print("[错误] 使用官方管线需要提供 API Key：")
+            print("       方式 1：命令行加 --official-key YOUR_KEY")
+            print("       方式 2：设置环境变量 export MINIMAX_API_KEY=YOUR_KEY")
+            return 1
+        official_cfg = {
+            "api_key": api_key,
+            "base_url": args.official_base_url.rstrip("/"),
+            "model": "MiniMax-H3",
+            "timeout_sec": 120,
+            "poll_interval_sec": 5,
+            "poll_timeout_sec": 1800,
+            "default_duration": 5,
+        }
+
     # ── 选择要运行的用例 ──
     if args.intents_file:
         if not args.intents_file.exists():
@@ -732,8 +885,10 @@ def main() -> int:
                 print(f"       可用 ID：{[c['id'] for c in BUILTIN_CASES]}")
                 return 1
 
+    pipeline_desc = "本地" if not use_official else ("官方" if args.official_only else "本地+官方对照")
     print(
         f"\n将运行 {len(cases)} 个用例"
+        f"  管线={pipeline_desc}"
         f"  出片={args.video}"
         f"  质量校验={'关闭' if args.no_verify else '开启'}"
     )
@@ -743,13 +898,24 @@ def main() -> int:
     results: list[CaseResult] = []
     t_batch_start = time.monotonic()
     for case in cases:
-        r = run_case(
-            case,
-            make_video=args.video,
-            no_verify=args.no_verify,
-            verbose=verbose,
-        )
-        results.append(r)
+        # 本地管线
+        if not args.official_only:
+            r = run_case(
+                case,
+                make_video=args.video,
+                no_verify=args.no_verify,
+                verbose=verbose,
+            )
+            results.append(r)
+
+        # 官方管线
+        if use_official and official_cfg:
+            r_official = run_case_official(
+                case,
+                official_cfg=official_cfg,
+                verbose=verbose,
+            )
+            results.append(r_official)
 
     total_elapsed = time.monotonic() - t_batch_start
 
