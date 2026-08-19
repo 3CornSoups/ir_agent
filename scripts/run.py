@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""T2VA / I2VA / R2VA Agent：Gemini 扩写 + 共用格式化 + 可选 H3 出片。"""
+"""五模式 Agent：Gemini 扩写 + 官方 skill 格式化 + 可选 H3 出片。"""
 
 from __future__ import annotations
 
@@ -11,15 +11,17 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from src.pipeline import run_job  # noqa: E402
+from src.skill import ALL_MODES  # noqa: E402
 
 
 def main() -> int:
     """解析 CLI 并跑一条任务。"""
-    p = argparse.ArgumentParser(description="Gemini → MiniMax-H3 三模式 Agent")
-    p.add_argument("-m", "--mode", required=True, choices=("t2va", "i2va", "r2va"))
+    p = argparse.ArgumentParser(description="Gemini → MiniMax-H3 五模式 Agent（官方 skill 对齐）")
+    p.add_argument("-m", "--mode", required=True, choices=ALL_MODES)
     p.add_argument("--intent", default="", help="短意图文本")
     p.add_argument("--intent-file", type=Path, help="从文件读短意图")
-    p.add_argument("--first-frame", help="i2va 首帧图")
+    p.add_argument("--first-frame", help="i2va / fl2va 首帧图")
+    p.add_argument("--last-frame", help="fl2va / l2va 尾帧图")
     p.add_argument("--ref-image", action="append", default=[], help="r2va 参考图，可重复")
     p.add_argument("--ref-video", action="append", default=[], help="r2va 参考视频，可重复")
     p.add_argument("--ref-audio", action="append", default=[], help="r2va 参考音频，可重复")
@@ -42,6 +44,7 @@ def main() -> int:
         args.mode,
         intent,
         first_frame=args.first_frame,
+        last_frame=args.last_frame,
         reference_images=args.ref_image or None,
         reference_videos=args.ref_video or None,
         reference_audios=args.ref_audio or None,

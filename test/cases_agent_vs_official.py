@@ -2,8 +2,8 @@
 """Agent vs 官方 Context-IR 管线对比测试用例清单。
 
 用例来源两类：
-1. 从 zwb 目录现成资产中找的对照用例（source="zwb-asset"，含官方 IR 输出 official_*）
-2. 需调用本地文生图/文生视频模型生成素材的用例（source="local-model"，由 test_local_model_cases 驱动）
+1. 从 zwb 目录现成资产中找的对照用例（source=\"zwb-asset\"，含官方 IR 输出 official_*）
+2. 需调用本地文生图/文生视频模型生成素材的用例（source=\"local-model\"，由 test_local_model_cases 驱动）
 
 官方 IR 对照资产位置：
 - 母仓基准：/kwkj-k8s/zwb/应用/Qwen提示词/母仓/benchmarks/
@@ -189,7 +189,7 @@ def build_cases() -> list[dict[str, Any]]:
     # ---- 1. 母仓四模式基准 ----------------------------------------------------
     for mode_id, meta in _FOUR_MODE_SETS.items():
         set_dir = MUCA / meta["set"]
-        agent_supported = meta["mode"] in ("t2va", "i2va", "r2va")
+        agent_supported = meta["mode"] in ("t2va", "i2va", "fl2va", "l2va", "r2va")
         case: dict[str, Any] = {
             "id": mode_id,
             "mode": meta["mode"],
@@ -204,8 +204,7 @@ def build_cases() -> list[dict[str, Any]]:
             "local_qwen_prompt": _qwen_v1(mode_id),
             "official_video": _gold_video(mode_id),
             "local_qwen_video": _qwen_video(mode_id),
-            "note": f"母仓 {meta['set']}：官方稿/本地 Qwen 稿/双管线成片齐全"
-                    + ("" if agent_supported else "；fl2va/l2va 为官方独有模式，agent 暂不覆盖"),
+            "note": f"母仓 {meta['set']}：官方稿/本地 Qwen 稿/双管线成片齐全",
         }
         # R2VA 对照项目另有 agent 实测稿与官方稿副本（同一批短意图）
         if mode_id == "wuxia_t2va":
@@ -288,7 +287,7 @@ def build_cases() -> list[dict[str, Any]]:
             "id": case_id,
             "mode": "fl2va",
             "source": "zwb-asset",
-            "agent_supported": False,
+            "agent_supported": True,
             "intent": read_intent(str(root / meta["intent"])),
             "first_frame": str(root / meta["first_frame"]),
             "last_frame": str(root / meta["last_frame"]),
@@ -296,10 +295,10 @@ def build_cases() -> list[dict[str, Any]]:
             "ratio": meta["ratio"],
             "official_prompt": str(root / meta["official_prompt"]),
             "official_video": str(root / meta["official_video"]),
-            "note": f"自建 FL2VA（{meta['root']}）：短意图→Context-IR→本地成片 全链路留档；fl2va 为官方独有模式",
+            "note": f"自建 FL2VA（{meta['root']}）：短意图→Context-IR→本地成片 全链路留档",
         })
 
-    # ---- 5. special_light 特殊光影 T2VA（backlight/neon/dusk）-------------------------------
+    # 特殊光影 T2VA（backlight/neon/dusk）-----------------------------------
     light_root = MUCA_ROOT / "out" / "special_light"
     for case_id, stem in _LIGHT_CASES.items():
         cases.append({

@@ -1,4 +1,4 @@
-"""T2VA / I2VA / R2VA 多步 Gemini 编排；最后一步共用 format_h3。"""
+"""T2VA / I2VA / FL2VA / L2VA / R2VA 多步 Gemini 编排；格式化注入官方 skill 指南。"""
 
 from __future__ import annotations
 
@@ -12,6 +12,16 @@ from .config import ROOT, h3_settings, load_prompt
 from .gemini import chat
 from .media import user_parts
 from .report import write_report
+from .skill import (
+    ALL_MODES,
+    GRID_SCAN_INSTRUCTION,
+    KEYFRAME_MODES,
+    compose_format_system,
+    ensure_alignment_prefix,
+    expand_hint,
+    grid_coverage_gap,
+    grid_keep_subjects_note,
+)
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -44,15 +54,19 @@ def _expand_user(
     inventory: str | None = None,
     mode: str,
 ) -> str:
-    """构造扩写 USER。不写画幅、不写 API 时长。"""
+    """构造扩写 USER：短意图 + 官方模式写作路径 + 可选库存。"""
     lines = [
         f"Mode: {mode}. Expand the short intent. Do not output MiniMax fields yet.",
+        f"Writing path: {expand_hint(mode)}",
         "",
         "Short intent:",
         intent.strip(),
     ]
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
+        keep = grid_keep_subjects_note(inventory)
+        if keep:
+            lines.extend(["", keep])
     return "\n".join(lines)
 
 
@@ -63,21 +77,89 @@ def _format_user(
     inventory: str | None,
     duration: int | None,
 ) -> str:
-    """构造共用格式化 USER：模式 + 扩写稿 + 可选库存。"""
+    """构造共用格式化 USER：模式 + 扩写稿 + 可选库存与时长约束。"""
     lines = [
         f"MODE={mode}",
         "Serialize the expanded scene into the MiniMax-H3 fields for this MODE.",
-        "Do not mention aspect ratio, resolution, fps, or canvas size.",
+        "Follow the appended official writing guide. Do not mention aspect ratio, resolution, fps, or canvas size.",
     ]
     if duration is not None:
         lines.append(
-            f"Cut-time hint only: if you write timestamps, keep them within {duration:g} seconds. "
-            "Do not write the duration into the prompt text."
+            f"Duration hint: {duration:g} seconds. Keep cut timestamps inside this length. "
+            "Do not write the duration into the core fields. "
+            f"If MODE is fl2va or l2va, the alignment line MUST use S.SS = {float(duration):.2f}."
         )
     lines.extend(["", "Expanded scene:", expanded.strip()])
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
+        keep = grid_keep_subjects_note(inventory)
+        if keep:
+            lines.extend(["", keep])
     return "\n".join(lines)
+
+
+def _append_grid_scan(text: str) -> str:
+    """在感知 USER 文本末尾加上宫格扫全说明。"""
+    return text.rstrip() + "\n\n" + GRID_SCAN_INSTRUCTION
+
+
+def _rescan_if_grid_incomplete(
+    system: str,
+    inventory: str,
+    *,
+    text: str,
+    images: list[str] | None,
+    videos: list[str] | None = None,
+    audios: list[str] | None = None,
+) -> tuple[str, str | None]:
+    """宫格声明与格子笔记不一致时再扫一次；返回 (库存, 补扫阶段名或 None)。"""
+    gap = grid_coverage_gap(inventory)
+    if not gap:
+        return inventory, None
+    follow = (
+        f"{text}\n\nPrevious inventory (incomplete):\n{inventory.strip()}\n\n{gap}"
+    )
+    scanned = chat(
+        system,
+        user_parts(follow, images=images, videos=videos, audios=audios),
+        stage="perceive",
+    )
+    return scanned, "perceive_grid_rescan"
+
+
+def _perceive_keyframes(
+    mode: str,
+    *,
+    first_frame: str | None,
+    last_frame: str | None,
+    duration: int,
+) -> tuple[str, str | None]:
+    """对 I2VA/FL2VA/L2VA 的静帧做事实库存；宫格漏格时补扫。"""
+    system = load_prompt("perceive_image")
+    if mode == "i2va":
+        text = (
+            "Mode: I2VA. Attached image is <Picture 1>, the FIRST frame at 0.00s / [Shot 1]. "
+            "Describe visible facts only."
+        )
+        images = [first_frame] if first_frame else None
+    elif mode == "fl2va":
+        text = (
+            "Mode: FL2VA. Two images in order:\n"
+            "<Picture 1> = FIRST frame at 0.00s (attached first).\n"
+            f"<Picture 2> = LAST frame at {float(duration):.2f}s (attached second).\n"
+            "Describe each image separately. Do not invent the path between them."
+        )
+        images = [p for p in (first_frame, last_frame) if p]
+    else:
+        text = (
+            "Mode: L2VA. Attached image is <Picture 1>, the LAST frame of the clip "
+            f"(lands at about {float(duration):.2f}s). It does NOT belong to Shot 1. "
+            "Describe the landing state only."
+        )
+        images = [last_frame] if last_frame else None
+    text = _append_grid_scan(text)
+    inventory = chat(system, user_parts(text, images=images), stage="perceive")
+    return _rescan_if_grid_incomplete(system, inventory, text=text, images=images)
 
 
 def enhance(
@@ -85,6 +167,7 @@ def enhance(
     intent: str,
     *,
     first_frame: str | None = None,
+    last_frame: str | None = None,
     reference_images: list[str] | None = None,
     reference_videos: list[str] | None = None,
     reference_audios: list[str] | None = None,
@@ -92,14 +175,14 @@ def enhance(
     out_dir: Path | None = None,
 ) -> dict[str, Any]:
     """
-    跑完感知（若需要）→ 扩写 → 共用格式化。
+    跑完感知（若需要）→ 扩写 → 注入官方指南后格式化。
 
     Returns:
         含 prompt、各步原文、mode
     """
     mode = mode.lower().strip()
-    if mode not in {"t2va", "i2va", "r2va"}:
-        raise ValueError("mode 须为 t2va / i2va / r2va")
+    if mode not in ALL_MODES:
+        raise ValueError(f"mode 须为 {' / '.join(ALL_MODES)}")
     intent = (intent or "").strip()
     if not intent:
         raise ValueError("短意图为空")
@@ -107,25 +190,37 @@ def enhance(
     images = list(reference_images or [])
     videos = list(reference_videos or [])
     audios = list(reference_audios or [])
-    if mode == "i2va":
-        if not first_frame:
-            raise ValueError("i2va 需要 --first-frame")
-        images = [first_frame] + images
+    if mode == "i2va" and not first_frame:
+        raise ValueError("i2va 需要 --first-frame")
+    if mode == "fl2va" and (not first_frame or not last_frame):
+        raise ValueError("fl2va 需要同时提供 --first-frame 与 --last-frame")
+    if mode == "l2va" and not last_frame:
+        raise ValueError("l2va 需要 --last-frame")
+    if mode == "r2va":
+        if not images and not videos:
+            raise ValueError("r2va 须至少 1 张参考图或 1 段参考视频")
+        if len(images) > 9:
+            raise ValueError("r2va 参考图数量 ≤ 9")
+        if len(videos) > 3:
+            raise ValueError("r2va 参考视频数量 ≤ 3")
+        if len(audios) > 3:
+            raise ValueError("r2va 参考音频数量 ≤ 3")
 
+    dur = duration if duration is not None else infer_duration(intent)
     steps: list[dict[str, str]] = []
     inventory: str | None = None
 
-    if mode == "i2va":
-        system = load_prompt("perceive_image")
-        user = user_parts(
-            "Describe this first-frame image for I2VA.",
-            images=[first_frame] if first_frame else None,
+    if mode in KEYFRAME_MODES:
+        inventory, rescan = _perceive_keyframes(
+            mode,
+            first_frame=first_frame,
+            last_frame=last_frame,
+            duration=dur,
         )
-        inventory = chat(system, user, stage="perceive")
         steps.append({"stage": "perceive_image", "text": inventory})
+        if rescan:
+            steps.append({"stage": rescan, "text": inventory})
     elif mode == "r2va":
-        if not images and not videos:
-            raise ValueError("r2va 须至少 1 张参考图或 1 段参考视频")
         labels = []
         for i, p in enumerate(images, 1):
             labels.append(f"<Picture {i}> = {p}")
@@ -134,14 +229,31 @@ def enhance(
         for i, p in enumerate(audios, 1):
             labels.append(f"<Audio {i}> = {p}")
         system = load_prompt("perceive_refs")
-        user = user_parts(
-            "Inventory attached assets in this order:\n" + "\n".join(labels),
+        text = _append_grid_scan(
+            "Inventory attached assets in this order:\n" + "\n".join(labels)
+        )
+        inventory = chat(
+            system,
+            user_parts(
+                text,
+                images=images or None,
+                videos=videos or None,
+                audios=audios or None,
+            ),
+            stage="perceive",
+        )
+        steps.append({"stage": "perceive_refs", "text": inventory})
+        rescanned, rescan = _rescan_if_grid_incomplete(
+            system,
+            inventory,
+            text=text,
             images=images or None,
             videos=videos or None,
             audios=audios or None,
         )
-        inventory = chat(system, user, stage="perceive")
-        steps.append({"stage": "perceive_refs", "text": inventory})
+        if rescan:
+            inventory = rescanned
+            steps.append({"stage": rescan, "text": inventory})
 
     expand_sys = load_prompt("expand_intent")
     expanded = chat(
@@ -151,17 +263,21 @@ def enhance(
     )
     steps.append({"stage": "expand", "text": expanded})
 
-    format_sys = load_prompt("format_h3")
-    dur = duration if duration is not None else infer_duration(intent)
-    raw_prompt = chat(
-        format_sys,
-        _format_user(mode, expanded, inventory=inventory, duration=dur),
-        stage="format",
-    )
+    format_sys = compose_format_system(mode, load_prompt("format_h3"))
+    format_text = _format_user(mode, expanded, inventory=inventory, duration=dur)
+    if mode in KEYFRAME_MODES:
+        frame_images = [p for p in (first_frame, last_frame) if p]
+        format_user: str | list[dict[str, Any]] = user_parts(
+            format_text + "\n\nStill frames are re-attached so you can keep identity and layout.",
+            images=frame_images,
+        )
+    else:
+        format_user = format_text
+    raw_prompt = chat(format_sys, format_user, stage="format")
     # official_prompt(raw)：上游格式化模型的原始输出（未清洗）。
     official_prompt = raw_prompt
-    # local_prompt(cleaned)：本地优化（如去掉误写入画幅/分辨率等）。
-    prompt = strip_canvas(raw_prompt)
+    # local_prompt(cleaned)：去画幅残留，并按官方指南规范关键帧对齐句。
+    prompt = ensure_alignment_prefix(mode, strip_canvas(raw_prompt), dur)
     steps.append({"stage": "format", "text": prompt})
 
     record: dict[str, Any] = {
@@ -169,8 +285,9 @@ def enhance(
         "intent": intent,
         "duration": dur,
         "first_frame": first_frame,
-        "reference_images": images if mode != "i2va" else [],
-        "i2va_first_frame": first_frame,
+        "last_frame": last_frame,
+        "reference_images": images if mode == "r2va" else [],
+        "i2va_first_frame": first_frame if mode == "i2va" else None,
         "reference_videos": videos,
         "reference_audios": audios,
         "inventory": inventory,
@@ -207,6 +324,7 @@ def run_job(
     intent: str,
     *,
     first_frame: str | None = None,
+    last_frame: str | None = None,
     reference_images: list[str] | None = None,
     reference_videos: list[str] | None = None,
     reference_audios: list[str] | None = None,
@@ -228,6 +346,7 @@ def run_job(
         mode,
         intent,
         first_frame=first_frame,
+        last_frame=last_frame,
         reference_images=reference_images,
         reference_videos=reference_videos,
         reference_audios=reference_audios,
@@ -252,6 +371,7 @@ def run_job(
             ratio=ratio,
             resolution=resolution,
             first_frame=first_frame,
+            last_frame=last_frame,
             reference_images=reference_images,
             reference_videos=reference_videos,
             reference_audios=reference_audios,
@@ -271,6 +391,7 @@ def run_job(
                 ratio=ratio,
                 resolution=resolution,
                 first_frame=first_frame,
+                last_frame=last_frame,
                 reference_images=reference_images,
                 reference_videos=reference_videos,
                 reference_audios=reference_audios,

@@ -4,7 +4,7 @@
 层次：
 1. 用例素材存在性 —— 用例清单引用的 zwb 资产/官方输出/本地 Qwen 输出/成片都存在
 2. agent prompt 结构 —— mock chat 跑 enhance，验证产物符合官方字段骨架、无画幅残留
-   （fl2va/l2va 为官方独有模式，agent 暂不覆盖，自动跳过）
+   （fl2va/l2va 与官方 skill 对齐，走首/尾帧感知 + 规范对齐句）
 3. 官方 IR 输出结构对齐 —— 字段骨架、帧对齐句、画幅残留
 4. 本地 Qwen 增强稿结构对照 —— 作为 agent 同源参照管线，验证同一骨架
 5. 成片资产存在性 —— 官方/本地双管线成片都在
@@ -96,7 +96,7 @@ def test_agent_prompt_structure_mocked(case_id: str, monkeypatch: pytest.MonkeyP
     """mock chat 跑 enhance：产物字段骨架正确、无画幅/分辨率残留。"""
     case = case_by_id(case_id)
     if not case.get("agent_supported", True):
-        pytest.skip(f"{case_id}: 模式 {case['mode']} 为官方独有，agent 暂不覆盖")
+        pytest.skip(f"{case_id}: 模式 {case['mode']} 未纳入 agent")
     import src.pipeline as pipeline_mod
 
     def load_prompt_mock(stem: str) -> str:
@@ -118,6 +118,7 @@ def test_agent_prompt_structure_mocked(case_id: str, monkeypatch: pytest.MonkeyP
         case["mode"],
         case["intent"],
         first_frame=case.get("first_frame"),
+        last_frame=case.get("last_frame"),
         reference_images=case.get("reference_images"),
         reference_videos=case.get("reference_videos"),
         reference_audios=case.get("reference_audios"),
@@ -233,7 +234,7 @@ def test_local_qwen_videos_exist(case_id: str) -> None:
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize(
     "case_id",
-    [c["id"] for c in build_cases() if c["mode"] in ("i2va", "r2va")],
+    [c["id"] for c in build_cases() if c["mode"] in ("i2va", "fl2va", "l2va", "r2va")],
 )
 def test_build_content_from_case_assets(case_id: str) -> None:
     """用用例素材直接构造 H3 content，确认 role/type 正确。"""
@@ -242,6 +243,7 @@ def test_build_content_from_case_assets(case_id: str) -> None:
         case["mode"],
         "PROMPT_PLACEHOLDER",
         first_frame=case.get("first_frame"),
+        last_frame=case.get("last_frame"),
         reference_images=case.get("reference_images"),
         reference_videos=case.get("reference_videos"),
         reference_audios=case.get("reference_audios"),
@@ -251,6 +253,10 @@ def test_build_content_from_case_assets(case_id: str) -> None:
 
     if case["mode"] == "i2va":
         assert "first_frame" in roles
+    if case["mode"] == "l2va":
+        assert "last_frame" in roles
+    if case["mode"] == "fl2va":
+        assert "first_frame" in roles and "last_frame" in roles
     if case["mode"] == "r2va":
         if case.get("reference_images"):
             assert "reference_image" in roles
@@ -274,9 +280,9 @@ def test_cases_modes_and_durations_valid() -> None:
 
 
 def test_agent_supported_flags_consistent() -> None:
-    """agent_supported 与 agent 实际支持的模式一致（t2va/i2va/r2va）。"""
+    """agent_supported 与官方 skill 五模式一致（t2va/i2va/fl2va/l2va/r2va）。"""
     for c in build_cases():
-        expected = c["mode"] in ("t2va", "i2va", "r2va")
+        expected = c["mode"] in ("t2va", "i2va", "fl2va", "l2va", "r2va")
         assert c.get("agent_supported") == expected, f"{c['id']} agent_supported 不一致"
 
 

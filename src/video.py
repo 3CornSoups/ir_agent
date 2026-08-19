@@ -13,7 +13,7 @@ import requests
 from .config import h3_settings
 from .media import as_data_uri
 
-MODES = ("t2va", "i2va", "r2va")
+MODES = ("t2va", "i2va", "fl2va", "l2va", "r2va")
 RESOLUTIONS = ("768P", "2K")
 T2VA_RATIOS = ("21:9", "16:9", "4:3", "1:1", "3:4", "9:16")
 ALL_RATIOS = ("adaptive",) + T2VA_RATIOS
@@ -36,16 +36,26 @@ def _media_url(value: str, kind: str) -> str:
     return as_data_uri(value, kind)
 
 
+def _image_part(url: str, role: str) -> dict[str, Any]:
+    """组装一条带 role 的 image_url content。"""
+    return {
+        "type": "image_url",
+        "image_url": {"url": _media_url(url, "image")},
+        "role": role,
+    }
+
+
 def build_content(
     mode: str,
     prompt: str,
     *,
     first_frame: str | None = None,
+    last_frame: str | None = None,
     reference_images: list[str] | None = None,
     reference_videos: list[str] | None = None,
     reference_audios: list[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """按官方 Video Generation V2 组装 content。"""
+    """按官方 Video Generation V2 组装 content（含 fl2va/l2va 尾帧）。"""
     prompt = (prompt or "").strip()
     if len(prompt) > 7000:
         print(f"[h3] 警告: prompt {len(prompt)} 字，云端上限 7000", flush=True)
@@ -56,13 +66,18 @@ def build_content(
     if mode == "i2va":
         if not first_frame:
             raise ValueError("i2va 需要 first_frame")
-        content.append(
-            {
-                "type": "image_url",
-                "image_url": {"url": _media_url(first_frame, "image")},
-                "role": "first_frame",
-            }
-        )
+        content.append(_image_part(first_frame, "first_frame"))
+        return content
+    if mode == "l2va":
+        if not last_frame:
+            raise ValueError("l2va 需要 last_frame")
+        content.append(_image_part(last_frame, "last_frame"))
+        return content
+    if mode == "fl2va":
+        if not first_frame or not last_frame:
+            raise ValueError("fl2va 需要同时提供 first_frame 与 last_frame")
+        content.append(_image_part(first_frame, "first_frame"))
+        content.append(_image_part(last_frame, "last_frame"))
         return content
     if mode == "r2va":
         imgs = reference_images or []
@@ -70,6 +85,12 @@ def build_content(
         auds = reference_audios or []
         if not imgs and not vids:
             raise ValueError("r2va 须至少 1 张参考图或 1 段参考视频")
+        if len(imgs) > 9:
+            raise ValueError("r2va 参考图数量 ≤ 9")
+        if len(vids) > 3:
+            raise ValueError("r2va 参考视频数量 ≤ 3")
+        if len(auds) > 3:
+            raise ValueError("r2va 参考音频数量 ≤ 3")
         for u in imgs:
             content.append(
                 {
@@ -99,7 +120,7 @@ def build_content(
 
 
 def resolve_ratio(mode: str, ratio: str | None) -> str:
-    """t2va 用具体比例；i2va/r2va 默认 adaptive。"""
+    """t2va 用具体比例；关键帧与 r2va 默认 adaptive。"""
     mode = mode.lower()
     if mode == "t2va":
         r = ratio or "16:9"
@@ -140,6 +161,7 @@ def generate_video(
     ratio: str | None = None,
     resolution: str | None = None,
     first_frame: str | None = None,
+    last_frame: str | None = None,
     reference_images: list[str] | None = None,
     reference_videos: list[str] | None = None,
     reference_audios: list[str] | None = None,
@@ -148,6 +170,8 @@ def generate_video(
 ) -> dict[str, Any]:
     """
     提交 H3 出片任务；默认轮询并下载。
+
+    last_frame 仅 fl2va / l2va 使用。
 
     Returns:
         含 task_id；成功时含 video_path / url
@@ -169,6 +193,7 @@ def generate_video(
         mode,
         prompt,
         first_frame=first_frame,
+        last_frame=last_frame,
         reference_images=reference_images,
         reference_videos=reference_videos,
         reference_audios=reference_audios,
