@@ -177,7 +177,11 @@ def _perceive_keyframes(
 
 def _elaborate_user(expanded: str, inventory: str | None) -> str:
     """构造补细节 USER：扩写稿 + 可选库存。"""
-    lines = ["Expand the scene note below to official Context-IR detail level."]
+    lines = [
+        "Make the scene note below concrete and physically plausible. "
+        "Match detail depth to the scene's complexity; do not pad a simple single-shot clip "
+        "to the length of a multi-shot production brief."
+    ]
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
     lines.extend(["", "Scene note:", expanded.strip()])

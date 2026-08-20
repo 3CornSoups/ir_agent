@@ -4,7 +4,8 @@ The USER labels each attached image as FIRST frame and/or LAST frame, with <Pict
 
 Write a factual English inventory (keep on-screen text in its original language, inside English double quotes). For each labeled picture cover:
 - Layout: single scene | 2x2 grid | 3x3 grid | other
-- who/what is in frame (identity, age band, clothing, materials)
+- who/what is in frame (identity, age band, clothing items and colors, materials)
+- body coverage for people/animals: what is covered vs exposed; never omit visible garments
 - pose, facing, and spatial layout
 - lighting, weather, and key props
 - visible watermarks, signs, or logos (verbatim)

@@ -370,6 +370,66 @@ def test_perceive_prompts_cover_grid_subjects() -> None:
     assert "4-grid" in expand or "9-grid" in expand
 
 
+def test_expand_intent_has_visual_identity_lock() -> None:
+    """expand_intent 应锁定视觉属性，并禁止无依据降覆盖。"""
+    from src.config import load_prompt
+
+    text = load_prompt("expand_intent")
+    assert "VISUAL IDENTITY LOCK" in text
+    assert "coverage" in text.lower()
+    assert "reduced coverage" in text.lower()
+    assert "action physics" not in text.lower()
+    # 物理约束应全模式通用，不挂在 inventory 分支下（T2VA 无参考图也生效）。
+    assert "Physics constraint (all modes)" in text
+    assert "fabric g/m²" in text or "fabric g/m2" in text.lower()
+
+
+def test_elaborate_has_complexity_scaling() -> None:
+    """elaborate 应包含复杂度缩放、不可执行物理约束，以及身份锁定。"""
+    from src.config import load_prompt
+
+    text = load_prompt("elaborate")
+    assert "Complexity scaling" in text
+    assert "wind speeds" in text.lower()
+    assert "VISUAL IDENTITY LOCK" in text
+    assert "scale down padding, not identity" in text
+    assert "matching the detail level of the official" not in text
+    # expand 已写进的物理精度也要被清除，而不是只禁止新增。
+    assert "write or retain" in text.lower()
+
+
+def test_format_h3_single_shot_not_over_pad() -> None:
+    """format_h3 不应再要求单镜头写成完整分镜级 production description。"""
+    from src.config import load_prompt
+
+    text = load_prompt("format_h3")
+    assert "full shot-by-shot production description" not in text
+    assert "unexecutable physical precision" in text
+    assert "Keep identity/layout from the first frame" not in text
+
+
+def test_perceive_prompts_require_clothing_coverage() -> None:
+    """感知提示词必须要求写清衣着与身体覆盖，避免库存阶段就丢衣服。"""
+    from src.config import load_prompt
+
+    image = load_prompt("perceive_image")
+    refs = load_prompt("perceive_refs")
+    assert "body coverage" in image.lower()
+    assert "never omit visible garments" in image.lower()
+    assert "body coverage" in refs.lower()
+    assert "never omit visible garments" in refs.lower()
+
+
+def test_elaborate_user_not_align_to_official_length() -> None:
+    """elaborate 的 USER 消息不应再要求对齐官方长稿详略级别（否则抵消复杂度缩放）。"""
+    from src.pipeline import _elaborate_user
+
+    user = _elaborate_user("Scene note.", inventory=None)
+    assert "official Context-IR detail level" not in user
+    assert "match detail depth to the scene's complexity" in user.lower()
+    assert "do not pad a simple single-shot clip" in user.lower()
+
+
 def test_enhance_r2va_rescans_incomplete_grid(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

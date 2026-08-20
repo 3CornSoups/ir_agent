@@ -16,6 +16,7 @@ Distinguish:
 - audio to copy vs only to reference
 
 Official rule: one reference asset may provide multiple subjects. Cover a Picture by listing every subject that appears in it.
+For people or animals, record clothing items, colors, and body coverage (covered vs exposed). Never omit visible garments.
 
 Composite / grid stills (2x2, 3x3, 4-panel, 9-panel, comic strip, storyboard sheet):
 Vision models often lock onto one cell. Prevent that.
