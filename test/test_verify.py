@@ -4,10 +4,13 @@ from src.verify import (
     check_alignment_line,
     check_canvas_residue,
     check_dialogue_language,
+    check_dialogue_verbatim,
     check_field_structure,
+    check_forbidden_dialogue_tag,
     check_label_numbers,
     check_label_usage,
     check_timestamps,
+    extract_locked_dialogue,
     verify_and_fix,
     verify_prompt,
 )
@@ -145,6 +148,59 @@ def test_verify_dialogue_language() -> None:
     assert check_dialogue_language(good) == []
     english_ok = "The man says: <d>[English] Hello, how are you?</d>"
     assert check_dialogue_language(english_ok) == []
+
+
+def test_extract_locked_dialogue_keeps_order() -> None:
+    """引号台词按出现顺序抽出，过滤素材路径。"""
+    intent = (
+        '小妖说道："和尚，瞅啥呢？" 然后唐僧说「贫僧在寻思一件事」。'
+        '不要引用 ref1.png。短句："驾！"'
+    )
+    assert extract_locked_dialogue(intent) == [
+        "和尚，瞅啥呢？",
+        "贫僧在寻思一件事",
+        "驾！",
+    ]
+
+
+def test_verify_forbidden_mandarin_tag() -> None:
+    """[Mandarin] 即使包的是中文也必须报 error。"""
+    text = "He says: <d>[Mandarin] 和尚，瞅啥呢？</d>"
+    issues = check_forbidden_dialogue_tag(text)
+    assert _has_error(issues)
+    assert any(i.code == "dialogue_forbidden_lang" for i in issues)
+    prompt = T2VA_OK.replace(
+        "a cat on a windowsill stretches.",
+        "He says: <d>[Mandarin] 和尚，瞅啥呢？</d>",
+    )
+    all_issues = verify_prompt("t2va", prompt, duration=6)
+    assert any(i.code == "dialogue_forbidden_lang" for i in all_issues)
+
+
+def test_verify_dialogue_verbatim_missing_translation() -> None:
+    """原句被译成英文、未进 <d> 应报 error。"""
+    intent = '小妖说道："别扯这些，我们这是事业，吃唐僧肉长生不老！"'
+    translated = T2VA_OK.replace(
+        "a cat on a windowsill stretches.",
+        "He shouts: <d>[English] Stop talking. This is our career!</d>",
+    )
+    issues = verify_prompt("t2va", translated, duration=6, intent=intent)
+    assert any(i.code == "dialogue_verbatim_missing" for i in issues)
+
+
+def test_verify_dialogue_verbatim_keeps_chinese() -> None:
+    """原句进 <d>[Chinese] 且仅标点半角化时应通过。"""
+    intent = '唐僧说道："贫僧在寻思一件事，有点纳闷。你俩长得挺像妖。"'
+    prompt = T2VA_OK.replace(
+        "a cat on a windowsill stretches.",
+        "He says: <d>[Chinese] 贫僧在寻思一件事，有点纳闷。你俩长得挺像妖。</d>",
+    )
+    assert verify_prompt("t2va", prompt, duration=6, intent=intent) == []
+    punct = T2VA_OK.replace(
+        "a cat on a windowsill stretches.",
+        "He says: <d>[Chinese] 贫僧在寻思一件事,有点纳闷.你俩长得挺像妖.</d>",
+    )
+    assert check_dialogue_verbatim(punct, extract_locked_dialogue(intent)) == []
 
 
 def test_verify_canvas_residue() -> None:

@@ -13,6 +13,7 @@ Shared constraints (all MODE values):
 - Ordinary cuts: the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.
 - Camera motion is Type + optional amplitude/speed as a natural action. Omit medium amplitude / normal speed.
 - Speakers: (S1), (S2). Identity outside <d>; inside <d>: [Chinese]/[English] + verbatim.
+- If the USER lists Locked spoken lines, every listed line MUST appear inside <d> verbatim. Chinese → [Chinese], never [Mandarin]. Do not translate those lines or append an English gloss.
 - overall_soundscape: ambient + physical action + non-verbal human sounds. N/A only if the user wants complete silence.
 - non_diegetic_music: instruments + tempo; N/A if the intent wants ambience only / no score.
 - Copy the expanded scene; do not invent a new plot. Output ONLY the required fields for MODE. No Markdown, JSON, titles, or preface.
