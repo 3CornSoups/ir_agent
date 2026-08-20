@@ -8,9 +8,10 @@
 
 感知（若需要）→ **风格 skill 路由**（可选）→ **T8 机制路由**（可选）→ 扩写 → **补细节** → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay + 官方完整输出范例 few-shot）→ **质量校验**（规则硬校验 + 失败时自动 LLM 修复）。
 
-- 感知阶段在事实库存末尾追加 `What it can provide`，区分「可复用主体」与「帧锚点」，供 `subject_definitions` 正确抽象 `<Subject>`。
+- 感知阶段在事实库存末尾追加 `What it can provide`，区分「可复用主体」与「帧锚点」，供 `subject_definitions` 正确抽象 `<Subject>`；并强制写清人物/动物的 **clothing + body coverage**，避免库存阶段就丢衣服。
 - 扩写阶段明确要求写出声音层（环境声 / 动作声 / 配乐器乐速度节奏）。
-- 补细节阶段（`prompts/elaborate.txt`）把场景散文提升到官方 Context-IR 的详略级别（构图 / 环境层次 / 道具 / 微动作 / 镜头 / 光 / 声音）；格式化阶段直接消费这份补细节稿（USER 中为 `Scene note`），保证构图 / 镜头 / 声音细节真正进入最终提示词。
+- 有参考库存时，扩写 / 补细节阶段施加 **VISUAL IDENTITY LOCK**：库存里的每个视觉属性（衣种、颜色、覆盖度、纹理、配饰、发型）必须等精度保留，**禁止省略 / 泛化 / 降覆盖**（不得把库存中穿好衣服的主体写成 nude / shirtless / 减少覆盖），补细节阶段还会把前一步已丢掉的属性**恢复回来**。
+- 补细节阶段（`prompts/elaborate.txt`）**按场景复杂度自适应详略**：简单单镜头（4–5 秒、无切镜）写一个聚焦段落即可，不强制对齐官方长稿；多镜头 / 多节拍可以更长。同时禁止写入视频模型无法执行的物理精度（风速 m/s、克重 g/m²、精确焦距、毫米级位移等），改用动作级语言（「裙摆在风中飘动」，而不是「72g/m² 丝绸在 0.6m/s 侧风下形变」）。
 - 格式化阶段注入官方完整输出范例（`src/examples.py`），稳定字段顺序与详略级别。
 - 质量校验（`src/verify.py`）规则层免费：字段骨架与顺序、关键帧对齐句、时间戳单调、参考标签编号与使用、`<d>[语言]` 匹配、画幅残留；其中 r2va 的「标签使用」检查会把 `subject_definitions` 行首独立定义的 `<Subject N>` / `<Picture N>` / `<Video N>` / `<Audio N>` 全部纳入「必须被正文引用」；有 error 时自动让模型修一次（`prompts/verify_fix.txt`），修复后重新校验。
 
@@ -111,6 +112,8 @@ python3 scripts/run.py -m t2va --intent "深海潜水员在维修码头..." \
 | `prompts/route_skills.txt` | 前置路由 SYSTEM：只返回 `{"skills":[...]}` JSON |
 | `src/skill_router.py` | 关键词 / LLM / 强制指定 三路合并 |
 | `src/skill.py` → `compose_format_system()` | overlay + 官方指南 + 风格 overlay 拼接 |
+| `src/runlog.py` | 运行级模型调用日志：按 stage 成对落盘 request/response |
+| `scripts/oneclick_run.py` | 服务器一键运行：增强 + 出片 + 每次运行一个 log 小目录 |
 
 #### 参考仓库与本仓库的对应关系
 
@@ -244,6 +247,15 @@ python3 scripts/oneclick_run.py -m t2va --intent "..." --no-verify
 
 日志覆盖整条链路：风格/机制路由（`route`）、感知（`perceive`）、扩写（`expand`）、补细节（`elaborate`）、格式化（`format`）、校验修复（`verify`）、出片（`h3_create` / `h3_query`）。多模态请求里的 data URI 会自动截断，避免日志膨胀。`log/` 目录已被 `.gitignore` 忽略，不会误传服务器。
 
+一键脚本参数与 `scripts/run.py` 基本一致（`--first-frame` / `--last-frame` / `--ref-image` / `--duration` / `--ratio` / `--resolution` / `--skill` / `--skill-router` / `--mechanism` / `--mechanism-router` / `--compare-video`），另有：
+
+| 参数 | 说明 |
+| --- | --- |
+| `--video` | 增强后调用 H3 出片（默认只生成提示词，不出片） |
+| `--no-verify` | 关闭提示词质量校验 |
+| `--out-root DIR` | 增强结果输出根目录（默认 `runs/`） |
+| `--log-root DIR` | 运行日志根目录（默认 `log/`） |
+
 ## 调用
 
 ```bash
@@ -348,6 +360,9 @@ pytest -q test/test_skill_router.py test/test_pipeline.py
 
 # 质量校验规则
 pytest -q test/test_verify.py
+
+# 运行级模型调用日志（不调用任何模型）
+pytest -q test/test_runlog.py
 ```
 
 默认不跑本地 MiniMax-H3 出片。需要时：
