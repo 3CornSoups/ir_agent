@@ -6,6 +6,8 @@ Fixing rules:
 - Missing or misordered fields: restore the exact field names and section order (three fields for t2va/i2va/fl2va/l2va; six sections for r2va).
 - Alignment line: use the exact official wording, and keep S.SS equal to the video duration in seconds (two decimals).
 - Shot timestamps: strictly increasing and inside the video duration; the first shot has no timestamp.
+- extra_shot: if the issue says the intent did not request cuts, merge all later shots into a single [Shot 1]. Delete [Shot 2] and later markers and any "At MM:SS.mmm" cut times. Keep the action as continuous camera motion inside Shot 1; do not invent a new plot.
+- music_na_forbidden: if the issue says the intent did not set non_diegetic_music to N/A, replace `non_diegetic_music: N/A` with a short concrete score (instruments + tempo) that fits the scene. Do not invent a new plot.
 - Reference labels: numbers must not exceed the attached asset count; a label defined in subject_definitions must be used in the body.
 - <d>[Language] text</d>: the language tag must match the actual written content.
 - Remove any aspect ratio / resolution / fps / canvas size mention.

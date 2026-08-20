@@ -6,6 +6,8 @@ LLM 修复（stage="verify"），修复后重新校验，最多 max_fix_rounds �
 各规则对应的质量问题：
 - 字段结构 / 对齐句 / 画幅残留  → 结构不稳
 - 时间戳单调性                 → 画面诡异（时序混乱）
+- 未提分镜却多镜头             → 擅自切镜
+- 未要求无配乐却 music=N/A     → 擅自清空配乐
 - 标签编号 / 标签使用          → 丢失参考素材
 - <d>[Language] 语言匹配       → 台词发音紊乱
 """
@@ -35,6 +37,37 @@ _ALIGN_PREFIXES = (
     "How the reference pictures align with the target video",
 )
 _SHOT_TS_RE = re.compile(r"\[Shot\s+(\d+)\]\s*At\s+(\d{2}):(\d{2})\.(\d{3})", re.I)
+_SHOT_INDEX_RE = re.compile(r"\[Shot\s+(\d+)\]", re.I)
+# 短意图明确要求多镜/切镜时才允许 [Shot 2] 及以后。
+_MULTI_SHOT_INTENT_RE = re.compile(
+    r"分镜表|分镜|切镜|多镜头|多镜|双镜头|两镜|三镜|镜头切换|镜头剪辑|蒙太奇|"
+    r"第[二三四五六七八九十\d]+镜|"
+    r"\[Shot\s*[2-9]|\bShot\s*[2-9]\b|"
+    r"\b(?:storyboards?|montage|intercut|smash\s+cut|cutaway|cut-away)\b|"
+    r"\b(?:cuts?\s+to|cut\s+between|multiple\s+shots?|multi-shot)\b|"
+    r"\b(?:two\s+shots?|three\s+shots?|several\s+shots?)\b",
+    re.I,
+)
+# 短意图明确要求无配乐 / non_diegetic_music=N/A 时才允许该字段为 N/A。
+_MUSIC_NA_INTENT_RE = re.compile(
+    r"non[_\s-]?diegetic[_\s-]?music\s*(?:[=:：为是]|为)\s*N/?A|"
+    r"non[_\s-]?diegetic[_\s-]?music\s*(?:is\s+)?N/?A|"
+    r"配乐\s*(?:为|是|:|：)?\s*N/?A|"
+    r"不要配乐|无需配乐|无配乐|不要\s*BGM|无\s*BGM|不要背景音乐|无背景音乐|"
+    r"不要原声之外的音乐|只要环境音|仅环境音|纯环境音|"
+    r"\bno\s+(?:non[_\s-]?diegetic\s+)?(?:music|score|soundtrack|bgm)\b|"
+    r"\bwithout\s+(?:any\s+)?(?:music|score|soundtrack|bgm)\b|"
+    r"\b(?:music|score|soundtrack|bgm)\s*[:=]\s*N/?A\b|"
+    r"\bambience[-\s]?only\b|\bambient[-\s]?only\b|"
+    r"\bno\s+(?:musical\s+)?score\b",
+    re.I,
+)
+# non_diegetic_music 字段正文是否实质为 N/A（忽略空白）。
+_MUSIC_FIELD_RE = re.compile(
+    r"non_diegetic_music\s*:\s*(.*?)(?=\n[A-Za-z_][A-Za-z0-9_]*\s*:|\Z)",
+    re.S | re.I,
+)
+_MUSIC_NA_BODY_RE = re.compile(r"^N\s*/\s*A\.?$", re.I)
 # Subject 也纳入标签定义匹配：subject_definitions 行首定义以 <Subject N> 开头。
 _LABEL_RE = re.compile(r"<(Subject|Picture|Video|Audio)\s+(\d+)>", re.I)
 _DLANG_RE = re.compile(r"<d>\s*\[([A-Za-z]+)\]\s*(.*?)</d>", re.S)
@@ -111,6 +144,96 @@ def check_alignment_line(mode: str, prompt: str, duration: int) -> list[VerifyIs
             VerifyIssue("align_duration", "error", f"对齐句 S.SS 应为 {sss}，与出片时长 {duration}s 一致")
         )
     return issues
+
+
+def intent_allows_multi_shot(intent: str) -> bool:
+    """短意图是否明确要求分镜/切镜/多镜头。"""
+    return bool(_MULTI_SHOT_INTENT_RE.search(intent or ""))
+
+
+def shot_constraint_note(intent: str) -> str:
+    """写进 expand / elaborate / format USER 的镜头数约束。"""
+    if intent_allows_multi_shot(intent):
+        return (
+            "Shot constraint: the short intent requests multiple shots or cuts. "
+            "You may use [Shot 2] and later with strictly increasing timestamps."
+        )
+    return (
+        "Shot constraint: the short intent does not mention cuts or a storyboard. "
+        "Use exactly one continuous [Shot 1]. Do not write [Shot 2] or later, "
+        "and do not invent cuts (the camera cuts to / the shot cuts to)."
+    )
+
+
+def check_extra_shots(prompt: str, intent: str) -> list[VerifyIssue]:
+    """意图未提分镜时，终稿不得出现 [Shot 2] 及以后。intent 为空则跳过（兼容单测）。"""
+    if not (intent or "").strip() or intent_allows_multi_shot(intent):
+        return []
+    extra = sorted({int(n) for n in _SHOT_INDEX_RE.findall(prompt or "") if int(n) > 1})
+    if not extra:
+        return []
+    labels = ", ".join(f"[Shot {n}]" for n in extra)
+    return [
+        VerifyIssue(
+            "extra_shot",
+            "error",
+            f"短意图未提分镜/切镜，终稿不得出现 {labels}，只保留 [Shot 1]，用镜头运动承接动作",
+        )
+    ]
+
+
+def intent_allows_music_na(intent: str) -> bool:
+    """短意图是否明确要求 non_diegetic_music 为 N/A / 无配乐。"""
+    return bool(_MUSIC_NA_INTENT_RE.search(intent or ""))
+
+
+def music_constraint_note(intent: str) -> str:
+    """写进 expand / elaborate / format USER 的配乐约束。"""
+    if intent_allows_music_na(intent):
+        return (
+            "Music constraint: the short intent explicitly requests no score / "
+            "non_diegetic_music N/A. Keep non_diegetic_music as N/A."
+        )
+    return (
+        "Music constraint: the short intent does not set non_diegetic_music to N/A. "
+        "You MUST write a concrete non-diegetic score (instruments + tempo). "
+        "Do not output non_diegetic_music: N/A."
+    )
+
+
+def extract_music_field(prompt: str) -> str | None:
+    """取出 non_diegetic_music 字段正文；缺字段返回 None。"""
+    m = _MUSIC_FIELD_RE.search(prompt or "")
+    if not m:
+        return None
+    return m.group(1).strip()
+
+
+def music_field_is_na(prompt: str) -> bool:
+    """non_diegetic_music 是否为 N/A（缺字段不算）。"""
+    body = extract_music_field(prompt)
+    if body is None:
+        return False
+    return bool(_MUSIC_NA_BODY_RE.match(body))
+
+
+def check_music_na(prompt: str, intent: str) -> list[VerifyIssue]:
+    """意图未明确要求无配乐时，终稿不得把 non_diegetic_music 写成 N/A。
+
+    intent 为空则跳过（兼容单测 / 无意图场景）。
+    """
+    if not (intent or "").strip() or intent_allows_music_na(intent):
+        return []
+    if not music_field_is_na(prompt):
+        return []
+    return [
+        VerifyIssue(
+            "music_na_forbidden",
+            "error",
+            "短意图未明确要求 non_diegetic_music 为 N/A / 无配乐，"
+            "终稿不得写 non_diegetic_music: N/A，须写出乐器与节奏",
+        )
+    ]
 
 
 def check_timestamps(prompt: str, duration: int) -> list[VerifyIssue]:
@@ -233,12 +356,15 @@ def verify_prompt(
     images: int = 0,
     videos: int = 0,
     audios: int = 0,
+    intent: str = "",
 ) -> list[VerifyIssue]:
     """跑全部规则校验，返回问题列表。"""
     issues: list[VerifyIssue] = []
     issues += check_field_structure(mode, prompt)
     issues += check_alignment_line(mode, prompt, duration)
     issues += check_timestamps(prompt, duration)
+    issues += check_extra_shots(prompt, intent)
+    issues += check_music_na(prompt, intent)
     issues += check_label_numbers(prompt, images=images, videos=videos, audios=audios)
     if mode == "r2va":
         issues += check_label_usage(prompt)
@@ -306,7 +432,13 @@ def verify_and_fix(
         intent_llm: 本次是否启用了 LLM 意图检查
     """
     issues = verify_prompt(
-        mode, prompt, duration=duration, images=images, videos=videos, audios=audios
+        mode,
+        prompt,
+        duration=duration,
+        images=images,
+        videos=videos,
+        audios=audios,
+        intent=intent,
     )
     if check_intent_llm and chat is not None and (intent or "").strip():
         issues.extend(check_intent_with_llm(chat, intent, prompt, inventory))
@@ -330,7 +462,13 @@ def verify_and_fix(
             rounds += 1
             # 重新收集规则 + 意图问题：修复后不静默丢弃意图偏差，且对修复稿复检。
             issues = verify_prompt(
-                mode, current, duration=duration, images=images, videos=videos, audios=audios
+                mode,
+                current,
+                duration=duration,
+                images=images,
+                videos=videos,
+                audios=audios,
+                intent=intent,
             )
             if check_intent_llm and chat is not None and (intent or "").strip():
                 issues.extend(check_intent_with_llm(chat, intent, current, inventory))

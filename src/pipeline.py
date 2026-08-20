@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -29,7 +30,7 @@ from .mechanism_router import (
     writing_blocks_for_user,
 )
 from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
-from .verify import verify_and_fix
+from .verify import music_constraint_note, shot_constraint_note, verify_and_fix
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -69,6 +70,8 @@ def _expand_user(
     lines = [
         f"Mode: {mode}. Expand the short intent. Do not output MiniMax fields yet.",
         f"Writing path: {expand_hint(mode)}",
+        shot_constraint_note(intent),
+        music_constraint_note(intent),
         "",
         "Short intent:",
         intent.strip(),
@@ -89,12 +92,15 @@ def _format_user(
     *,
     inventory: str | None,
     duration: int | None,
+    intent: str = "",
 ) -> str:
     """构造共用格式化 USER：模式 + 场景稿 + 可选库存与时长约束。"""
     lines = [
         f"MODE={mode}",
         "Serialize the scene note into the MiniMax-H3 fields for this MODE.",
         "Follow the appended official writing guide. Do not mention aspect ratio, resolution, fps, or canvas size.",
+        shot_constraint_note(intent),
+        music_constraint_note(intent),
     ]
     if duration is not None:
         lines.append(
@@ -175,9 +181,13 @@ def _perceive_keyframes(
     return _rescan_if_grid_incomplete(system, inventory, text=text, images=images)
 
 
-def _elaborate_user(expanded: str, inventory: str | None) -> str:
+def _elaborate_user(expanded: str, inventory: str | None, intent: str = "") -> str:
     """构造补细节 USER：扩写稿 + 可选库存。"""
-    lines = ["Expand the scene note below to official Context-IR detail level."]
+    lines = [
+        "Expand the scene note below to official Context-IR detail level.",
+        shot_constraint_note(intent),
+        music_constraint_note(intent),
+    ]
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
     lines.extend(["", "Scene note:", expanded.strip()])
@@ -240,6 +250,8 @@ def enhance(
             raise ValueError("r2va 参考音频数量 ≤ 3")
 
     dur = duration if duration is not None else infer_duration(intent)
+    enhance_started = time.perf_counter()
+    enhance_started_at = datetime.now(timezone.utc).isoformat()
     steps: list[dict[str, str]] = []
     inventory: str | None = None
 
@@ -340,14 +352,16 @@ def enhance(
     elaborate_sys = load_prompt("elaborate")
     elaborated = chat(
         elaborate_sys,
-        _elaborate_user(expanded, inventory),
+        _elaborate_user(expanded, inventory, intent),
         stage="elaborate",
     )
     steps.append({"stage": "elaborate", "text": elaborated})
 
     format_sys = compose_format_system(mode, load_prompt("format_h3"), extra_guides)
     # 格式化直接消费补细节稿（已含构图/镜头/声音/音乐细节），保证成果进入最终提示词。
-    format_text = _format_user(mode, elaborated, inventory=inventory, duration=dur)
+    format_text = _format_user(
+        mode, elaborated, inventory=inventory, duration=dur, intent=intent
+    )
     if mode in KEYFRAME_MODES:
         frame_images = [p for p in (first_frame, last_frame) if p]
         format_user: str | list[dict[str, Any]] = user_parts(
@@ -392,10 +406,19 @@ def enhance(
         prompt = verify_result["prompt"]
         steps.append({"stage": "verify_fix", "text": prompt})
 
+    enhance_seconds = round(time.perf_counter() - enhance_started, 2)
+    enhance_finished_at = datetime.now(timezone.utc).isoformat()
+    timing = {
+        "enhance_seconds": enhance_seconds,
+        "started_at": enhance_started_at,
+        "finished_at": enhance_finished_at,
+    }
+
     record: dict[str, Any] = {
         "mode": mode,
         "intent": intent,
         "duration": dur,
+        "timing": timing,
         "first_frame": first_frame,
         "last_frame": last_frame,
         "reference_images": images if mode == "r2va" else [],
@@ -432,6 +455,10 @@ def enhance(
         slim["steps"] = [{"stage": s["stage"]} for s in steps]
         (out_dir / "run.json").write_text(
             json.dumps(slim, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        (out_dir / "timing.json").write_text(
+            json.dumps({"mode": mode, **timing}, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
         record["out_dir"] = str(out_dir)

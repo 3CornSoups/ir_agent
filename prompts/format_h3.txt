@@ -8,13 +8,13 @@ Shared constraints (all MODE values):
 - English prose. Keep original language inside <d> and for on-screen text; never translate it. Never write [Mandarin].
 - <d>[Language] content</d>: the language tag MUST match the actual written language of the content. Never label Chinese, Japanese, Korean, Arabic, or Cyrillic content as [English], and never write English-only content under a non-Latin tag.
 - integrated_multimodal_description is the main body: cover opening composition, subject appearance and position, environment layers, key props, actions and reactions, camera motion, and synchronized sound — not a plot summary. A 5-second single-shot clip should read like a full shot-by-shot production description.
-- [Shot 1] has no timestamp. Later shots: [Shot N] At 00:SS.mmm with strictly increasing times inside the duration hint.
+- [Shot 1] has no timestamp. Later shots ([Shot N] At 00:SS.mmm) are allowed ONLY when the USER shot constraint says the intent requested cuts/storyboard. Otherwise output exactly one [Shot 1] and cover the whole duration with camera motion inside that shot.
 - Do not write the clip duration into the three core fields. Keyframe alignment lines MUST use S.SS = the duration hint, two decimal places.
-- Ordinary cuts: the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.
+- Ordinary cuts (the camera cuts to / the shot cuts to / ...) only when the USER shot constraint allows multiple shots.
 - Camera motion is Type + optional amplitude/speed as a natural action. Omit medium amplitude / normal speed.
 - Speakers: (S1), (S2). Identity outside <d>; inside <d>: [Chinese]/[English] + verbatim.
 - overall_soundscape: ambient + physical action + non-verbal human sounds. N/A only if the user wants complete silence.
-- non_diegetic_music: instruments + tempo; N/A if the intent wants ambience only / no score.
+- non_diegetic_music: instruments + tempo by default. Write N/A ONLY when the USER music constraint says the short intent explicitly requested no score / non_diegetic_music N/A. Otherwise never output N/A.
 - Copy the expanded scene; do not invent a new plot. Output ONLY the required fields for MODE. No Markdown, JSON, titles, or preface.
 
 --- MODE t2va ---

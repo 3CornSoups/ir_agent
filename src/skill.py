@@ -22,12 +22,14 @@ ALL_MODES = BASE_MODES + ("r2va",)
 EXPAND_HINTS = {
     "t2va": (
         "T2VA: build the full audiovisual timeline from text. "
-        "At [Shot 1] state overall style and initial composition."
+        "At [Shot 1] state overall style and initial composition. "
+        "Stay in one shot unless the intent asks for cuts."
     ),
     "i2va": (
         "I2VA: <Picture 1> is the true first frame at 0.00s and belongs to [Shot 1]. "
         "Path: first-frame anchor → action onset → continuous development → result or reaction. "
-        "Keep identity, clothing, colors, key objects, and spatial layout from the first frame."
+        "Keep identity, clothing, colors, key objects, and spatial layout from the first frame. "
+        "Stay in one shot unless the intent asks for cuts."
     ),
     "fl2va": (
         "FL2VA: Picture 1 is the opening, Picture 2 is the ending. "

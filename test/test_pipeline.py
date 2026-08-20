@@ -100,7 +100,7 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return (
                 "integrated_multimodal_description: [Shot 1] cat 16:9\n\n"
                 "overall_soundscape: room tone\n\n"
-                "non_diegetic_music: N/A 768P fps 24."
+                "non_diegetic_music: Soft piano at a slow tempo. 768P fps 24."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -153,7 +153,7 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
                 "<Picture 1> (from [Shot 1]) is fully referenced.\n\n"
                 "integrated_multimodal_description: [Shot 1] walk forward 16:9\n\n"
                 "overall_soundscape: street\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -220,7 +220,7 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
                 "Picture 2 (from Shot 1) aligns with the 5.00-second mark of the target video.\n\n"
                 "integrated_multimodal_description: [Shot 1] path 16:9\n\n"
                 "overall_soundscape: rain\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -271,7 +271,7 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return (
                 "integrated_multimodal_description: [Shot 1] open [Shot 2] At 00:03.000 land\n\n"
                 "overall_soundscape: room\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -283,7 +283,7 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     out_dir = tmp_path / "out_l2va"
     rec = enhance(
         "l2va",
-        "短意图",
+        "从开场切镜，最后落到尾帧",
         last_frame=str(last_frame),
         duration=6,
         out_dir=out_dir,
@@ -412,7 +412,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
                 "retention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - coat kept.\n\n"
                 "detailed_description:\n[Shot 1] The cat from the sheet walks.\n\n"
                 "overall_soundscape: room tone\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -465,7 +465,7 @@ def test_enhance_loads_brand_skill_from_intent(
             return (
                 "integrated_multimodal_description: [Shot 1] product proof\n\n"
                 "overall_soundscape: light UI ticks\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -484,6 +484,7 @@ def test_enhance_loads_brand_skill_from_intent(
     assert rec["style_skill_source"] == "keyword"
     assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "elaborate", "format"]
     assert "style skill: brand-promo" in seen["expand_user"]
+    assert "exactly one continuous [Shot 1]" in seen["expand_user"]
     assert "style skill: brand-promo" in seen["format_sys"]
     assert "Official H3 writing guide" in seen["format_sys"]
 
@@ -510,7 +511,7 @@ def test_enhance_forced_skill_off_router(
             return (
                 "integrated_multimodal_description: [Shot 1] cartoon\n\n"
                 "overall_soundscape: N/A\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 

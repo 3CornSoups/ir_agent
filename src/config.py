@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,14 +12,24 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 PROMPTS = ROOT / "prompts"
 CONFIGS = ROOT / "configs"
+# 与 IR_Agent / 8.18 同一套 Cloudsway 凭证源。
+YZ_GENERATE_PROMPT = ROOT.parent / "8.17" / "scripts" / "generate_prompt.py"
 
 
 def load_yaml(name: str) -> dict[str, Any]:
-    """读取 configs/{name}.yaml。"""
+    """读取 configs/{name}.yaml；没有则回退 {name}.yaml.example，再没有则空字典。
+
+    密钥仍以环境变量优先。这样 --no-video 不必先复制 h3.yaml，
+    出片/扩写也可以只靠 GEMINI_API_KEY / MINIMAX_API_KEY。
+    """
     path = CONFIGS / f"{name}.yaml"
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    fallback = CONFIGS / f"{name}.yaml.example"
+    chosen = path if path.is_file() else fallback if fallback.is_file() else None
+    if chosen is None:
+        return {}
+    data = yaml.safe_load(chosen.read_text(encoding="utf-8")) or {}
     if not isinstance(data, dict):
-        raise ValueError(f"配置不是字典: {path}")
+        raise ValueError(f"配置不是字典: {chosen}")
     return data
 
 
@@ -28,11 +39,41 @@ def load_prompt(stem: str) -> str:
     return path.read_text(encoding="utf-8").strip() + "\n"
 
 
+def _non_placeholder(value: str) -> str:
+    """丢掉 example 里的 YOUR_* 占位，避免当成真密钥发出去。"""
+    text = (value or "").strip()
+    if not text:
+        return ""
+    upper = text.upper()
+    if upper.startswith("YOUR_") or upper in {"CHANGEME", "TODO", "PLACEHOLDER"}:
+        return ""
+    return text
+
+
+def _load_yz_cloudsway() -> tuple[str, str]:
+    """从 8.17/scripts/generate_prompt.py 读 API_KEY / ENDPOINT；没有则空。"""
+    path = YZ_GENERATE_PROMPT
+    if not path.is_file():
+        return "", ""
+    text = path.read_text(encoding="utf-8")
+
+    def grab(name: str) -> str:
+        m = re.search(rf'^{name}\s*=\s*"([^"]*)"', text, flags=re.MULTILINE)
+        return m.group(1).strip() if m else ""
+
+    return grab("API_KEY"), grab("ENDPOINT")
+
+
 def gemini_settings() -> dict[str, Any]:
-    """合并 Gemini 配置与环境变量。"""
+    """合并 Gemini 配置：环境变量 > configs/gemini.yaml > 8.17 generate_prompt.py。"""
     cfg = load_yaml("gemini")
-    api_key = os.environ.get("GEMINI_API_KEY") or str(cfg.get("api_key") or "")
-    endpoint = os.environ.get("GEMINI_ENDPOINT") or str(cfg.get("endpoint") or "")
+    yz_key, yz_endpoint = _load_yz_cloudsway()
+    api_key = _non_placeholder(
+        os.environ.get("GEMINI_API_KEY") or str(cfg.get("api_key") or "") or yz_key
+    )
+    endpoint = (
+        os.environ.get("GEMINI_ENDPOINT") or str(cfg.get("endpoint") or "") or yz_endpoint
+    ).strip()
     model = os.environ.get("GEMINI_MODEL") or str(cfg.get("model") or "")
     api_url = os.environ.get("GEMINI_API_URL") or str(cfg.get("api_url") or "")
     if not api_url:
@@ -74,7 +115,7 @@ def gemini_settings() -> dict[str, Any]:
 def h3_settings() -> dict[str, Any]:
     """合并 H3 出片配置与环境变量。"""
     cfg = load_yaml("h3")
-    api_key = os.environ.get("MINIMAX_API_KEY") or str(cfg.get("api_key") or "")
+    api_key = _non_placeholder(os.environ.get("MINIMAX_API_KEY") or str(cfg.get("api_key") or ""))
     skip_auth_env = os.environ.get("H3_SKIP_AUTH", "").strip().lower()
     skip_auth = bool(cfg.get("skip_auth")) or skip_auth_env in {"1", "true", "yes", "on"}
     return {

@@ -7,7 +7,7 @@ Add detail in these dimensions (only what serves the scene):
 - LIGHT & ATMOSPHERE: lighting source, direction, and quality (hard / soft); time-of-day or weather where it matters.
 - CAMERA: motion type + amplitude + speed, written as a natural English action; only when it matters.
 - SOUND (diegetic): ambient sound, physical action sounds, and non-verbal human sounds.
-- MUSIC (non-diegetic): instruments + tempo + rhythm + dynamic changes, only if the intent wants music.
+- MUSIC (non-diegetic): instruments + tempo + rhythm + dynamic changes by default. Omit / leave for N/A only when the USER music constraint says the intent explicitly requested no score.
 
 Hard constraints:
 - Do not add new plot events, new characters, or a new ending.
@@ -16,5 +16,6 @@ Hard constraints:
 - Do not mention aspect ratio, resolution, fps, canvas size, or pixel dimensions.
 - Do not output MiniMax field names (integrated_multimodal_description, overall_soundscape, etc.). Stay in flowing prose.
 - Keep dialogue and on-screen text in their original language.
+- Follow the USER "Shot constraint": if the short intent does not mention cuts or a storyboard, keep a single continuous shot. Do not introduce later shots or invented cuts.
 
 A 5-second single-shot scene should cover composition, subject, environment, props, action, camera, and sound.

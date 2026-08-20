@@ -4,10 +4,14 @@ from src.verify import (
     check_alignment_line,
     check_canvas_residue,
     check_dialogue_language,
+    check_extra_shots,
     check_field_structure,
     check_label_numbers,
     check_label_usage,
+    check_music_na,
     check_timestamps,
+    intent_allows_multi_shot,
+    intent_allows_music_na,
     verify_and_fix,
     verify_prompt,
 )
@@ -111,6 +115,54 @@ def test_verify_timestamps_over_duration() -> None:
     issues = check_timestamps(text, 6)
     assert _has_error(issues)
     assert any(i.code == "shot_time_over_duration" for i in issues)
+
+
+def test_intent_allows_multi_shot() -> None:
+    """只有明确提分镜/切镜才允许多镜头。"""
+    assert intent_allows_multi_shot("先中景再切镜到特写") is True
+    assert intent_allows_multi_shot("storyboard of three shots, then cut to a close-up") is True
+    assert intent_allows_multi_shot("一只橘猫在窗台晒太阳") is False
+    assert intent_allows_multi_shot("镜头缓推，人物向前走") is False
+
+
+def test_check_extra_shots() -> None:
+    """未提分镜却写出 Shot 2 应报 error；提了分镜则放行。"""
+    issues = check_extra_shots(T2VA_OK, "一只橘猫在窗台晒太阳")
+    assert _has_error(issues)
+    assert any(i.code == "extra_shot" for i in issues)
+    assert check_extra_shots(T2VA_OK, "从中景切镜到尾巴特写") == []
+    assert check_extra_shots(T2VA_OK, "") == []
+    single = T2VA_OK.replace(
+        " [Shot 2] At 00:04.000, the camera cuts to a close-up of its tail.",
+        " The camera pushes in to a close-up of its tail.",
+    )
+    assert check_extra_shots(single, "一只橘猫在窗台晒太阳") == []
+
+
+def test_intent_allows_music_na() -> None:
+    """只有明确要求无配乐 / music=N/A 才允许 non_diegetic_music: N/A。"""
+    assert intent_allows_music_na("non_diegetic_music: N/A") is True
+    assert intent_allows_music_na("non_diegetic_music为N/A") is True
+    assert intent_allows_music_na("不要配乐，只要环境音") is True
+    assert intent_allows_music_na("ambience only, no score") is True
+    assert intent_allows_music_na("no music, ambient sound only") is True
+    assert intent_allows_music_na("一只橘猫在窗台晒太阳") is False
+    assert intent_allows_music_na("镜头缓推，人物向前走") is False
+
+
+def test_check_music_na() -> None:
+    """未要求无配乐却写成 N/A 应报 error；明确要求则放行。"""
+    na = T2VA_OK.replace(
+        "non_diegetic_music: Gentle acoustic guitar at a slow tempo.",
+        "non_diegetic_music: N/A",
+    )
+    issues = check_music_na(na, "一只橘猫在窗台晒太阳")
+    assert _has_error(issues)
+    assert any(i.code == "music_na_forbidden" for i in issues)
+    assert check_music_na(na, "不要配乐") == []
+    assert check_music_na(na, "non_diegetic_music: N/A") == []
+    assert check_music_na(na, "") == []
+    assert check_music_na(T2VA_OK, "一只橘猫在窗台晒太阳") == []
 
 
 def test_verify_label_numbers() -> None:
