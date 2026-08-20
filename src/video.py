@@ -12,6 +12,7 @@ import requests
 
 from .config import h3_settings
 from .media import as_data_uri
+from .runlog import log_http_call
 
 MODES = ("t2va", "i2va", "fl2va", "l2va", "r2va")
 RESOLUTIONS = ("768P", "2K")
@@ -213,6 +214,20 @@ def generate_video(
     create_url = f"{cfg['base_url']}{cfg['generate_path']}"
     resp = session.post(create_url, json=body, timeout=cfg["timeout_sec"])
     data = _parse_response(resp)
+    # 记录出片请求摘要（不含 base64 大图，避免日志膨胀）。
+    req_summary: dict[str, Any] = {
+        "model": body["model"],
+        "resolution": body["resolution"],
+        "duration": body["duration"],
+        "ratio": body["ratio"],
+        "content": [c.get("type") for c in content],
+    }
+    log_http_call(
+        name="h3_create",
+        request=req_summary,
+        response=json.dumps(data, ensure_ascii=False, default=str),
+        ok=not isinstance(data.get("task"), dict) or data.get("task", {}).get("status") != "failed",
+    )
     task_id = data.get("task_id")
     result: dict[str, Any] = {
         "ratio": resolved_ratio,
@@ -250,6 +265,12 @@ def generate_video(
         while time.time() < deadline:
             q = session.get(query_url, timeout=cfg["timeout_sec"])
             payload = _parse_response(q)
+            log_http_call(
+                name="h3_query",
+                request={"task_id": str(task_id)},
+                response=json.dumps(payload, ensure_ascii=False, default=str),
+                ok=True,
+            )
             task = payload.get("task") if isinstance(payload.get("task"), dict) else payload
             status = task.get("status")
             if status != last_status:

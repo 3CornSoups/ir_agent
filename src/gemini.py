@@ -8,6 +8,7 @@ from typing import Any
 import requests
 
 from .config import gemini_settings
+from .runlog import log_model_call
 
 
 def _split_data_uri(uri: str) -> tuple[str, str]:
@@ -116,7 +117,15 @@ def chat(
     timeout = float(cfg["timeout_sec"])
 
     if cfg.get("protocol") == "native":
-        return _chat_native(cfg, system, user, temperature=temperature, top_p=top_p, timeout=timeout, retries=retries)
+        try:
+            text = _chat_native(
+                cfg, system, user, temperature=temperature, top_p=top_p, timeout=timeout, retries=retries
+            )
+        except Exception as exc:  # noqa: BLE001
+            log_model_call(stage=stage, system=system, user=user, response=str(exc), ok=False)
+            raise
+        log_model_call(stage=stage, system=system, user=user, response=text, ok=True)
+        return text
 
     # ---- OpenAI 兼容层（仅文本/图片）----
     content: str | list[dict[str, Any]] = user
@@ -144,9 +153,12 @@ def chat(
             text = data["choices"][0]["message"]["content"]
             if not isinstance(text, str) or not text.strip():
                 raise RuntimeError(f"Gemini 空回复: {data!r}")
-            return text.strip()
+            text = text.strip()
+            log_model_call(stage=stage, system=system, user=user, response=text, ok=True)
+            return text
         except Exception as exc:  # noqa: BLE001
             last_err = exc
             if attempt + 1 < retries:
                 time.sleep(1.5**attempt)
+    log_model_call(stage=stage, system=system, user=user, response=str(last_err), ok=False)
     raise RuntimeError(f"Gemini 请求失败（{retries} 次）: {last_err}") from last_err

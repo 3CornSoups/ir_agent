@@ -213,6 +213,37 @@ Gemini 原生端点的 `inlineData` 单次上限为 **20MB**。当参考视频�
 - 或直接设置环境变量 `export H3_SKIP_AUTH=true`
 - 如本地服务接口路径不是默认 `/v2/video_generation` / `/v2/query/video_generation/{task_id}`，可配置 `generate_path` / `query_path_template`
 
+## 一键运行（服务器推荐）
+
+`scripts/oneclick_run.py` 面向服务器：一条命令启动 agent 增强意图、输出增强结果，并且**每次运行在 `log/` 下生成一个小文件夹**，记录本次对模型的每一次 HTTP 请求与响应，便于排查问题。
+
+```bash
+# 单条意图，只增强不出片（默认）
+python3 scripts/oneclick_run.py -m t2va --intent "一只橘猫在窗台晒太阳"
+
+# 从文件读意图
+python3 scripts/oneclick_run.py -m t2va --intent-file input.txt
+
+# 批量（每行一条意图）
+python3 scripts/oneclick_run.py -m t2va --intents-file intents.txt
+
+# 出片（需要配置 configs/h3.yaml 或 MINIMAX_API_KEY）
+python3 scripts/oneclick_run.py -m i2va --intent "人物向前走" \
+  --first-frame first.png --duration 5 --video
+
+# 关闭质量校验（更快）
+python3 scripts/oneclick_run.py -m t2va --intent "..." --no-verify
+```
+
+每次运行生成两个目录（同名 `run_<模式>_<时间戳>_<序号>`）：
+
+| 目录 | 内容 |
+| --- | --- |
+| `runs/run_<id>/` | 增强结果：`prompt.txt`、`expanded.txt`、`elaborated.txt`、`inventory.txt`、`run.json` |
+| `log/run_<id>/` | 模型调用日志：按 stage 成对落盘 `01_expand_request.txt` / `01_expand_response.txt`、`02_perceive_*` …；`meta.json` 记录意图/模式/参数/结果路径 |
+
+日志覆盖整条链路：风格/机制路由（`route`）、感知（`perceive`）、扩写（`expand`）、补细节（`elaborate`）、格式化（`format`）、校验修复（`verify`）、出片（`h3_create` / `h3_query`）。多模态请求里的 data URI 会自动截断，避免日志膨胀。`log/` 目录已被 `.gitignore` 忽略，不会误传服务器。
+
 ## 调用
 
 ```bash
