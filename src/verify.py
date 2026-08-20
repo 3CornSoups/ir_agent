@@ -8,6 +8,8 @@ LLM 修复（stage="verify"），修复后重新校验，最多 max_fix_rounds �
 - 时间戳单调性                 → 画面诡异（时序混乱）
 - 标签编号 / 标签使用          → 丢失参考素材
 - <d>[Language] 语言匹配       → 台词发音紊乱
+- 禁止 [Mandarin]              → 台词发音紊乱
+- 用户原句必须进 <d>           → 台词被翻译 / 漏句
 """
 
 from __future__ import annotations
@@ -47,9 +49,9 @@ _CYRILLIC_RE = re.compile(r"[\u0400-\u04ff]")
 _LATIN_RE = re.compile(r"[A-Za-z]")
 
 # 需要与内容文字一一对应的非拉丁语言标签。
+# 中文只认 chinese；mandarin 走禁止名单，不能当合法标签。
 _SCRIPT_LANGS = {
     "chinese": _CJK_RE,
-    "mandarin": _CJK_RE,
     "japanese": _KANA_RE,
     "korean": _HANGUL_RE,
     "arabic": _ARABIC_RE,
@@ -57,6 +59,37 @@ _SCRIPT_LANGS = {
 }
 # 拉丁文字语言标签。
 _LATIN_LANGS = {"english", "french", "german", "italian", "portuguese", "spanish"}
+# H3 对白标签禁止项：必须写成 [Chinese]，不能写 Mandarin。
+_FORBIDDEN_DLANG = {"mandarin", "putonghua"}
+
+_QUOTE_RES = (
+    re.compile(r"「([^」]+)」"),
+    re.compile(r"『([^』]+)』"),
+    re.compile(r"“([^”]+)”"),
+    re.compile(r'"([^"]+)"'),
+)
+_PUNCT_NORM = str.maketrans(
+    {
+        "。": ".",
+        "．": ".",
+        "！": "!",
+        "？": "?",
+        "，": ",",
+        "、": ",",
+        "：": ":",
+        "；": ";",
+        "…": ".",
+        "—": "-",
+        "～": "~",
+        "「": "",
+        "」": "",
+        "『": "",
+        "』": "",
+        '"': "",
+        "“": "",
+        "”": "",
+    }
+)
 
 # 画幅/分辨率/帧率残留（strip_canvas 已先清理，这里是最终安全网）。
 _CANVAS_RE = re.compile(
@@ -185,6 +218,83 @@ def check_label_usage(prompt: str) -> list[VerifyIssue]:
     ]
 
 
+def extract_locked_dialogue(intent: str) -> list[str]:
+    """从用户意图的引号里抽出锁定台词，去重且保持出现顺序。"""
+    hits: list[tuple[int, str]] = []
+    for rx in _QUOTE_RES:
+        for match in rx.finditer(intent or ""):
+            line = (match.group(1) or "").strip()
+            if _is_lockable_line(line):
+                hits.append((match.start(), line))
+    hits.sort(key=lambda item: item[0])
+    seen: set[str] = set()
+    lines: list[str] = []
+    for _, line in hits:
+        if line in seen:
+            continue
+        seen.add(line)
+        lines.append(line)
+    return lines
+
+
+def _is_lockable_line(line: str) -> bool:
+    """过滤路径、空串、纯标点，保留对白。"""
+    text = (line or "").strip()
+    if len(text) < 1:
+        return False
+    if re.search(r"\.(png|jpg|jpeg|webp|mp4|mov|wav)\b", text, re.I):
+        return False
+    if not (_CJK_RE.search(text) or _LATIN_RE.search(text)):
+        return False
+    return True
+
+
+def _norm_dialogue(text: str) -> str:
+    """对白比对用：去掉空白、统一中英文标点。"""
+    compact = re.sub(r"\s+", "", (text or "").strip())
+    compact = compact.translate(_PUNCT_NORM)
+    return compact.replace("...", ".")
+
+
+def check_forbidden_dialogue_tag(prompt: str) -> list[VerifyIssue]:
+    """禁止 [Mandarin] / [Putonghua]；中文必须写 [Chinese]。"""
+    issues: list[VerifyIssue] = []
+    for lang, content in _DLANG_RE.findall(prompt or ""):
+        key = lang.strip().lower()
+        if key not in _FORBIDDEN_DLANG:
+            continue
+        snippet = (content or "").strip()[:30].replace("\n", " ")
+        issues.append(
+            VerifyIssue(
+                "dialogue_forbidden_lang",
+                "error",
+                f"<d>[{lang}] 禁止使用，中文对白必须写成 [Chinese]: 「{snippet}」",
+            )
+        )
+    return issues
+
+
+def check_dialogue_verbatim(prompt: str, locked: list[str]) -> list[VerifyIssue]:
+    """用户意图里的锁定台词必须原句出现在某个 <d> 内，不得翻译或漏写。"""
+    if not locked:
+        return []
+    inners = [c.strip() for _, c in _DLANG_RE.findall(prompt or "")]
+    joined = "\n".join(_norm_dialogue(x) for x in inners)
+    issues: list[VerifyIssue] = []
+    for line in locked:
+        needle = _norm_dialogue(line)
+        if needle and needle in joined:
+            continue
+        issues.append(
+            VerifyIssue(
+                "dialogue_verbatim_missing",
+                "error",
+                f"用户原句未出现在 <d> 内（禁止翻译或漏写）: 「{line}」",
+            )
+        )
+    return issues
+
+
 def check_dialogue_language(prompt: str) -> list[VerifyIssue]:
     """<d>[Lang] 内容</d>：语言标签必须与内容实际文字匹配。"""
     issues: list[VerifyIssue] = []
@@ -233,6 +343,7 @@ def verify_prompt(
     images: int = 0,
     videos: int = 0,
     audios: int = 0,
+    intent: str = "",
 ) -> list[VerifyIssue]:
     """跑全部规则校验，返回问题列表。"""
     issues: list[VerifyIssue] = []
@@ -242,7 +353,9 @@ def verify_prompt(
     issues += check_label_numbers(prompt, images=images, videos=videos, audios=audios)
     if mode == "r2va":
         issues += check_label_usage(prompt)
+    issues += check_forbidden_dialogue_tag(prompt)
     issues += check_dialogue_language(prompt)
+    issues += check_dialogue_verbatim(prompt, extract_locked_dialogue(intent))
     issues += check_canvas_residue(prompt)
     return issues
 
@@ -306,7 +419,13 @@ def verify_and_fix(
         intent_llm: 本次是否启用了 LLM 意图检查
     """
     issues = verify_prompt(
-        mode, prompt, duration=duration, images=images, videos=videos, audios=audios
+        mode,
+        prompt,
+        duration=duration,
+        images=images,
+        videos=videos,
+        audios=audios,
+        intent=intent,
     )
     if check_intent_llm and chat is not None and (intent or "").strip():
         issues.extend(check_intent_with_llm(chat, intent, prompt, inventory))
@@ -319,10 +438,17 @@ def verify_and_fix(
             user_lines = [
                 "Issues:",
                 *[f"- [{i.code}] {i.message}" for i in issues],
-                "",
-                "Prompt:",
-                current,
             ]
+            locked = extract_locked_dialogue(intent)
+            if locked:
+                user_lines.extend(
+                    [
+                        "",
+                        "Locked spoken lines (copy each verbatim into <d>; Chinese uses [Chinese], never [Mandarin]; do not translate):",
+                        *[f"- {line}" for line in locked],
+                    ]
+                )
+            user_lines.extend(["", "Prompt:", current])
             fixed = chat(system, "\n".join(user_lines), stage="verify")
             if fixed.strip() == current.strip():
                 break  # 模型没有改动，避免死循环
@@ -330,7 +456,13 @@ def verify_and_fix(
             rounds += 1
             # 重新收集规则 + 意图问题：修复后不静默丢弃意图偏差，且对修复稿复检。
             issues = verify_prompt(
-                mode, current, duration=duration, images=images, videos=videos, audios=audios
+                mode,
+                current,
+                duration=duration,
+                images=images,
+                videos=videos,
+                audios=audios,
+                intent=intent,
             )
             if check_intent_llm and chat is not None and (intent or "").strip():
                 issues.extend(check_intent_with_llm(chat, intent, current, inventory))

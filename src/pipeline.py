@@ -29,7 +29,7 @@ from .mechanism_router import (
     writing_blocks_for_user,
 )
 from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
-from .verify import verify_and_fix
+from .verify import extract_locked_dialogue, verify_and_fix
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -58,6 +58,19 @@ def strip_canvas(text: str) -> str:
     return cleaned.strip() + "\n"
 
 
+def _locked_dialogue_block(intent: str) -> str | None:
+    """把用户意图里的引号台词列成锁定清单，供扩写/补细节/格式化原句抄写。"""
+    lines = extract_locked_dialogue(intent)
+    if not lines:
+        return None
+    body = "\n".join(f"- {line}" for line in lines)
+    return (
+        "Locked spoken lines from the user's intent. Copy each line verbatim in the original language. "
+        "Do not translate, paraphrase, or add an English gloss. Never use [Mandarin]; Chinese lines use [Chinese].\n"
+        + body
+    )
+
+
 def _expand_user(
     intent: str,
     *,
@@ -73,6 +86,9 @@ def _expand_user(
         "Short intent:",
         intent.strip(),
     ]
+    locked = _locked_dialogue_block(intent)
+    if locked:
+        lines.extend(["", locked])
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
         keep = grid_keep_subjects_note(inventory)
@@ -89,6 +105,7 @@ def _format_user(
     *,
     inventory: str | None,
     duration: int | None,
+    intent: str = "",
 ) -> str:
     """构造共用格式化 USER：模式 + 场景稿 + 可选库存与时长约束。"""
     lines = [
@@ -103,6 +120,9 @@ def _format_user(
             f"If MODE is fl2va or l2va, the alignment line MUST use S.SS = {float(duration):.2f}."
         )
     lines.extend(["", "Scene note:", scene.strip()])
+    locked = _locked_dialogue_block(intent)
+    if locked:
+        lines.extend(["", locked])
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
         keep = grid_keep_subjects_note(inventory)
@@ -175,7 +195,7 @@ def _perceive_keyframes(
     return _rescan_if_grid_incomplete(system, inventory, text=text, images=images)
 
 
-def _elaborate_user(expanded: str, inventory: str | None) -> str:
+def _elaborate_user(expanded: str, inventory: str | None, intent: str = "") -> str:
     """构造补细节 USER：扩写稿 + 可选库存。"""
     lines = [
         "Make the scene note below concrete and physically plausible. "
@@ -185,6 +205,9 @@ def _elaborate_user(expanded: str, inventory: str | None) -> str:
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
     lines.extend(["", "Scene note:", expanded.strip()])
+    locked = _locked_dialogue_block(intent)
+    if locked:
+        lines.extend(["", locked])
     return "\n".join(lines)
 
 
@@ -344,14 +367,14 @@ def enhance(
     elaborate_sys = load_prompt("elaborate")
     elaborated = chat(
         elaborate_sys,
-        _elaborate_user(expanded, inventory),
+        _elaborate_user(expanded, inventory, intent=intent),
         stage="elaborate",
     )
     steps.append({"stage": "elaborate", "text": elaborated})
 
     format_sys = compose_format_system(mode, load_prompt("format_h3"), extra_guides)
     # 格式化直接消费补细节稿（已含构图/镜头/声音/音乐细节），保证成果进入最终提示词。
-    format_text = _format_user(mode, elaborated, inventory=inventory, duration=dur)
+    format_text = _format_user(mode, elaborated, inventory=inventory, duration=dur, intent=intent)
     if mode in KEYFRAME_MODES:
         frame_images = [p for p in (first_frame, last_frame) if p]
         format_user: str | list[dict[str, Any]] = user_parts(

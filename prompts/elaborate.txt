@@ -15,7 +15,7 @@ Hard constraints:
 - Do not invent reference assets; stay consistent with any inventory provided.
 - Do not mention aspect ratio, resolution, fps, canvas size, or pixel dimensions.
 - Do not output MiniMax field names (integrated_multimodal_description, overall_soundscape, etc.). Stay in flowing prose.
-- Keep dialogue and on-screen text in their original language.
+- Dialogue: if the USER lists Locked spoken lines, copy each line verbatim in the original language. Never translate, paraphrase, or add an English gloss. Never write [Mandarin]. Chinese lines stay Chinese.
 
 Complexity scaling:
 - A single continuous shot (especially 4–5 seconds, no cuts) needs one focused paragraph: composition, subject, action, environment, camera (if any), and sound. Do NOT pad to match the length of a multi-shot production brief.

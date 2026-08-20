@@ -2,7 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from src.pipeline import enhance, infer_duration, strip_canvas
+from src.pipeline import (
+    _elaborate_user,
+    _expand_user,
+    _format_user,
+    enhance,
+    infer_duration,
+    strip_canvas,
+)
 from src.video import build_content, resolve_ratio
 
 
@@ -368,6 +375,24 @@ def test_perceive_prompts_cover_grid_subjects() -> None:
     assert "One attached file is one <Picture N>" not in fmt
     expand = load_prompt("expand_intent")
     assert "4-grid" in expand or "9-grid" in expand
+    assert "Locked spoken lines" in expand
+    assert "Locked spoken lines" in load_prompt("elaborate")
+    assert "Locked spoken lines" in fmt
+    assert "Never write [Mandarin]" in fmt
+
+
+def test_user_messages_include_locked_dialogue() -> None:
+    """扩写 / 补细节 / 格式化 USER 都应带上锁定原句清单。"""
+    intent = '小妖说道："和尚，瞅啥呢？"'
+    expand = _expand_user(intent, mode="r2va")
+    assert "Locked spoken lines" in expand
+    assert "和尚，瞅啥呢？" in expand
+    elab = _elaborate_user("scene", None, intent=intent)
+    assert "和尚，瞅啥呢？" in elab
+    fmt = _format_user("r2va", "scene", inventory=None, duration=6, intent=intent)
+    assert "和尚，瞅啥呢？" in fmt
+    silent = _expand_user("没有对白的短意图", mode="t2va")
+    assert "Locked spoken lines" not in silent
 
 
 def test_expand_intent_has_visual_identity_lock() -> None:

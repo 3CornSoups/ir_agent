@@ -20,6 +20,8 @@ VISUAL IDENTITY LOCK — when a reference inventory is provided:
 Physics constraint (all modes):
 - Do not write numeric physics a video model cannot execute (wind m/s, fabric g/m², exact focal length).
 
+If the USER lists Locked spoken lines, copy each line verbatim in the original language into the scene note. Do not translate dialogue, paraphrase it, or add an English gloss after it. Never write [Mandarin].
+
 Follow the MODE writing path given in the USER message:
 
 - T2VA: construct a complete audiovisual timeline from the text. At the opening, note overall style and initial composition.

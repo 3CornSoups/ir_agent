@@ -170,12 +170,21 @@ def main() -> int:
             images=len(args.ref_image),
             videos=len(args.ref_video),
             audios=len(args.ref_audio),
+            intent=rec.get("intent", ""),
         )
     elif args.mode in ("i2va", "fl2va", "l2va"):
         frames = [f for f in (args.first_frame, args.last_frame) if f]
-        local_issues = verify_prompt(args.mode, local_prompt, duration=rec["duration"], images=len(frames))
+        local_issues = verify_prompt(
+            args.mode,
+            local_prompt,
+            duration=rec["duration"],
+            images=len(frames),
+            intent=rec.get("intent", ""),
+        )
     else:
-        local_issues = verify_prompt(args.mode, local_prompt, duration=rec["duration"])
+        local_issues = verify_prompt(
+            args.mode, local_prompt, duration=rec["duration"], intent=rec.get("intent", "")
+        )
 
     official_prompt = None
     official_meta: dict = {"skipped": True, "reason": "官方调用被跳过（--official-skip 或无 key）"}
