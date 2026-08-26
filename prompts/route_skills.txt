@@ -8,4 +8,5 @@ Rules:
 - Include every catalog id exactly once. Scores are floats from 0.0 to 1.0.
 - 1.0 = perfect genre fit; 0.0 = unrelated.
 - Generic scenes (a cat on a windowsill, a glass falling, rain in a street, etc.) must keep ALL scores low (well below 0.5).
+- handdrawn-live is ONLY for live-action × drawing fusion. Pure 手绘 / 速写 / sketch without 实拍融合 must score it below 0.5.
 - Do not invent ids. Do not omit catalog ids.
