@@ -15,17 +15,23 @@ decode:
   perceive:
     temperature: 0.2
     top_p: 0.9
+  route:
+    temperature: 0.1
+    top_p: 0.9
   expand:
-    temperature: 0.7
+    temperature: 0.5
     top_p: 0.95
   elaborate:
-    temperature: 0.6
+    temperature: 0.5
     top_p: 0.9
   format:
     temperature: 0.2
     top_p: 0.9
   verify:
     temperature: 0.2
+    top_p: 0.9
+  parse_intent:
+    temperature: 0.0
     top_p: 0.9
 
 # 质量校验：规则层无额外调用；LLM 意图检查需显式开启
