@@ -4,6 +4,77 @@
 
 仓库：<https://github.com/3CornSoups/ir_agent>
 
+## 这套程序在干什么（通俗版）
+
+一句话：**你扔一句短想法进来，程序帮你写成 MiniMax-H3 能吃的「正式视频提示词」；需要的话再拿去出片。**
+
+它不负责替你拍片子本身（出片是可选的最后一步）。中间几步都是在「把人话变成模型听话的长提示词」，并且尽量做到：你说了的台词/禁止项别丢，你没说的别乱编。
+
+### 用一个例子串起来
+
+假设你输入：
+
+> 模式：`t2va`（纯文生视频）  
+> 意图：`一只橘猫在窗台晒太阳，镜头缓推，约5秒`
+
+程序大致按下面这条流水线走（伪代码）：
+
+```text
+function 增强提示词(模式, 短意图, 可选参考图/视频):
+
+    # 1) 有图/视频才「看一眼」；纯文字 t2va 跳过
+    库存 = 空
+    if 模式需要参考素材:          # i2va / fl2va / l2va / r2va
+        库存 = Gemini.看图或看视频(素材)
+        # 例如："橘猫、橙色短毛、趴在木质窗台、阳光从左侧来…"
+
+    # 2) 先把你的硬约束抠出来（对白、禁止项、时长…）
+    契约 = 解析意图(短意图)
+    # 例如：duration=5，禁止项=[]，台词=[]
+
+    # 3) 选「写法插件」（可关）
+    风格 = 路由风格skill(短意图, 库存)     # 品牌片？手绘？3D？
+    机制 = 路由T8机制(短意图, 库存)       # 叙事节拍/证据递进之类
+
+    # 4) 短句 → 场景散文（还不是 H3 字段）
+    扩写稿 = Gemini.扩写(短意图, 库存, 风格, 机制, 契约)
+    # 「窗台上橘猫眯眼晒太阳，缓推特写，环境声是远处车流…」
+
+    # 5) 把动作/光影/声音写具体一点（仍是散文）
+    细节稿 = Gemini.补细节(扩写稿, 库存, 契约)
+
+    # 6) 按官方说明书压成 Context-IR 字段
+    正式提示词 = Gemini.格式化(细节稿, 官方h3指南, 风格overlay)
+    # t2va 大致三块：镜头描述 / 声音 / 音乐 等（具体字段名跟官方）
+
+    # 7) 规则体检；挂了就让模型改一稿再检
+    正式提示词 = 校验并修复(正式提示词, 契约, 短意图)
+
+    return 正式提示词   # 落盘 prompt.txt / run.json
+```
+
+有参考图时（比如 `i2va`：给你一张首帧图 +「人物向前走」），只是在第 1 步多了「先看图写库存」，后面扩写/补细节都会拿着库存说：衣服颜色、发型这些别改丢。
+
+可选出片时再套一层：
+
+```text
+function 一键跑(模式, 短意图, ...):
+    提示词 = 增强提示词(...)
+    if 要出片:
+        视频 = MiniMaxH3.生成(提示词, 画幅, 分辨率, 时长)  # 画幅等只进 API
+    写出报告(runs/某次运行目录/)
+```
+
+### 记这五句话就够了
+
+1. **输入**：短意图 + 模式；有参考就再带图/视频/音频。  
+2. **中间大脑**：主要是 Gemini（Cloudsway）多轮对话；每一步有固定的 `prompts/*.txt`。  
+3. **两套「外挂写法」**：风格 skill（像不像品牌片）和 T8 机制（叙事怎么排），默认自动选，也可以关掉或强制指定。  
+4. **输出**：一份对齐官方 Context-IR 的长提示词；校验负责抓「丢台词、乱发明、字段写歪」这类硬伤。  
+5. **出片可选**：提示词 OK 以后，才把画幅/分辨率/秒数交给 H3 API；这些参数**不会**写进提示词正文。
+
+更细的步骤表、HTTP 次数、路由阈值见下一节。
+
 ## 管线
 
 感知（若需要）→ **风格 skill 路由**（可选）→ **T8 机制路由**（可选）→ 扩写 → **补细节** → 格式化（官方 `h3-prompt-writing` 指南 + 按需题材 overlay + 官方完整输出范例 few-shot）→ **质量校验**（规则硬校验 + 失败时自动 LLM 修复）。
@@ -25,7 +96,7 @@
 
 质量校验的 LLM 修复最多 1 次；开启 `--verify-intent-llm` 时会对「原始意图 vs 最终提示词」做一次 LLM 意图一致性检查（不新增剧情 / 不丢要点），且修复后会对修复稿**复检**，意图偏差结论不会被静默丢弃。两种 LLM 调用都失败 / 无用时不影响出 prompt，结果记入 `run.json` 与 report。
 
-风格路由在 `hybrid` / `llm` 下：前置模型读 `skills/catalog.yaml` 短描述打分（0~1），取 top1；达 `llm_score_threshold` 才加载，**+1 次 HTTP**。`off` 不额外请求；`keyword` 为 `llm` 历史别名。
+风格路由在 `hybrid` / `llm` 下：前置模型为目录内各 skill 打 0~1 匹配分，取 top1；达 `llm_score_threshold`（默认 0.6）才加载（**+1 次 HTTP**）。`keyword` 只用触发词命中（**+0 次 HTTP**）；`off` 不请求。分数与阈值写入 `run.json` 的 `style_skill_scores` / `style_skill_threshold`，路由摘要写入 `skills.style_llm_route`。
 
 **T8 Creative DNA 机制**（扩写/补细节的因果节拍增强，与题材 skill 正交）默认 `hybrid`：中文标题/标签 **≥2 次命中**才走关键词；否则再问前置模型读 `skills/t8/catalog.yaml`（**+0~1 次 HTTP**）。机制 overlay 只注入扩写/补细节，不改 H3 字段骨架。上游：[T8mars/minimax-h3-prompt-skill-T8](https://github.com/T8mars/minimax-h3-prompt-skill-T8) **v1.1.8**（109 个稳定 selector）。同步命令：`python scripts/sync_t8_mechanisms.py`。
 
@@ -55,12 +126,12 @@ Ref2VA 标签跟官方一致：上传顺序只用来编号源素材；人设/风
 
 前置路由在扩写之前按意图加载题材写法（**不**加载 Hub 出片工具或确认门）。底座始终是 `h3-prompt-writing`；风格 overlay 只补叙事/画风，字段名仍以官方指南为准。
 
-写法压缩自 [MiniMax 官方 8 个题材 skill](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)、[swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) 与 [sjh00 分镜提示词技能集](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill)。非官方 / 社区 skill 也可接入：见 `skills/catalog.yaml` 顶部步骤与 `skills/overlays/_TEMPLATE_community.txt`（`origin: community` + `upstream`）。
+写法压缩自 [MiniMax 官方 8 个题材 skill](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)、[swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) 与 [sjh00 分镜提示词技能集](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill)。
 
 | 路由 | 行为 |
 | --- | --- |
-| `hybrid`（默认） / `llm` | 前置模型对 catalog 短描述打分，取 top1；低于阈值则不选 |
-| `keyword` | `llm` 的历史别名 |
+| `hybrid`（默认） / `llm` | 前置模型对 catalog 短描述打分，取 top1；低于 `llm_score_threshold`（默认 0.6）则不选 |
+| `keyword` | 只靠触发词命中（调试用） |
 | `off` | 不自动选；仍可用 `--skill` 强制加载 |
 
 ```bash
@@ -71,7 +142,7 @@ python3 scripts/run.py -m t2va --intent "给产品拍一支品牌宣传片，结
 python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" --skill 3d-animation --skill-router off --no-video
 ```
 
-可选 id：`brand-promo`、`minimalist-product-ad`、`3d-animation`、`papercraft-stop-motion`、`paper-collage`、`music-video-subtitle`、`co-op-game-intro`、`handdrawn-live`、`direct-street-interview`、`stage-startle-to-truce`。
+可选 id：`brand-promo`、`minimalist-product-ad`、`3d-animation`、`papercraft-stop-motion`、`paper-collage`、`music-video-subtitle`、`co-op-game-intro`、`handdrawn-live`。
 
 ### T8 Creative DNA 机制（基模增强）
 
@@ -108,8 +179,8 @@ python3 scripts/run.py -m t2va --intent "深海潜水员在维修码头..." \
 | --- | --- |
 | `skills/catalog.yaml` | 风格 skill 目录：id、description、triggers、overlay 路径 |
 | `skills/overlays/*.txt` | 各题材的写法 overlay（只进扩写/格式化，不改 H3 字段骨架） |
-| `prompts/route_skills.txt` | 前置路由 SYSTEM：返回 `{"scores":{id:0~1}}`；agent 取 top1，低于 `llm_score_threshold` 则不选 |
-| `src/skill_router.py` | LLM 量化打分 + 强制指定 |
+| `prompts/route_skills.txt` | 前置路由 SYSTEM：只返回 `{"skills":[...]}` JSON |
+| `src/skill_router.py` | 关键词 / LLM / 强制指定 三路合并 |
 | `src/skill.py` → `compose_format_system()` | overlay + 官方指南 + 风格 overlay 拼接 |
 | `src/runlog.py` | 运行级模型调用日志：按 stage 成对落盘 request/response |
 | `scripts/oneclick_run.py` | 服务器一键运行：增强 + 出片 + 每次运行一个 log 小目录 |
@@ -149,8 +220,6 @@ python3 scripts/run.py -m t2va --intent "深海潜水员在维修码头..." \
 | `music-video-subtitle-generator` | `music-video-subtitle` | `skills/overlays/music-video-subtitle.txt` |
 | `co-op-game-intro-generator` | `co-op-game-intro` | `skills/overlays/co-op-game-intro.txt` |
 | `handdrawn-live-video-generator` | `handdrawn-live` | `skills/overlays/handdrawn-live.txt` |
-| [T8mars `direct-street-interview-video`](https://github.com/T8mars/minimax-h3-prompt-skill-T8/tree/main/skills/direct-street-interview-video) | `direct-street-interview` | `skills/overlays/direct-street-interview.txt` |
-| [T8mars `stage-startle-to-truce-encounter`](https://github.com/T8mars/minimax-h3-prompt-skill-T8/tree/main/skills/stage-startle-to-truce-encounter) | `stage-startle-to-truce` | `skills/overlays/stage-startle-to-truce.txt` |
 
 ### 宫格 / 多主体
 
@@ -216,6 +285,31 @@ Gemini 原生端点的 `inlineData` 单次上限为 **20MB**。当参考视频�
 - 设置 `skip_auth: true`
 - 或直接设置环境变量 `export H3_SKIP_AUTH=true`
 - 如本地服务接口路径不是默认 `/v2/video_generation` / `/v2/query/video_generation/{task_id}`，可配置 `generate_path` / `query_path_template`
+
+## 日常调用（推荐先试这个）
+
+`scripts/call.py`：默认 **只增强不出片**，意图可直接当位置参数；结果在 `runs/<mode>_<时间戳>/`，并打印 prompt 前几行预览。
+
+```bash
+# 最简：纯文字 t2va
+python3 scripts/call.py "一只橘猫在窗台晒太阳，镜头缓推，约5秒"
+
+# 图生视频 i2va
+python3 scripts/call.py -m i2va "人物向前走" --first-frame first.png
+
+# 首尾帧 fl2va
+python3 scripts/call.py -m fl2va "从站立走到门口" \
+  --first-frame first.png --last-frame last.png --duration 6
+
+# 多参考 r2va
+python3 scripts/call.py -m r2va "保持人设在雨夜走路" \
+  --ref-image char.png --ref-image style.png
+
+# 增强后出片（需配置 H3）
+python3 scripts/call.py "产品旋转展示，约5秒" --video --ratio 16:9
+```
+
+完整参数见 `python3 scripts/call.py -h`。需要批量 / 落盘模型请求日志时，用下面的 `oneclick_run.py`。
 
 ## 一键运行（服务器推荐）
 
@@ -283,12 +377,16 @@ python3 scripts/run.py -m l2va --intent "杯子从桌边滑落摔碎" \
 python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
   --ref-image face.png --ref-video walk.mp4 --duration 5 --no-video
 
-# 风格 skill：自动量化打分路由（默认 hybrid）
+# 风格 skill：自动路由（默认 hybrid）
 python3 scripts/run.py -m t2va --intent "给产品拍一支品牌宣传片，结尾 CTA" --no-video
 
 # 风格 skill：强制指定 + 关闭自动路由
 python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" \
   --skill 3d-animation --skill-router off --no-video
+
+# 风格 skill：只用关键词，不问路由模型
+python3 scripts/run.py -m t2va --intent "Apple 风极简产品广告" \
+  --skill-router keyword --no-video
 
 # 质量校验：关闭校验 / 开启 LLM 意图一致性检查
 python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --no-verify --no-video
@@ -300,7 +398,7 @@ CLI 风格与校验相关参数：
 | 参数 | 说明 |
 | --- | --- |
 | `--skill ID` | 强制加载风格 skill，可重复（最多 2 个，见 `catalog.yaml`） |
-| `--skill-router MODE` | `hybrid`（默认）/ `llm` / `off`（`keyword`=`llm` 别名） |
+| `--skill-router MODE` | `hybrid`（默认）/ `keyword` / `llm` / `off` |
 | `--no-verify` | 关闭质量校验（含规则与自动修复） |
 | `--verify-intent-llm` | 开启 LLM 意图一致性检查（对比原始意图与最终提示词，+1 次调用） |
 
@@ -339,12 +437,35 @@ python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --compa
 | `expanded.txt` | 第一次扩写稿 |
 | `elaborated.txt` | 补细节后的场景散文 |
 | `inventory.txt` | 关键帧 / r2va 的参考理解（宫格会含 Layout 与各格 Subject） |
-| `run.json` | 元数据（含 `style_skills`、`style_skill_source`、`verify` 校验结果） |
+| `run.json` | 元数据（含 `style_skills`、`style_skill_source`、`style_skill_scores`、`style_skill_threshold`、`verify` 校验结果） |
 | `out_local.mp4` | 成片（未加 `--no-video` 时，基于 local prompt） |
 | `out_official.mp4` | （可选）成片（加 `--compare-video` 时，基于 official/raw prompt） |
 | `report.json` / `report.md` / `prompt_diff.txt` | 提示词对比报告（总是生成） |
 
 出片走 MiniMax `/v2/video_generation`；画幅 `--ratio`、分辨率 `--resolution` 只进视频 API。
+
+## 十八维独立评估（本地 Qwen 裁判）
+
+每次实验把 **短意图 + Gemini 多模态库存 + 最终优化提示词**（外加 skill 路由分）打包，发给**独立**本地大模型按 `docs/评估维度.md`（实现见 `src/eval_dimensions.py`）的 18 维打 1–5 分（不适用为 N/A）。这是提示词可控性预评估，不是成片像素评分。
+
+```bash
+# 1. 配置本地裁判（OpenAI 兼容 /v1/chat/completions）
+cp configs/judge.yaml.example configs/judge.yaml
+# 编辑 base_url / model（默认 model=qwen3.8，端口示例 8091）
+
+# 2. 跑完管线后评估某个 run 目录
+python3 scripts/evaluate_run.py runs/run_t2va_20260825_120000_001
+
+# 3. 批量评估并写汇总
+python3 scripts/evaluate_run.py runs/run_t2va_* --summary-out runs/eval_summary.json
+
+# 4. 一键增强后立刻打分
+python3 scripts/oneclick_run.py -m t2va --intent "一只橘猫在窗台晒太阳" --judge
+```
+
+产物：`eval.json` / `eval.md` / `eval_raw.txt`；批量另有 `eval_summary.json` + `.md`。
+
+环境变量可覆盖：`JUDGE_BASE_URL` / `JUDGE_MODEL` / `JUDGE_API_KEY` / `JUDGE_TIMEOUT_SEC`。
 
 ## 测试（本地离线）
 
@@ -357,6 +478,9 @@ pytest -q test/test_skill_router.py test/test_pipeline.py
 
 # 质量校验规则
 pytest -q test/test_verify.py
+
+# 十八维裁判解析（不调用真实模型）
+pytest -q test/test_judge.py
 
 # 运行级模型调用日志（不调用任何模型）
 pytest -q test/test_runlog.py
