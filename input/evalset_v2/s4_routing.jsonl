@@ -1,0 +1,60 @@
+{"id": "s4_pos_01", "mode": "t2va", "intent": "品牌发布会宣传片，展示产品卖点与 CTA，约8秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_02", "mode": "t2va", "intent": "官网品牌宣传片，logo lockup 收尾，约6秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_03", "mode": "t2va", "intent": "产品发布会开场广告片，号召行动，约7秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_04", "mode": "t2va", "intent": "campaign promotional brand film with CTA，约6秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_05", "mode": "t2va", "intent": "卖点展示品牌宣传短片，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_06", "mode": "t2va", "intent": "极简产品广告，苹果风留白，单行花字，约5秒", "gold_skills": ["minimalist-product-ad"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_07", "mode": "t2va", "intent": "minimalist product film，negative space，约6秒", "gold_skills": ["minimalist-product-ad"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_08", "mode": "t2va", "intent": "产品片极简三点布光，不要分屏，约5秒", "gold_skills": ["minimalist-product-ad"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_09", "mode": "t2va", "intent": "Apple keynote 风格产品广告，约7秒", "gold_skills": ["minimalist-product-ad"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_10", "mode": "t2va", "intent": "留白极简产品展示，约4秒", "gold_skills": ["minimalist-product-ad"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_11", "mode": "t2va", "intent": "三维动画短片，卡通角色锁脸，约8秒", "gold_skills": ["3d-animation"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_12", "mode": "t2va", "intent": "3D 动画风格，非实拍，角色表演，约6秒", "gold_skills": ["3d-animation"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_13", "mode": "t2va", "intent": "C4D 风格三维动画，约7秒", "gold_skills": ["3d-animation"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_14", "mode": "t2va", "intent": "stylized 3D cartoon short，约5秒", "gold_skills": ["3d-animation"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_15", "mode": "t2va", "intent": "纸艺定格动画，手工纸片角色，约6秒", "gold_skills": ["papercraft-stop-motion"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_16", "mode": "t2va", "intent": "stop motion papercraft，约5秒", "gold_skills": ["papercraft-stop-motion"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_17", "mode": "t2va", "intent": "剪纸定格短片，约7秒", "gold_skills": ["papercraft-stop-motion"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_18", "mode": "t2va", "intent": "拼贴画风格纸面拼贴动画，约5秒", "gold_skills": ["paper-collage"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_19", "mode": "t2va", "intent": "paper collage motion graphics，约6秒", "gold_skills": ["paper-collage"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_20", "mode": "t2va", "intent": "报纸拼贴视觉短片，约5秒", "gold_skills": ["paper-collage"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_21", "mode": "t2va", "intent": "音乐录影带卡点，歌词字幕，约8秒", "gold_skills": ["music-video-subtitle"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_22", "mode": "t2va", "intent": "MV 风格，字幕跟唱，约7秒", "gold_skills": ["music-video-subtitle"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_23", "mode": "t2va", "intent": "music video with kinetic subtitles，约6秒", "gold_skills": ["music-video-subtitle"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_24", "mode": "t2va", "intent": "歌曲卡点字幕片，约5秒", "gold_skills": ["music-video-subtitle"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_25", "mode": "t2va", "intent": "合作游戏开场动画，双人角色，约8秒", "gold_skills": ["co-op-game-intro"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_26", "mode": "t2va", "intent": "co-op game intro cinematic，约7秒", "gold_skills": ["co-op-game-intro"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_27", "mode": "t2va", "intent": "双人合作游戏宣传开场，约6秒", "gold_skills": ["co-op-game-intro"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_28", "mode": "t2va", "intent": "手绘与实拍融合的混合媒介短片，约7秒", "gold_skills": ["handdrawn-live"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_29", "mode": "t2va", "intent": "live action mixed with sketch overlay，约6秒", "gold_skills": ["handdrawn-live"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_30", "mode": "t2va", "intent": "实拍融合手绘标注讲解，约5秒", "gold_skills": ["handdrawn-live"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_31", "mode": "t2va", "intent": "请按「品牌」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_32", "mode": "t2va", "intent": "请按「宣传片」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_33", "mode": "t2va", "intent": "请按「广告片」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_34", "mode": "t2va", "intent": "请按「发布会」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_35", "mode": "t2va", "intent": "请按「官网」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_36", "mode": "t2va", "intent": "请按「卖点」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_37", "mode": "t2va", "intent": "请按「号召」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_38", "mode": "t2va", "intent": "请按「CTA」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_39", "mode": "t2va", "intent": "请按「brand promo」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_pos_40", "mode": "t2va", "intent": "请按「promotional」风格制作一段短视频，约5秒", "gold_skills": ["brand-promo"], "gold_mechanisms": [], "negative": false, "focus": "routing_positive"}
+{"id": "s4_neg_01", "mode": "t2va", "intent": "一只橘猫在窗台晒太阳，约5秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_02", "mode": "t2va", "intent": "雨夜路口红巴士驶过，约6秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_03", "mode": "t2va", "intent": "咖啡倒入杯中慢动作，约4秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_04", "mode": "t2va", "intent": "球员停球转身射门，约6秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_05", "mode": "t2va", "intent": "打开门走进房间坐下，约8秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_06", "mode": "t2va", "intent": "湖面日出薄雾，约7秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_07", "mode": "t2va", "intent": "城市天桥行人来往，约5秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_08", "mode": "t2va", "intent": "图书馆安静翻书，约5秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_09", "mode": "t2va", "intent": "雪林小径脚印，约6秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_10", "mode": "t2va", "intent": "厨房切菜特写，约4秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_11", "mode": "t2va", "intent": "海边日落剪影，约7秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_12", "mode": "t2va", "intent": "地铁进站刹车，约5秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_13", "mode": "t2va", "intent": "阳台晾衣服微风，约5秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_14", "mode": "t2va", "intent": "公园儿童玩耍远景，约6秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_15", "mode": "t2va", "intent": "办公室键盘敲击，约4秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_16", "mode": "t2va", "intent": "山路骑行跟拍，约8秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_17", "mode": "t2va", "intent": "夜市烟火升腾，约6秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_18", "mode": "t2va", "intent": "机场跑道起飞，约7秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_19", "mode": "t2va", "intent": "河边钓鱼静坐，约9秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}
+{"id": "s4_neg_20", "mode": "t2va", "intent": "屋顶鸽子起飞，约5秒", "gold_skills": [], "gold_mechanisms": [], "negative": true, "focus": "routing_negative"}

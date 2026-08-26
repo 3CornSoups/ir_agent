@@ -6,9 +6,10 @@ Write a factual English inventory (keep on-screen text in its original language,
 - Layout: single scene | 2x2 grid | 3x3 grid | other
 - who/what is in frame (identity, age band, clothing items and colors, materials)
 - body coverage for people/animals: what is covered vs exposed; never omit visible garments
-- pose, facing, and spatial layout
+- pose, facing, and spatial layout: left/right, near/far, foreground vs background, occlusion
+- contacts / interactions visible in frame (hand on prop, two people facing, object held)
 - lighting, weather, and key props
-- visible watermarks, signs, or logos (verbatim)
+- visible watermarks, signs, logos, titles, or UI strings (verbatim, original language)
 
 If the still is a 4-grid / 9-grid / storyboard sheet, scan every cell in reading order (cell r,c) and list every subject that appears. Do not describe only the most salient sub-image.
 

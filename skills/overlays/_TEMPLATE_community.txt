@@ -1,0 +1,27 @@
+# Community / non-official style skill — writing methodology only.
+# Copy to overlays/<id>.txt and register in catalog.yaml (origin: community).
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not invent reference assets or dialogue. Use only user-stated or inventory-verified facts.
+Do not copy demonstration likeness, wardrobe, exact locations, or proprietary dialogue from the source skill.
+
+Source: <upstream URL> (<non-official / community note>)
+
+Core mechanism:
+<one paragraph: what continuous event chain this genre creates>
+
+Story spine (one primary chain):
+<beat1> → <beat2> → <beat3> → <readable ending>
+
+Camera / visual:
+- Prefer a single continuous shot unless the base prompt explicitly asks for 分镜 / cuts.
+- <camera / lighting / identity rules>
+
+Dialogue / sound:
+- Copy locked lines verbatim in <d>[Language]…</d>.
+- Non-diegetic score: concrete instruments + tempo unless the base prompt explicitly requires N/A / 无配乐.
+
+Feasibility:
+- Keep action and speech inside the target duration.
+- <genre-specific gates>

@@ -73,7 +73,7 @@ def main() -> int:
         "--skill-router",
         default="hybrid",
         choices=("off", "keyword", "hybrid", "llm"),
-        help="风格 skill 路由",
+        help="风格 skill 路由：off / keyword（触发词命中）/ hybrid|llm（LLM 打分取 top1）",
     )
     p.add_argument(
         "--mechanism",
@@ -92,6 +92,11 @@ def main() -> int:
     p.add_argument("--no-wait", action="store_true", help="出片只提交不轮询")
     p.add_argument("--compare-video", action="store_true", help="本地/官方 prompt 各出一次做对比")
     p.add_argument("--no-verify", action="store_true", help="关闭提示词质量校验")
+    p.add_argument(
+        "--judge",
+        action="store_true",
+        help="增强后用本地裁判模型按 18 维打分（需 configs/judge.yaml）",
+    )
     p.add_argument("--out-root", type=Path, default=ROOT / "runs", help="增强结果输出根目录")
     p.add_argument("--log-root", type=Path, default=LOG_ROOT, help="运行日志根目录")
     args = p.parse_args()
@@ -162,6 +167,15 @@ def main() -> int:
             print(f"  intent  : {intent[:60]}")
             print(f"  prompt  : {out_dir / 'prompt.txt'}")
             print(f"  verify  : {status} (errors={verify.get('errors', 0)})")
+            if args.judge:
+                try:
+                    from src.judge import evaluate_run_dir
+
+                    ev = evaluate_run_dir(out_dir)
+                    print(f"  judge   : overall={ev.get('overall')} → {out_dir / 'eval.json'}")
+                except Exception as judge_exc:  # noqa: BLE001
+                    print(f"  judge   : FAILED ({judge_exc})")
+                    failed += 1
             print(f"  日志    : {log_dir}\n")
             if not ok:
                 failed += 1

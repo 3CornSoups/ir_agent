@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from .config import ROOT, gemini_settings, h3_settings, load_prompt
+from .contract import parse_intent
 from .gemini import chat
 from .media import user_parts
 from .report import write_report
@@ -28,8 +30,13 @@ from .mechanism_router import (
     select_mechanisms,
     writing_blocks_for_user,
 )
-from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
-from .verify import extract_locked_dialogue, verify_and_fix
+from .skill_router import normalize_router_mode, select_style_skills, style_block_for_user
+from .verify import (
+    extract_locked_dialogue,
+    intent_allows_multi_shot,
+    intent_allows_na_music,
+    verify_and_fix,
+)
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -58,17 +65,75 @@ def strip_canvas(text: str) -> str:
     return cleaned.strip() + "\n"
 
 
-def _locked_dialogue_block(intent: str) -> str | None:
-    """把用户意图里的引号台词列成锁定清单，供扩写/补细节/格式化原句抄写。"""
-    lines = extract_locked_dialogue(intent)
-    if not lines:
-        return None
-    body = "\n".join(f"- {line}" for line in lines)
+def _shot_policy_block(intent: str) -> str:
+    """根据意图注入单镜/切镜写作提醒。"""
+    text = intent or ""
+    if re.search(r"多镜头|分镜|切到|第二镜|montage|\bcuts?\b", text, re.I):
+        return (
+            "SHOT POLICY: multi-shot allowed as stated in the intent; "
+            "keep cut count minimal and motivated."
+        )
+    if re.search(r"禁止切镜|不得切镜|不要切镜|单镜头|一镜到底", text):
+        return (
+            "SHOT POLICY: exactly ONE continuous shot only. Do not invent cuts, "
+            "montages, or [Shot 2]+."
+        )
     return (
-        "Locked spoken lines from the user's intent. Copy each line verbatim in the original language. "
-        "Do not translate, paraphrase, or add an English gloss. Never use [Mandarin]; Chinese lines use [Chinese].\n"
-        + body
+        "SHOT POLICY: prefer exactly ONE continuous shot unless the intent "
+        "explicitly asks for cuts / 分镜 / multiple shots."
     )
+
+
+def _music_policy_block(intent: str) -> str:
+    """根据意图注入配乐写作提醒。"""
+    text = intent or ""
+    if re.search(r"不要配乐|禁止配乐|无配乐|不要音乐|不要非叙境", text):
+        return (
+            "MUSIC POLICY: non_diegetic_music must be N/A. "
+            "Do not invent score, theme, or underscore."
+        )
+    return (
+        "MUSIC POLICY: only add non_diegetic music when the intent asks for it; "
+        "otherwise prefer N/A. Do not write N/A for overall_soundscape when diegetic sound exists."
+    )
+
+def _locked_dialogue_block(
+    intent: str,
+    contract: Any | None = None,
+) -> str | None:
+    """把用户意图里的锁定台词/屏上字列成清单；优先用 IntentContract（含 LLM 分类）。"""
+    spoken: list[str] = []
+    onscreen: list[str] = []
+    if contract is not None:
+        spoken = [
+            d.text
+            for d in (getattr(contract, "dialogue", None) or [])
+            if getattr(d, "text", None)
+        ]
+        onscreen = list(getattr(contract, "onscreen_text", None) or [])
+    else:
+        from .verify import extract_locked_dialogue, extract_locked_onscreen
+
+        spoken = extract_locked_dialogue(intent)
+        onscreen = extract_locked_onscreen(intent)
+    parts: list[str] = []
+    if spoken:
+        body = "\n".join(f"- {line}" for line in spoken)
+        parts.append(
+            "Locked spoken lines from the user's intent. Copy each line verbatim in the original language. "
+            "Do not translate, paraphrase, or add an English gloss. Never use [Mandarin]; Chinese lines use [Chinese].\n"
+            + body
+        )
+    if onscreen:
+        body = "\n".join(f"- {line}" for line in onscreen)
+        parts.append(
+            "Locked on-screen lines from the user's intent. Keep each line verbatim as on-screen text "
+            "in the original language. Do not translate or invent extra captions.\n"
+            + body
+        )
+    if not parts:
+        return None
+    return "\n\n".join(parts)
 
 
 def _expand_user(
@@ -77,8 +142,10 @@ def _expand_user(
     inventory: str | None = None,
     mode: str,
     writing_block: str | None = None,
+    contract_block: str | None = None,
+    contract: Any | None = None,
 ) -> str:
-    """构造扩写 USER：短意图 + 官方模式写作路径 + 可选库存与写法块。"""
+    """构造扩写 USER：短意图 + Intent Contract + 官方模式写作路径 + 可选库存与写法块。"""
     lines = [
         f"Mode: {mode}. Expand the short intent. Do not output MiniMax fields yet.",
         f"Writing path: {expand_hint(mode)}",
@@ -86,7 +153,9 @@ def _expand_user(
         "Short intent:",
         intent.strip(),
     ]
-    locked = _locked_dialogue_block(intent)
+    if contract_block:
+        lines.extend(["", contract_block.strip()])
+    locked = _locked_dialogue_block(intent, contract=contract)
     if locked:
         lines.extend(["", locked])
     if inventory:
@@ -106,12 +175,19 @@ def _format_user(
     inventory: str | None,
     duration: int | None,
     intent: str = "",
+    contract_block: str | None = None,
+    complexity_block: str | None = None,
+    contract: Any | None = None,
 ) -> str:
-    """构造共用格式化 USER：模式 + 场景稿 + 可选库存与时长约束。"""
+    """构造共用格式化 USER：模式 + Intent Contract + 复杂度预算 + 场景稿 + 可选库存。"""
     lines = [
         f"MODE={mode}",
         "Serialize the scene note into the MiniMax-H3 fields for this MODE.",
         "Follow the appended official writing guide. Do not mention aspect ratio, resolution, fps, or canvas size.",
+        "Carry forward densified cinematic detail from the scene note; do not shrink a FILMIC / "
+        "COMPLEXITY BUDGET note below its word-count floor.",
+        _shot_policy_block(intent),
+        _music_policy_block(intent),
     ]
     if duration is not None:
         lines.append(
@@ -119,8 +195,12 @@ def _format_user(
             "Do not write the duration into the core fields. "
             f"If MODE is fl2va or l2va, the alignment line MUST use S.SS = {float(duration):.2f}."
         )
+    if contract_block:
+        lines.extend(["", contract_block.strip()])
+    if complexity_block:
+        lines.extend(["", complexity_block.strip()])
     lines.extend(["", "Scene note:", scene.strip()])
-    locked = _locked_dialogue_block(intent)
+    locked = _locked_dialogue_block(intent, contract=contract)
     if locked:
         lines.extend(["", locked])
     if inventory:
@@ -195,17 +275,32 @@ def _perceive_keyframes(
     return _rescan_if_grid_incomplete(system, inventory, text=text, images=images)
 
 
-def _elaborate_user(expanded: str, inventory: str | None, intent: str = "") -> str:
-    """构造补细节 USER：扩写稿 + 可选库存。"""
+def _elaborate_user(
+    expanded: str,
+    inventory: str | None,
+    intent: str = "",
+    *,
+    contract_block: str | None = None,
+    complexity_block: str | None = None,
+    contract: Any | None = None,
+) -> str:
+    """构造补细节 USER：Intent Contract + 复杂度预算 + 扩写稿 + 可选库存。"""
     lines = [
         "Make the scene note below concrete and physically plausible. "
-        "Match detail depth to the scene's complexity; do not pad a simple single-shot clip "
-        "to the length of a multi-shot production brief."
+        "Match detail depth to the COMPLEXITY BUDGET when provided. "
+        "If FILMIC SINGLE-SHOT is set, target the UPPER half of the budget; "
+        "otherwise do not pad a simple single-shot clip past the ceiling.",
+        _shot_policy_block(intent),
+        _music_policy_block(intent),
     ]
+    if contract_block:
+        lines.extend(["", contract_block.strip()])
+    if complexity_block:
+        lines.extend(["", complexity_block.strip()])
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
     lines.extend(["", "Scene note:", expanded.strip()])
-    locked = _locked_dialogue_block(intent)
+    locked = _locked_dialogue_block(intent, contract=contract)
     if locked:
         lines.extend(["", locked])
     return "\n".join(lines)
@@ -233,9 +328,11 @@ def enhance(
     跑完感知（若需要）→ 风格/机制路由 → 扩写 → 补细节 → 注入官方指南后格式化。
 
     skills: 强制加载的风格 skill id。
-    skill_router: off / keyword / hybrid / llm。hybrid 时关键词未命中才问前置模型。
+    skill_router: off / keyword / hybrid / llm。
+    hybrid / llm：前置模型为各 skill 打 0~1 分，取 top1（默认阈值 0.6）；
+    keyword：只用触发词命中；off：只用强制 id。
     mechanisms: 强制加载的 T8 Creative DNA 机制 id。
-    mechanism_router: 机制路由模式，默认同 skill_router。
+    mechanism_router: 机制路由模式，默认同 skill_router（机制侧仍为关键词优先 hybrid）。
 
     Returns:
         含 prompt、各步原文、mode
@@ -246,6 +343,7 @@ def enhance(
     intent = (intent or "").strip()
     if not intent:
         raise ValueError("短意图为空")
+    t0 = time.perf_counter()
 
     images = list(reference_images or [])
     videos = list(reference_videos or [])
@@ -315,23 +413,33 @@ def enhance(
             inventory = rescanned
             steps.append({"stage": rescan, "text": inventory})
 
-    router_mode = (skill_router or "hybrid").strip().lower()
-    if router_mode not in ROUTER_MODES:
-        raise ValueError(f"skill_router 须为 {' / '.join(ROUTER_MODES)}")
+    # Intent Contract：感知后、路由前；只抽取不推断。契约写入 run.json，本步不改三段 prompt。
+    contract = parse_intent(intent, mode=mode, chat=chat, use_llm=True)
+    steps.append({"stage": "contract", "text": contract.format_for_prompt()})
+    # 时长：用户显式秒数优先（contract 已夹到 4–15）
+    if duration is None and contract.duration_sec:
+        dur = int(contract.duration_sec)
+
+    router_mode = normalize_router_mode(skill_router or "hybrid")
     style_sel = select_style_skills(
         intent,
         inventory=inventory,
         forced=skills,
         router=router_mode,
         classify=chat if router_mode in {"hybrid", "llm"} else None,
+        explicit_style=contract.explicit_style,
+        explicit_negatives=list(contract.explicit_negatives or []),
     )
     style_block = style_block_for_user(style_sel)
     extra_guides = style_sel.overlay_pairs()
-    if style_sel.ids:
+    if style_sel.ids or style_sel.scores:
         steps.append(
             {
                 "stage": "skill_route",
-                "text": f"source={style_sel.source}; skills={', '.join(style_sel.ids)}",
+                "source": style_sel.source,
+                "skills": style_sel.ids,
+                "scores": style_sel.scores,
+                "threshold": style_sel.threshold,
             }
         )
 
@@ -355,26 +463,78 @@ def enhance(
             }
         )
 
+    contract_block = contract.format_for_prompt()
+
     expand_sys = load_prompt("expand_intent")
     expanded = chat(
         expand_sys,
-        _expand_user(intent, inventory=inventory, mode=mode, writing_block=writing_block),
+        _expand_user(
+            intent,
+            inventory=inventory,
+            mode=mode,
+            writing_block=writing_block,
+            contract_block=contract_block,
+            contract=contract,
+        ),
         stage="expand",
     )
     steps.append({"stage": "expand", "text": expanded})
 
     # 补细节：把扩写稿提升到官方 Context-IR 的详略级别（散文，未进字段）。
     elaborate_sys = load_prompt("elaborate")
+    from .complexity import (
+        complexity_word_budget,
+        densify_user_block,
+        format_complexity_budget_block,
+        has_filmic_locks,
+    )
+    from .enrichment import _word_count
+
+    complexity_block = format_complexity_budget_block(contract)
     elaborated = chat(
         elaborate_sys,
-        _elaborate_user(expanded, inventory, intent=intent),
+        _elaborate_user(
+            expanded,
+            inventory,
+            intent=intent,
+            contract_block=contract_block,
+            complexity_block=complexity_block,
+            contract=contract,
+        ),
         stage="elaborate",
     )
     steps.append({"stage": "elaborate", "text": elaborated})
 
+    # filmic 欠词：额外 densify 一轮，逼近官方 cinematic 词数密度
+    lo, hi = complexity_word_budget(contract)
+    if has_filmic_locks(contract) and _word_count(elaborated) < lo:
+        densify_sys = load_prompt("densify_filmic")
+        elaborated = chat(
+            densify_sys,
+            densify_user_block(
+                elaborated,
+                contract_block=contract_block,
+                complexity_block=complexity_block,
+                lo=lo,
+                hi=hi,
+                inventory=inventory,
+            ),
+            stage="densify_filmic",
+        )
+        steps.append({"stage": "densify_filmic", "text": elaborated})
+
     format_sys = compose_format_system(mode, load_prompt("format_h3"), extra_guides)
     # 格式化直接消费补细节稿（已含构图/镜头/声音/音乐细节），保证成果进入最终提示词。
-    format_text = _format_user(mode, elaborated, inventory=inventory, duration=dur, intent=intent)
+    format_text = _format_user(
+        mode,
+        elaborated,
+        inventory=inventory,
+        duration=dur,
+        intent=intent,
+        contract_block=contract_block,
+        complexity_block=complexity_block,
+        contract=contract,
+    )
     if mode in KEYFRAME_MODES:
         frame_images = [p for p in (first_frame, last_frame) if p]
         format_user: str | list[dict[str, Any]] = user_parts(
@@ -414,15 +574,23 @@ def enhance(
         inventory=inventory,
         check_intent_llm=bool(verify_intent_llm and enable_verify),
         max_fix_rounds=max_fix_rounds,
+        contract=contract,
+        max_fidelity_fix_rounds=2 if enable_verify else 0,
     )
     if verify_result["prompt"] != prompt:
         prompt = verify_result["prompt"]
-        steps.append({"stage": "verify_fix", "text": prompt})
+        stage_name = (
+            "verify_fidelity_fix"
+            if int(verify_result.get("fidelity_rounds") or 0) > 0
+            else "verify_fix"
+        )
+        steps.append({"stage": stage_name, "text": prompt})
 
     record: dict[str, Any] = {
         "mode": mode,
         "intent": intent,
         "duration": dur,
+        "enhance_elapsed_sec": round(time.perf_counter() - t0, 3),
         "first_frame": first_frame,
         "last_frame": last_frame,
         "reference_images": images if mode == "r2va" else [],
@@ -430,12 +598,24 @@ def enhance(
         "reference_videos": videos,
         "reference_audios": audios,
         "inventory": inventory,
+        "contract": contract.to_dict(),
         "expanded": expanded,
         "elaborated": elaborated,
         "style_skills": style_sel.ids,
         "style_skill_source": style_sel.source,
+        "style_skill_scores": style_sel.scores,
+        "style_skill_threshold": style_sel.threshold,
         "mechanisms": mech_sel.ids,
         "mechanism_source": mech_sel.source,
+        "skills": {
+            "core": ["h3-prompt-writing"],
+            "style": list(style_sel.ids),
+            "style_source": style_sel.source,
+            "style_detail": style_sel.detail_records(),
+            "style_llm_route": style_sel.llm_route_meta(),
+            "mechanisms": list(mech_sel.ids),
+            "mechanism_source": mech_sel.source,
+        },
         "prompt_official": official_prompt,
         "prompt": prompt,
         "verify": verify_result,
@@ -455,8 +635,12 @@ def enhance(
         (out_dir / "elaborated.txt").write_text(elaborated.strip() + "\n", encoding="utf-8")
         if inventory:
             (out_dir / "inventory.txt").write_text(inventory.strip() + "\n", encoding="utf-8")
+        (out_dir / "contract.json").write_text(
+            json.dumps(contract.to_dict(), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
         slim = {k: v for k, v in record.items() if k != "steps"}
-        slim["steps"] = [{"stage": s["stage"]} for s in steps]
+        slim["steps"] = steps
         (out_dir / "run.json").write_text(
             json.dumps(slim, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",

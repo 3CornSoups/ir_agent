@@ -1,12 +1,32 @@
-# 风格 skill 目录：前置路由只看 id/description/triggers，命中后再读 overlay。
+# 风格 skill 目录：前置路由只看 id/description/triggers(cues)，命中后再读 overlay。
 # 底座 h3-prompt-writing 始终在 format 阶段加载，不走本表。
 # 写法压缩自官方 MiniMax-H3 skills 与 sjh00 分镜版，去掉 Hub/确认门/出片工具。
+#
+# origin:
+#   official   — 压缩自 MiniMax 官方题材 skill（默认）
+#   community  — 非官方 / 社区 skill；须填 upstream（GitHub 目录或 SKILL.md URL）
+#
+# 接入社区 skill 步骤：
+# 1. 读上游 SKILL.md / references，只提取「写法」；去掉 Hub 工具、确认门、出片、Seedance 专属语法。
+# 2. 复制 overlays/_TEMPLATE_community.txt → overlays/<id>.txt，填机制/节拍/约束。
+# 3. 对齐本仓库硬规则：默认单镜（除非意图要求分镜）；non_diegetic_music 默认有配乐（除非意图要求 N/A）。
+# 4. 在本文件 skills: 下追加条目（origin: community + upstream），triggers 作 LLM cues。
+# 5. 跑：pytest -q test/test_skill_router.py
+# 6. 试跑：--skill <id> --skill-router off，确认 run.json → skills.style_detail
+#
+# 路由：
+#   hybrid / llm — LLM 按 description/cues 给每条 skill 0~1 分，取 top1；
+#                  若 top1 < llm_score_threshold 则不选任何风格 skill（无关键词预筛）。
+#   keyword      — 仅用 triggers 关键词命中数（本地保留模式）。
+# 兼容旧字段 match_threshold；两者均未配置时默认 0.6。
 
 max_skills: 2
+llm_score_threshold: 0.6
 
 skills:
   - id: brand-promo
     title: Brand promo
+    origin: official
     overlay: overlays/brand-promo.txt
     description: >
       Brand / product / website / app launch or campaign short. Logo lockup,
@@ -29,6 +49,7 @@ skills:
 
   - id: minimalist-product-ad
     title: Minimalist product ad
+    origin: official
     overlay: overlays/minimalist-product-ad.txt
     description: >
       Apple-keynote / minimal negative-space product film. Preserve product
@@ -48,6 +69,7 @@ skills:
 
   - id: 3d-animation
     title: Stylized 3D animation
+    origin: official
     overlay: overlays/3d-animation.txt
     description: >
       Stylized 3D cartoon short (Pixar/C4D look), character lock, per-second
@@ -67,6 +89,7 @@ skills:
 
   - id: papercraft-stop-motion
     title: Papercraft stop-motion
+    origin: official
     overlay: overlays/papercraft-stop-motion.txt
     description: >
       Papercraft / paper-toy stop-motion explainer. Craft materials, stepped
@@ -84,6 +107,7 @@ skills:
 
   - id: paper-collage
     title: Paper collage explainer
+    origin: official
     overlay: overlays/paper-collage.txt
     description: >
       Halftone paper-collage explainer. Cut paper, printed texture, collage
@@ -100,6 +124,7 @@ skills:
 
   - id: music-video-subtitle
     title: Lyric / MV subtitle
+    origin: official
     overlay: overlays/music-video-subtitle.txt
     description: >
       Music video with on-screen lyrics or beat-synced typography. Vocal /
@@ -119,6 +144,7 @@ skills:
 
   - id: co-op-game-intro
     title: Co-op game intro
+    origin: official
     overlay: overlays/co-op-game-intro.txt
     description: >
       Two-player co-op game main-menu or intro: dual identities, menu UI,
@@ -137,19 +163,73 @@ skills:
 
   - id: handdrawn-live
     title: Hand-drawn × live-action
+    origin: official
     overlay: overlays/handdrawn-live.txt
     description: >
-      Live-action space fused with glowing hand-drawn animation; physical
-      contact in the first seconds; half-beat handheld follow.
+      ONLY when the intent wants live-action fused with glowing hand-drawn
+      animation (mixed media / 实拍融合). Do NOT load for pure sketch /
+      速写 / 手绘动画 without live-action. Physical contact in the first
+      seconds; half-beat handheld follow.
     triggers:
-      - 手绘
       - 实拍融合
-      - 蜡笔
-      - 粉笔
-      - 彩铅
-      - hand-drawn
-      - handdrawn
+      - 手绘融合
+      - 混合媒介
       - live-action mix
-      - crayon
-      - chalk drawing
       - mixed media doodle
+      - hand-drawn on live
+      - chalk on real
+      - crayon on table
+
+  - id: direct-street-interview
+    title: Direct street interview / walk-and-talk
+    origin: community
+    upstream: https://github.com/T8mars/minimax-h3-prompt-skill-T8/tree/main/skills/direct-street-interview-video
+    overlay: overlays/direct-street-interview.txt
+    description: >
+      Natural vertical street-interview or walk-and-talk documentary short.
+      First-person handheld follow, concise dialogue, street parallax,
+      consent-led interaction in 4–15 seconds. Not a multi-location montage.
+    triggers:
+      - 街头采访
+      - 街访
+      - 街头访谈
+      - 边走边聊
+      - 路人采访
+      - 街拍采访
+      - 纪实街拍
+      - walk and talk
+      - walk-and-talk
+      - street interview
+      - street-interview
+      - vox pop
+      - man on the street
+      - documentary street
+      - handheld follow
+      - 第一人称跟拍
+
+  - id: stage-startle-to-truce
+    title: Stage startle-to-truce encounter
+    origin: community
+    upstream: https://github.com/T8mars/minimax-h3-prompt-skill-T8/tree/main/skills/stage-startle-to-truce-encounter
+    overlay: overlays/stage-startle-to-truce.txt
+    description: >
+      Short cinematic encounter: calm observation, impossible close appearance,
+      readable startle, then a restrained truce gesture. Fantasy-versus-technology
+      or cockpit/window eyelines; non-lethal escalation; 4–15 seconds.
+    triggers:
+      - 惊愕
+      - 休战
+      - 对峙后和解
+      - 近距遭遇
+      - 驾驶舱对视
+      - 舷窗对视
+      - 先惊后和
+      - startle to truce
+      - startle-to-truce
+      - close encounter
+      - truce gesture
+      - cockpit eyeline
+      - window eyeline
+      - non-lethal escalation
+      - spatial reversal
+      - conciliatory

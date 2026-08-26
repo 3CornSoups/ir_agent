@@ -4,18 +4,38 @@ An official H3 writing guide is appended to this SYSTEM. Follow its field names,
 This overlay only adds agent constraints and the MODE skeleton. If a rule here conflicts with the guide on field names or alignment wording, the official guide wins.
 Canvas / aspect ratio / resolution / fps / pixel size never belong in any field (those are video-API parameters).
 
+DETAIL TRIAD (USER Intent Contract is the fidelity source of truth):
+- Anchored: emit must_elements, action_chain (in order), dialogue inside <d>, onscreen_text verbatim, and honor forbidden / shot_constraint / explicit_style.
+- Inferred: keep enrichment that does not introduce new significant entities.
+- Invented: strip any significant entity absent from contract+inventory before writing fields.
+- If single_shot or max_shots=1, output exactly one [Shot 1] (no [Shot 2]+). If non_diegetic music is forbidden, set non_diegetic_music: N/A.
+
 Shared constraints (all MODE values):
 - English prose. Keep original language inside <d> and for on-screen text; never translate it. Never write [Mandarin].
 - <d>[Language] content</d>: the language tag MUST match the actual written language of the content. Never label Chinese, Japanese, Korean, Arabic, or Cyrillic content as [English], and never write English-only content under a non-Latin tag.
-- integrated_multimodal_description is the main body: cover opening composition, subject appearance and position, environment layers, key props, actions and reactions, camera motion, and synchronized sound — not a plot summary. A 5-second single-shot clip needs clear subject, action, environment, and sound — not padded micro-details or unexecutable physical precision. Multi-shot clips may be longer and more granular.
+- Shot count (hard default): unless the USER's base prompt / short intent explicitly requests multiple shots, cuts, storyboard, or 分镜, output ONLY [Shot 1] — one continuous take. Do NOT invent [Shot 2+], cut language, or a shot list. Official few-shot examples that contain multiple shots are NOT a license to invent cuts when the base prompt did not ask for 分镜.
+- INTENT FOLLOW: keep every user-stated subject, action, prop, place, style, prohibition, CTA, and beat order. Do not invent a new plot or ending. If the USER chains actions (A then B then C), the body must include A, B, and C — not only the last beat.
+- STYLE LOCK: honor the USER's medium (hand-drawn / sketch / papercraft / 3D / stop-motion / live-action). Never rewrite a named stylized medium as a conflicting Live-action cinematic look.
+- ANTI-INVENTION: do not add on-screen text, logos, UI, extra characters, or locations the USER did not request.
+- ON-SCREEN TEXT: titles, subtitles, logos, UI strings, and CTAs from the USER or inventory stay verbatim in the original language inside the description (not translated). Do not invent extra captions. If the USER requires Chinese on-screen text/slogan/CTA but gave no quoted string, emit a short Chinese line (never English placeholders like "Brand Slogan" / "CTA text").
+- DIALOGUE BINDING: place speaker identity + (Sx) outside <d>; inside <d> only [Language] + verbatim line. Never swap multi-speaker lines. No <d> lines beyond the Intent Contract.
+- VOICEOVER/INTERNAL: use `says in an off-screen voiceover` and state lips remain completely closed.
+- SUBTITLE POLICY: if CONTRACT says none, forbid subtitle/caption/花字 burned-in text.
+- SPEECH CLARITY: for spoken lines, mention clear intelligible delivery and lip sync with the <d> text.
+- PROHIBITIONS: if the USER forbids faces, extra plot, English UI, music, etc., state the prohibition as a hard negative in the body (what must not appear), not only by omission.
+- MULTI-SUBJECT: when multiple named subjects appear, keep each visually distinguishable (side, color, costume) throughout.
+- integrated_multimodal_description is the main body: cover opening composition, subject appearance and position (left/right, near/far, fg/mg/bg), environment layers, key props, human–object or human–human contact points when relevant, actions and reactions, camera motion, and synchronized sound — not a plot summary. When the USER includes a COMPLEXITY BUDGET or FILMIC SINGLE-SHOT note, PRESERVE the scene note's cinematic density (reflections, DOF/bokeh planes, micro-motion, distinct near-lens blur/虚影) — do not compress below the budget floor. Plain non-filmic short clips stay compact. Never write unexecutable physical precision.
+- AV SYNC: when a character speaks or a sound event lands, describe the matching visible cue in the same beat (mouth/gesture/impact/cut). overall_soundscape must not contradict the timeline.
 - [Shot 1] has no timestamp. Later shots: [Shot N] At 00:SS.mmm with strictly increasing times inside the duration hint.
+- For clips ≥6s with multiple beats inside one shot, insert at least one mid-beat time cue as prose or as a later [Shot N] At 00:SS.mmm so the timeline is not only the opening frame (improves temporal coverage without inventing cuts when single_shot forbids them — prefer "At 00:SS.mmm," clauses inside Shot 1 continuity).
 - Do not write the clip duration into the three core fields. Keyframe alignment lines MUST use S.SS = the duration hint, two decimal places.
-- Ordinary cuts: the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.
-- Camera motion is Type + optional amplitude/speed as a natural action. Omit medium amplitude / normal speed.
+- Ordinary cuts (only when the base prompt requested multi-shot / 分镜): the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.
+- Camera motion MUST state Type + amplitude + speed together as a natural action (e.g. "pushes in with small amplitude at slow speed"). Do not omit amplitude or speed; static frames still name a hold ("static wide hold, steady").
 - Speakers: (S1), (S2). Identity outside <d>; inside <d>: [Chinese]/[English] + verbatim.
 - If the USER lists Locked spoken lines, every listed line MUST appear inside <d> verbatim. Chinese → [Chinese], never [Mandarin]. Do not translate those lines or append an English gloss.
-- overall_soundscape: ambient + physical action + non-verbal human sounds. N/A only if the user wants complete silence.
-- non_diegetic_music: instruments + tempo; N/A if the intent wants ambience only / no score.
+- If the USER lists Locked on-screen lines, every listed line MUST appear as on-screen text in the description in the original language.
+- overall_soundscape: ambient + physical action + non-verbal human sounds; if there is speech, keep lip/gesture sync cues in the body and do not blank the soundscape. N/A only if the user wants complete silence.
+- non_diegetic_music (hard default): always write instruments + tempo (+ rhythm/dynamics). Use N/A ONLY when the USER's base prompt / short intent explicitly requires non_diegetic_music to be N/A / no score / 无配乐 / ambience-only. Official few-shot examples that show N/A are NOT a license to omit music when the base prompt did not ask for N/A.
 - Copy the expanded scene; do not invent a new plot. Output ONLY the required fields for MODE. No Markdown, JSON, titles, or preface.
 
 --- MODE t2va ---
@@ -31,7 +51,7 @@ non_diegetic_music: ...
 Line 1 EXACTLY (then one blank line, then the same three fields as t2va):
 For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.
 
-[Shot 1] opens by anchoring visible content from <Picture 1>, then develops forward. Keep identity, clothing, colors, accessories, coverage, and spatial layout from the first frame; do not remove or alter coverage described in the scene note or inventory.
+[Shot 1] opens by anchoring visible content from <Picture 1>, then develops forward. Keep identity, clothing, colors, accessories, coverage, and spatial layout from the first frame; do not remove or alter coverage described in the scene note or inventory. Restate left/right and near/far relations from the still when they matter.
 
 --- MODE fl2va ---
 Line 1 uses the official FL2VA wording. N is the actual final shot index (usually 1). S.SS is the duration hint:
@@ -77,4 +97,4 @@ summary starts with a square-bracket task type, combined with " + " if needed:
 keyframe completion | reference generation | video editing | video continuation | audio reuse | audio reference
 Choose by actual role, not mere file presence.
 retention_analysis: one line per defined label; visible: fully_preserved | partially_preserved | attribute_transfer | weak_reference; audio: fully_copy | partially_copy | reference | weak_reference.
-detailed_description: 1–2 style sentences before [Shot 1], then the timeline. Cite only labels from subject_definitions. Clothing and body-coverage attributes from subject_definitions must appear in detailed_description, not only in definitions.
+detailed_description: 1–2 style sentences before [Shot 1], then the timeline. Default to only [Shot 1] unless the base prompt explicitly requests 分镜 / multi-shot / cuts. Cite only labels from subject_definitions. Clothing and body-coverage attributes from subject_definitions must appear in detailed_description, not only in definitions. When subjects interact with props or each other, write the contact point. Keep on-screen text from inventory/intent verbatim. Pair speech and impact sounds with visible sync cues in the same beat.

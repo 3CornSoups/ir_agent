@@ -14,8 +14,10 @@ CONFIGS = ROOT / "configs"
 
 
 def load_yaml(name: str) -> dict[str, Any]:
-    """读取 configs/{name}.yaml。"""
+    """读取 configs/{name}.yaml；文件不存在时返回空字典（可全靠环境变量）。"""
     path = CONFIGS / f"{name}.yaml"
+    if not path.is_file():
+        return {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if not isinstance(data, dict):
         raise ValueError(f"配置不是字典: {path}")
@@ -90,4 +92,44 @@ def h3_settings() -> dict[str, Any]:
         "default_resolution": str(cfg.get("default_resolution") or "768P"),
         "default_duration": int(cfg.get("default_duration") or 5),
         "default_ratio": str(cfg.get("default_ratio") or "16:9"),
+    }
+
+
+def judge_settings() -> dict[str, Any]:
+    """合并裁判配置与环境变量。
+
+    backend=gemini：走 configs/gemini.yaml（Cloudsway Gemini API）。
+    backend=openai（默认兼容旧行为）：走本地 OpenAI 兼容 /v1/chat/completions。
+    可用 JUDGE_BACKEND=gemini|openai 覆盖。
+    """
+    path = CONFIGS / "judge.yaml"
+    cfg: dict[str, Any] = {}
+    if path.is_file():
+        cfg = load_yaml("judge")
+    backend = (
+        os.environ.get("JUDGE_BACKEND") or str(cfg.get("backend") or "openai")
+    ).strip().lower()
+    if backend in {"gemini", "cloudsway", "api"}:
+        backend = "gemini"
+    else:
+        backend = "openai"
+    base_url = (
+        os.environ.get("JUDGE_BASE_URL")
+        or str(cfg.get("base_url") or "http://127.0.0.1:8091")
+    ).rstrip("/")
+    api_key = os.environ.get("JUDGE_API_KEY") or str(cfg.get("api_key") or "EMPTY")
+    model = os.environ.get("JUDGE_MODEL") or str(cfg.get("model") or "qwen3.8")
+    kwargs = cfg.get("chat_template_kwargs")
+    if not isinstance(kwargs, dict):
+        kwargs = {"enable_thinking": False}
+    return {
+        "backend": backend,
+        "base_url": base_url,
+        "api_key": api_key,
+        "model": model,
+        "timeout_sec": float(os.environ.get("JUDGE_TIMEOUT_SEC") or cfg.get("timeout_sec") or 300),
+        "max_retries": int(cfg.get("max_retries") or 2),
+        "max_tokens": int(cfg.get("max_tokens") or 4096),
+        "temperature": float(cfg.get("temperature") or 0.1),
+        "chat_template_kwargs": kwargs,
     }

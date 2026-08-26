@@ -2,7 +2,7 @@
 
 > 日期：2026-08-20  
 > 目标：在不改 Python 管线的前提下，用 prompt 层修复两类退化——简单短视频过度膨胀、参考图视觉属性衰减。  
-> 关联文档：[2026-08-19-pipeline-issues-and-improvements.md](../2026-08-19-pipeline-issues-and-improvements.md)
+> 关联文档：[2026-08-19-pipeline-issues-and-improvements.md](./2026-08-19-pipeline-issues-and-improvements.md)
 
 ---
 
@@ -136,7 +136,7 @@ Physics constraint (all modes):
 
 1. 按 §3 修改五个 prompt 文件
 2. 通读：无字段名冲突；A 与 C1 以「缩放 padding、锁定 identity」为准
-3. 更新 `2026-08-19-pipeline-issues-and-improvements.md` §四 状态为「C1+A 已实施」
+3. 更新 `docs/archive/2026-08-19-pipeline-issues-and-improvements.md` §四 状态为「C1+A 已实施」
 
 ### Phase 2：文本级回归
 

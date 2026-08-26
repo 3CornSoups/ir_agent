@@ -36,7 +36,7 @@ def main() -> int:
         "--skill-router",
         default="hybrid",
         choices=("off", "keyword", "hybrid", "llm"),
-        help="风格 skill 路由：off / keyword / hybrid（默认，关键词未命中才问模型） / llm",
+        help="风格 skill 路由：off / keyword（触发词命中）/ hybrid|llm（LLM 打分取 top1）",
     )
     p.add_argument(
         "--mechanism",

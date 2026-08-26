@@ -131,7 +131,7 @@
 
 **Files:**
 - Modify: `README.md`
-- Modify: `docs/superpowers/specs/2026-08-19-context-ir-quality-design.md`
+- Modify: `docs/archive/2026-08-19-context-ir-quality-design.md`
 
 - [x] README：管线说明（6 步 + 校验表）、HTTP 次数表、CLI 新参数、对照脚本用法、输出文件清单。
 - [x] spec：文件清单补充 `verify_intent.txt` 与 `examples.py`。

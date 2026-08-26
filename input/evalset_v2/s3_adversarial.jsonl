@@ -1,0 +1,48 @@
+{"id": "s3_a1_01", "mode": "t2va", "trap": "A1", "intent": "一只橘猫在窗台晒太阳，禁止切镜，单镜头缓推，约5秒", "assert": {"shot_count_eq": 1}, "focus": "A1_no_cut"}
+{"id": "s3_a1_02", "mode": "t2va", "trap": "A1", "intent": "海浪拍打礁石，一镜到底缓摇，不得切镜，约7秒", "assert": {"shot_count_eq": 1}, "focus": "A1_no_cut"}
+{"id": "s3_a1_03", "mode": "t2va", "trap": "A1", "intent": "蒸汽从马克杯升起，单镜头微距，禁止分镜，约4秒", "assert": {"shot_count_eq": 1}, "focus": "A1_no_cut"}
+{"id": "s3_a1_04", "mode": "t2va", "trap": "A1", "intent": "夜路路灯下落叶旋过，不要切镜，固定机位，约6秒", "assert": {"shot_count_eq": 1}, "focus": "A1_no_cut"}
+{"id": "s3_a2_01", "mode": "t2va", "trap": "A2", "intent": "咖啡倾倒进杯，慢动作，禁止人物入镜，约4秒", "assert": {"no_person_entity": true}, "focus": "A2_no_person"}
+{"id": "s3_a2_02", "mode": "t2va", "trap": "A2", "intent": "机械手表齿轮特写，禁止人脸入镜，约5秒", "assert": {"no_person_entity": true}, "focus": "A2_no_person"}
+{"id": "s3_a2_03", "mode": "t2va", "trap": "A2", "intent": "雨滴打在车窗上，不得人物入镜，只要物件，约6秒", "assert": {"no_person_entity": true}, "focus": "A2_no_person"}
+{"id": "s3_a2_04", "mode": "t2va", "trap": "A2", "intent": "陶瓶碎裂慢动作，禁止人手入镜，约4秒", "assert": {"no_person_entity": true}, "focus": "A2_no_person"}
+{"id": "s3_a3_01", "mode": "t2va", "trap": "A3", "intent": "雨夜路口红巴士驶过，不要配乐，只要环境声，约6秒", "assert": {"non_diegetic_music_na": true}, "focus": "A3_no_music"}
+{"id": "s3_a3_02", "mode": "t2va", "trap": "A3", "intent": "图书馆翻书特写，禁止配乐，仅纸张声，约5秒", "assert": {"non_diegetic_music_na": true}, "focus": "A3_no_music"}
+{"id": "s3_a3_03", "mode": "t2va", "trap": "A3", "intent": "空荡体育馆回声脚步，无配乐，约7秒", "assert": {"non_diegetic_music_na": true}, "focus": "A3_no_music"}
+{"id": "s3_a3_04", "mode": "t2va", "trap": "A3", "intent": "雪林风声，不要音乐，只要自然环境声，约8秒", "assert": {"non_diegetic_music_na": true}, "focus": "A3_no_music"}
+{"id": "s3_a4_01", "mode": "t2va", "trap": "A4", "intent": "产品旋转展示，画面不得出现任何文字，约5秒", "assert": {"no_onscreen_text": true}, "focus": "A4_no_text"}
+{"id": "s3_a4_02", "mode": "t2va", "trap": "A4", "intent": "运动鞋静物三点布光，禁止文字与字幕，约4秒", "assert": {"no_onscreen_text": true}, "focus": "A4_no_text"}
+{"id": "s3_a4_03", "mode": "t2va", "trap": "A4", "intent": "香水瓶反射光斑，不要出现任何字幕或logo字，约6秒", "assert": {"no_onscreen_text": true}, "focus": "A4_no_text"}
+{"id": "s3_a4_04", "mode": "t2va", "trap": "A4", "intent": "耳机拆箱特写，画面不得出现文字，约5秒", "assert": {"no_onscreen_text": true}, "focus": "A4_no_text"}
+{"id": "s3_a5_01", "mode": "t2va", "trap": "A5", "intent": "球员停球→转身→射门，动作完整不省略，约6秒", "assert": {"action_chain": ["停球", "转身", "射门"]}, "focus": "A5_action_chain"}
+{"id": "s3_a5_02", "mode": "t2va", "trap": "A5", "intent": "厨师切菜→翻锅→装盘，顺序完整，约7秒", "assert": {"action_chain": ["切菜", "翻锅", "装盘"]}, "focus": "A5_action_chain"}
+{"id": "s3_a5_03", "mode": "t2va", "trap": "A5", "intent": "舞者起跳→旋转→落地，不要跳步，约5秒", "assert": {"action_chain": ["起跳", "旋转", "落地"]}, "focus": "A5_action_chain"}
+{"id": "s3_a5_04", "mode": "t2va", "trap": "A5", "intent": "骑手加速→过弯→冲线，动作链保留，约8秒", "assert": {"action_chain": ["加速", "过弯", "冲线"]}, "focus": "A5_action_chain"}
+{"id": "s3_a6_01", "mode": "t2va", "trap": "A6", "intent": "开门→进屋→放包→坐下→打开笔记本，不要跳步，约10秒", "assert": {"action_chain": ["开门", "进屋", "放包", "坐下", "打开笔记本"]}, "focus": "A6_long_chain"}
+{"id": "s3_a6_02", "mode": "t2va", "trap": "A6", "intent": "起床→洗漱→穿衣→出门→上车，完整五步，约12秒", "assert": {"action_chain": ["起床", "洗漱", "穿衣", "出门", "上车"]}, "focus": "A6_long_chain"}
+{"id": "s3_a6_03", "mode": "t2va", "trap": "A6", "intent": "取杯→倒水→加茶→搅拌→品尝，不要省略，约9秒", "assert": {"action_chain": ["取杯", "倒水", "加茶", "搅拌", "品尝"]}, "focus": "A6_long_chain"}
+{"id": "s3_a6_04", "mode": "t2va", "trap": "A6", "intent": "解锁→推门→亮灯→挂衣→坐下，顺序不可乱，约8秒", "assert": {"action_chain": ["解锁", "推门", "亮灯", "挂衣", "坐下"]}, "focus": "A6_long_chain"}
+{"id": "s3_a7_01", "mode": "t2va", "trap": "A7", "intent": "她说：『你来了。剑等得够久了。』约5秒", "assert": {"dialogue_verbatim": ["你来了。剑等得够久了。"]}, "focus": "A7_dialogue_zh", "expected_dialogue": ["你来了。剑等得够久了。"]}
+{"id": "s3_a7_02", "mode": "t2va", "trap": "A7", "intent": "老人低声：「再等一个春天。」雨还在下，约6秒", "assert": {"dialogue_verbatim": ["再等一个春天。"]}, "focus": "A7_dialogue_zh", "expected_dialogue": ["再等一个春天。"]}
+{"id": "s3_a7_03", "mode": "t2va", "trap": "A7", "intent": "女孩喊道：『别走！钥匙还在桌上。』约4秒", "assert": {"dialogue_verbatim": ["别走！钥匙还在桌上。"]}, "focus": "A7_dialogue_zh", "expected_dialogue": ["别走！钥匙还在桌上。"]}
+{"id": "s3_a7_04", "mode": "t2va", "trap": "A7", "intent": "旁白：『山风停了，灯火才亮。』约7秒", "assert": {"dialogue_verbatim": ["山风停了，灯火才亮。"]}, "focus": "A7_dialogue_zh", "expected_dialogue": ["山风停了，灯火才亮。"]}
+{"id": "s3_a8_01", "mode": "t2va", "trap": "A8", "intent": "品牌片结尾必须出现中文口号「让每一步都算数」，约6秒", "assert": {"onscreen_verbatim": ["让每一步都算数"]}, "focus": "A8_slogan", "expected_onscreen": ["让每一步都算数"]}
+{"id": "s3_a8_02", "mode": "t2va", "trap": "A8", "intent": "片尾花字口号「认真生活」，不要英文占位，约5秒", "assert": {"onscreen_verbatim": ["认真生活"]}, "focus": "A8_slogan", "expected_onscreen": ["认真生活"]}
+{"id": "s3_a8_03", "mode": "t2va", "trap": "A8", "intent": "广告收束字幕「新鲜刚刚好」必须原样出现，约4秒", "assert": {"onscreen_verbatim": ["新鲜刚刚好"]}, "focus": "A8_slogan", "expected_onscreen": ["新鲜刚刚好"]}
+{"id": "s3_a8_04", "mode": "t2va", "trap": "A8", "intent": "结尾标语「看见更大的世界」保留中文，约6秒", "assert": {"onscreen_verbatim": ["看见更大的世界"]}, "focus": "A8_slogan", "expected_onscreen": ["看见更大的世界"]}
+{"id": "s3_a9_01", "mode": "t2va", "trap": "A9", "intent": "纯手绘速写风格，线条颤抖，不要实拍，约5秒", "assert": {"forbid_skill": ["handdrawn-live"], "no_live_action_style": true}, "focus": "A9_style_exclusive"}
+{"id": "s3_a9_02", "mode": "t2va", "trap": "A9", "intent": "纯手绘，铅笔排线，禁止实拍融合，约6秒", "assert": {"forbid_skill": ["handdrawn-live"], "no_live_action_style": true}, "focus": "A9_style_exclusive"}
+{"id": "s3_a9_03", "mode": "t2va", "trap": "A9", "intent": "手绘速写城市街景，不要实拍，约7秒", "assert": {"forbid_skill": ["handdrawn-live"], "no_live_action_style": true}, "focus": "A9_style_exclusive"}
+{"id": "s3_a9_04", "mode": "t2va", "trap": "A9", "intent": "纯手绘速写人物侧脸，线条留白，禁止实拍，约5秒", "assert": {"forbid_skill": ["handdrawn-live"], "no_live_action_style": true}, "focus": "A9_style_exclusive"}
+{"id": "s3_a10_01", "mode": "t2va", "trap": "A10", "intent": "一只狗", "assert": {"invention_count_eq": 0}, "focus": "A10_minimal"}
+{"id": "s3_a10_02", "mode": "t2va", "trap": "A10", "intent": "一杯水", "assert": {"invention_count_eq": 0}, "focus": "A10_minimal"}
+{"id": "s3_a10_03", "mode": "t2va", "trap": "A10", "intent": "红门", "assert": {"invention_count_eq": 0}, "focus": "A10_minimal"}
+{"id": "s3_a10_04", "mode": "t2va", "trap": "A10", "intent": "月亮", "assert": {"invention_count_eq": 0}, "focus": "A10_minimal"}
+{"id": "s3_a11_01", "mode": "t2va", "trap": "A11", "intent": "清晨厨房窗边，一只橘猫跳上木质台面，阳光从左侧斜照，猫先抬头嗅气，再缓步走向一碟清水，低头轻舔三下，尾巴轻摆，镜头从中景缓推至特写胡须水珠，全程单镜头禁止切镜，环境声只有时钟与远处鸟鸣，不要配乐，约12秒，不要出现任何字幕或人名", "assert": {"must_cover_all": true}, "focus": "A11_long_intent"}
+{"id": "s3_a11_02", "mode": "t2va", "trap": "A11", "intent": "雨后石板巷，骑车人避开水洼，招牌铁皮轻响，远处有人收衣服，镜头跟拍车轮溅起水花再抬到屋檐滴水，再落到生锈锁扣特写，保留巷深透视，不要配乐只要雨滴与车铃，约11秒，禁止字幕", "assert": {"must_cover_all": true}, "focus": "A11_long_intent"}
+{"id": "s3_a11_03", "mode": "t2va", "trap": "A11", "intent": "深夜便利店冷柜灯光，店员整理货架，罐头标签朝外，门帘被风掀起又落下，门外霓虹倒映地面积水，镜头从货架缝隙推到门口，再回到收银小票打印机，单镜头，约10秒，不要配乐，禁止人物面部特写", "assert": {"must_cover_all": true}, "focus": "A11_long_intent"}
+{"id": "s3_a11_04", "mode": "t2va", "trap": "A11", "intent": "山顶气象站，风速仪旋转，电缆覆霜，技术员戴手套记录读数，镜头从远景山脊切近到仪表盘数字，再回到呼出的白气，保留动作顺序：走近→记录→回看仪表，约13秒，不要出现品牌logo文字", "assert": {"must_cover_all": true}, "focus": "A11_long_intent"}
+{"id": "s3_a12_01", "mode": "t2va", "trap": "A12", "intent": "单镜头一镜到底，同时要三个不同场景切换，约8秒", "assert": {"ambiguities_nonempty": true}, "focus": "A12_contradiction"}
+{"id": "s3_a12_02", "mode": "t2va", "trap": "A12", "intent": "禁止切镜，但又要四个机位跳切展示产品，约6秒", "assert": {"ambiguities_nonempty": true}, "focus": "A12_contradiction"}
+{"id": "s3_a12_03", "mode": "t2va", "trap": "A12", "intent": "一镜到底跟拍，同时切到三个不同房间，约9秒", "assert": {"ambiguities_nonempty": true}, "focus": "A12_contradiction"}
+{"id": "s3_a12_04", "mode": "t2va", "trap": "A12", "intent": "不要分镜只要单镜头，但又要多场景快速切换，约7秒", "assert": {"ambiguities_nonempty": true}, "focus": "A12_contradiction"}

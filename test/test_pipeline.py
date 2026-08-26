@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import pytest
 
@@ -107,7 +108,24 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return (
                 "integrated_multimodal_description: [Shot 1] cat 16:9\n\n"
                 "overall_soundscape: room tone\n\n"
-                "non_diegetic_music: N/A 768P fps 24."
+                "non_diegetic_music: Soft piano at a slow tempo. 768P fps 24."
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
+                "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -125,11 +143,23 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
 
     assert rec["mode"] == "t2va"
     assert rec["duration"] == 7
-    assert [s["stage"] for s in rec["steps"]] == ["expand", "elaborate", "format"]
+    assert isinstance(rec.get("enhance_elapsed_sec"), float)
+    assert rec["enhance_elapsed_sec"] >= 0
+    assert rec.get("skills", {}).get("core") == ["h3-prompt-writing"]
+    assert rec.get("skills", {}).get("style") == []
+    assert [s["stage"] for s in rec["steps"]] == ["contract", "expand", "elaborate", "format"]
+    assert "contract" in rec
+    assert (out_dir / "contract.json").is_file()
 
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert "768P" not in prompt_text
+    run_meta = json.loads((out_dir / "run.json").read_text(encoding="utf-8"))
+    assert "enhance_elapsed_sec" in run_meta
+    assert run_meta["enhance_elapsed_sec"] == rec["enhance_elapsed_sec"]
+    assert run_meta["skills"]["core"] == ["h3-prompt-writing"]
+    assert "style" in run_meta["skills"]
+    assert "mechanisms" in run_meta["skills"]
 
 
 def test_enhance_i2va_requires_first_frame(tmp_path: Path) -> None:
@@ -160,6 +190,23 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
                 "<Picture 1> (from [Shot 1]) is fully referenced.\n\n"
                 "integrated_multimodal_description: [Shot 1] walk forward 16:9\n\n"
                 "overall_soundscape: street\n\n"
+                "non_diegetic_music: Soft piano at a slow tempo"
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
                 "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")
@@ -181,7 +228,7 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     )
 
     assert rec["mode"] == "i2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "contract", "expand", "elaborate", "format"]
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert prompt_text.startswith(
@@ -227,6 +274,23 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
                 "Picture 2 (from Shot 1) aligns with the 5.00-second mark of the target video.\n\n"
                 "integrated_multimodal_description: [Shot 1] path 16:9\n\n"
                 "overall_soundscape: rain\n\n"
+                "non_diegetic_music: Soft piano at a slow tempo"
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
                 "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")
@@ -251,7 +315,7 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     )
 
     assert rec["mode"] == "fl2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "contract", "expand", "elaborate", "format"]
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert "8.00-second" in prompt_text.split("\n", 1)[0]
@@ -278,6 +342,23 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return (
                 "integrated_multimodal_description: [Shot 1] open [Shot 2] At 00:03.000 land\n\n"
                 "overall_soundscape: room\n\n"
+                "non_diegetic_music: Soft piano at a slow tempo"
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
                 "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")
@@ -288,16 +369,17 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     last_frame = tmp_path / "last.png"
     last_frame.write_bytes(b"zz")
     out_dir = tmp_path / "out_l2va"
+    # 本用例刻意验证多镜对齐：意图须明确要求分镜，否则校验会压回单镜。
     rec = enhance(
         "l2va",
-        "短意图",
+        "分镜：先开场再落到尾帧",
         last_frame=str(last_frame),
         duration=6,
         out_dir=out_dir,
         mechanism_router="off",
     )
     assert rec["mode"] == "l2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
+    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "contract", "expand", "elaborate", "format"]
     first = rec["prompt"].split("\n", 1)[0]
     assert "<Picture 1> (from [Shot 2])" in first
     assert "6.00-second" in first
@@ -369,14 +451,23 @@ def test_perceive_prompts_cover_grid_subjects() -> None:
     refs = load_prompt("perceive_refs")
     assert "Subjects in this picture" in refs
     assert "3x3" in refs
+    assert "left/right" in refs
     fmt = load_prompt("format_h3")
     assert "one asset may provide multiple subjects" in fmt
     assert "do not create a standalone Picture" in fmt
     assert "One attached file is one <Picture N>" not in fmt
+    assert "AV SYNC" in fmt
+    assert "ON-SCREEN TEXT" in fmt
     expand = load_prompt("expand_intent")
     assert "4-grid" in expand or "9-grid" in expand
     assert "Locked spoken lines" in expand
-    assert "Locked spoken lines" in load_prompt("elaborate")
+    assert "SPATIAL LOCK" in expand
+    assert "INTERACTION LOCK" in expand
+    assert "INTENT SPINE LOCK" in expand
+    elab = load_prompt("elaborate")
+    assert "AV SYNC" in elab
+    assert "INTERACTION" in elab
+    assert "Locked spoken lines" in elab
     assert "Locked spoken lines" in fmt
     assert "Never write [Mandarin]" in fmt
 
@@ -391,8 +482,33 @@ def test_user_messages_include_locked_dialogue() -> None:
     assert "和尚，瞅啥呢？" in elab
     fmt = _format_user("r2va", "scene", inventory=None, duration=6, intent=intent)
     assert "和尚，瞅啥呢？" in fmt
+    caption = '结尾字幕「立即购买」'
+    expand_c = _expand_user(caption, mode="t2va")
+    assert "Locked on-screen lines" in expand_c
+    assert "立即购买" in expand_c
     silent = _expand_user("没有对白的短意图", mode="t2va")
     assert "Locked spoken lines" not in silent
+
+
+def test_user_messages_include_contract_block() -> None:
+    """三段 USER 在传入 contract_block 时应原样嵌入。"""
+    block = "=== INTENT CONTRACT ===\nmust_elements: [\"橘猫\"]\n=== END CONTRACT ==="
+    expand = _expand_user("一只橘猫", mode="t2va", contract_block=block)
+    assert "INTENT CONTRACT" in expand and "橘猫" in expand
+    elab = _elaborate_user("scene", None, contract_block=block)
+    assert "INTENT CONTRACT" in elab
+    fmt = _format_user("t2va", "scene", inventory=None, duration=5, contract_block=block)
+    assert "INTENT CONTRACT" in fmt
+
+
+def test_prompts_have_detail_triad() -> None:
+    """三段 SYSTEM 应含三分法，并引用 Intent Contract。"""
+    from src.config import load_prompt
+
+    for stem in ("expand_intent", "elaborate", "format_h3"):
+        text = load_prompt(stem)
+        assert "DETAIL TRIAD" in text, stem
+        assert "Anchored" in text and "Inferred" in text and "Invented" in text, stem
 
 
 def test_expand_intent_has_visual_identity_lock() -> None:
@@ -424,14 +540,43 @@ def test_elaborate_has_complexity_scaling() -> None:
 
 
 def test_format_h3_single_shot_not_over_pad() -> None:
-    """format_h3 不应再要求单镜头写成完整分镜级 production description。"""
+    """format_h3：默认单镜、默认有配乐；禁止不可执行物理精度；filmic 时应保留 densify 密度。"""
     from src.config import load_prompt
 
     text = load_prompt("format_h3")
     assert "full shot-by-shot production description" not in text
     assert "unexecutable physical precision" in text
+    assert "PRESERVE the scene note's cinematic density" in text or "budget floor" in text
     assert "Keep identity/layout from the first frame" not in text
+    assert "Shot count (hard default)" in text
+    assert "ONLY [Shot 1]" in text
+    assert "non_diegetic_music (hard default)" in text
 
+
+def test_expand_intent_defaults_to_single_shot() -> None:
+    """expand_intent 应默认单镜，除非 base prompt 明确要求分镜。"""
+    from src.config import load_prompt
+
+    text = load_prompt("expand_intent")
+    assert "exactly ONE continuous shot" in text
+    assert "分镜" in text
+    assert "Music (hard default)" in text
+
+
+def test_format_user_carries_complexity_budget() -> None:
+    """format USER 应嵌入复杂度预算，避免 format 压扁 densify 稿。"""
+    from src.pipeline import _format_user
+
+    text = _format_user(
+        "t2va",
+        "rich scene note " * 20,
+        inventory=None,
+        duration=6,
+        complexity_block="COMPLEXITY BUDGET\n- FILMIC SINGLE-SHOT\n- target_word_count: 280-400",
+    )
+    assert "COMPLEXITY BUDGET" in text
+    assert "FILMIC" in text
+    assert "do not shrink" in text.lower() or "word-count floor" in text
 
 def test_perceive_prompts_require_clothing_coverage() -> None:
     """感知提示词必须要求写清衣着与身体覆盖，避免库存阶段就丢衣服。"""
@@ -449,10 +594,12 @@ def test_elaborate_user_not_align_to_official_length() -> None:
     """elaborate 的 USER 消息不应再要求对齐官方长稿详略级别（否则抵消复杂度缩放）。"""
     from src.pipeline import _elaborate_user
 
-    user = _elaborate_user("Scene note.", inventory=None)
+    user = _elaborate_user("Scene note.", inventory=None, intent="一只橘猫在窗台晒太阳")
     assert "official Context-IR detail level" not in user
-    assert "match detail depth to the scene's complexity" in user.lower()
-    assert "do not pad a simple single-shot clip" in user.lower()
+    assert "complexity budget" in user.lower()
+    assert "do not pad a simple" in user.lower()
+    assert "ONE continuous shot" in user
+    assert "Do not write N/A" in user
 
 
 def test_enhance_r2va_rescans_incomplete_grid(
@@ -497,6 +644,23 @@ def test_enhance_r2va_rescans_incomplete_grid(
                 "retention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - coat kept.\n\n"
                 "detailed_description:\n[Shot 1] The cat from the sheet walks.\n\n"
                 "overall_soundscape: room tone\n\n"
+                "non_diegetic_music: Soft piano at a slow tempo"
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
                 "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")
@@ -518,6 +682,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
     assert [s["stage"] for s in rec["steps"]] == [
         "perceive_refs",
         "perceive_grid_rescan",
+        "contract",
         "expand",
         "elaborate",
         "format",
@@ -529,7 +694,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
 def test_enhance_loads_brand_skill_from_intent(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """品牌宣传意图应在扩写/格式化前注入 brand-promo overlay，且不再问路由模型。"""
+    """品牌宣传意图经 LLM 打分注入 brand-promo overlay，路由分写入 run 记录。"""
     import src.pipeline as pipeline_mod
 
     seen: dict[str, str] = {}
@@ -539,7 +704,7 @@ def test_enhance_loads_brand_skill_from_intent(
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
         if stage == "route":
-            raise AssertionError("关键词命中后不应再走前置路由模型")
+            return '{"scores":{"brand-promo":0.93,"minimalist-product-ad":0.2}}'
         if stage == "expand":
             seen["expand_user"] = user if isinstance(user, str) else str(user)
             return "EXPANDED brand reel"
@@ -550,6 +715,23 @@ def test_enhance_loads_brand_skill_from_intent(
             return (
                 "integrated_multimodal_description: [Shot 1] product proof\n\n"
                 "overall_soundscape: light UI ticks\n\n"
+                "non_diegetic_music: Soft piano at a slow tempo"
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
                 "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")
@@ -566,11 +748,22 @@ def test_enhance_loads_brand_skill_from_intent(
         mechanism_router="off",
     )
     assert rec["style_skills"] == ["brand-promo"]
-    assert rec["style_skill_source"] == "keyword"
-    assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "elaborate", "format"]
+    assert rec["style_skill_source"] == "llm"
+    assert rec["style_skill_scores"]["brand-promo"] == 0.93
+    assert rec["style_skill_threshold"] == 0.6
+    assert rec["skills"]["core"] == ["h3-prompt-writing"]
+    assert rec["skills"]["style"] == ["brand-promo"]
+    assert rec["skills"]["style_source"] == "llm"
+    assert rec["skills"]["style_llm_route"]["accepted"] is True
+    route_step = next(s for s in rec["steps"] if s["stage"] == "skill_route")
+    assert route_step["scores"]["brand-promo"] == 0.93
+    assert [s["stage"] for s in rec["steps"]] == ["contract", "skill_route", "expand", "elaborate", "format"]
     assert "style skill: brand-promo" in seen["expand_user"]
     assert "style skill: brand-promo" in seen["format_sys"]
     assert "Official H3 writing guide" in seen["format_sys"]
+    run_meta = json.loads((tmp_path / "out_brand" / "run.json").read_text(encoding="utf-8"))
+    assert run_meta["skills"]["style"] == ["brand-promo"]
+    assert run_meta["skills"]["core"] == ["h3-prompt-writing"]
 
 
 def test_enhance_forced_skill_off_router(
@@ -595,6 +788,23 @@ def test_enhance_forced_skill_off_router(
             return (
                 "integrated_multimodal_description: [Shot 1] cartoon\n\n"
                 "overall_soundscape: N/A\n\n"
+                "non_diegetic_music: Soft piano at a slow tempo"
+            )
+        if stage == "parse_intent":
+            return '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+        if stage == "fidelity":
+            if "list_inventions" in (user if isinstance(user, str) else ""):
+                return '{"inventions":[]}'
+            return '{"value": 1}'
+        if stage == "verify":
+            # 定向修复：原样返回 Prompt 段，表示无需改动
+            text = user if isinstance(user, str) else ""
+            marker = "Prompt:"
+            if marker in text:
+                return text.split(marker, 1)[1].strip()
+            return (
+                "integrated_multimodal_description: [Shot 1] ok\n\n"
+                "overall_soundscape: room\n\n"
                 "non_diegetic_music: N/A"
             )
         raise AssertionError(f"unexpected stage: {stage}")

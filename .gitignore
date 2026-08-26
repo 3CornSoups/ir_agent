@@ -47,9 +47,14 @@ configs/gemini.yaml
 configs/gemini.local.yaml
 configs/h3.yaml
 configs/h3.local.yaml
+configs/judge.yaml
+configs/judge.local.yaml
 
 # 运行级模型调用日志（oneclick_run.py 每次运行生成一个小目录）
 log/
+
+# 裁判服务日志 / pid
+run/judge/
 
 # 内部基础设施文档（含内网代理地址，禁止上传）
 BASH_PROXY_QUICK_START.md

@@ -1,0 +1,15 @@
+# 裁判后端：gemini = Cloudsway Gemini API；openai = 本地兼容接口
+# 环境变量：JUDGE_BACKEND / JUDGE_BASE_URL / JUDGE_API_KEY / JUDGE_MODEL / JUDGE_TIMEOUT_SEC
+
+backend: gemini
+
+# ---- backend=openai 时填写 ----
+base_url: http://127.0.0.1:8091
+api_key: "EMPTY"
+model: qwen3.8
+timeout_sec: 300
+max_retries: 2
+max_tokens: 4096
+temperature: 0.1
+chat_template_kwargs:
+  enable_thinking: false

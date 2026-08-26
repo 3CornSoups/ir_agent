@@ -134,10 +134,12 @@ verify:
 ### 新增
 - `prompts/elaborate.txt` — 补细节阶段 SYSTEM
 - `prompts/verify_fix.txt` — 校验失败修复 SYSTEM
+- `prompts/verify_intent.txt` — LLM 意图一致性检查 SYSTEM
 - `src/verify.py` — 规则校验 + LLM 修复编排
+- `src/examples.py` — 官方完整输出范例（base-en Case 1~4 + ref-en Section 7）
 - `scripts/compare_context_ir.py` — 官方 Context-IR 对照评估工具
 - `test/test_verify.py` — 校验规则单测
-- `docs/superpowers/plans/2026-08-19-context-ir-quality.md` — 实现计划
+- `docs/archive/2026-08-19-context-ir-quality-plan.md` — 实现计划
 
 ### 修改
 - `prompts/perceive_image.txt` — 追加 What it can provide

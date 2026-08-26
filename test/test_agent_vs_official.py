@@ -103,14 +103,31 @@ def test_agent_prompt_structure_mocked(case_id: str, monkeypatch: pytest.MonkeyP
         return f"SYS_{stem}\n"
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
+        if stage in ("route", "mechanism_route"):
+            return '{"scores":{}}'
+        if stage == "parse_intent":
+            return (
+                '{"must_elements":[],"forbidden":[],"dialogue":[],"onscreen_text":[],'
+                '"shot_constraint":{"single_shot":false,"max_shots":null},"duration_sec":5,'
+                '"action_chain":[],"explicit_style":null,"explicit_negatives":[],"ambiguities":[]}'
+            )
         if stage == "perceive":
             return "INVENTORY: <Picture 1> 人物外观; <Video 1> 动作节奏"
         if stage == "expand":
             return "EXPANDED SCENE 16:9 768P"
         if stage == "elaborate":
             return "EXPANDED SCENE DETAIL"
-        fields = expected_fields(case["mode"])
-        return "\n\n".join(f"{f}: [Shot 1] placeholder 16:9 768P 24fps" for f in fields)
+        if stage == "densify_filmic":
+            return "EXPANDED SCENE DETAIL densified cinematic prose " * 20
+        if stage == "format":
+            fields = expected_fields(case["mode"])
+            return "\n\n".join(f"{f}: [Shot 1] placeholder" for f in fields)
+        if stage == "verify":
+            marker = "Current prompt:\n"
+            if isinstance(user, str) and marker in user:
+                return user.split(marker, 1)[1].strip()
+            return "integrated_multimodal_description: [Shot 1] placeholder"
+        raise AssertionError(f"unexpected stage: {stage}")
 
     monkeypatch.setattr(pipeline_mod, "load_prompt", load_prompt_mock)
     monkeypatch.setattr(pipeline_mod, "chat", chat_mock)
@@ -126,6 +143,7 @@ def test_agent_prompt_structure_mocked(case_id: str, monkeypatch: pytest.MonkeyP
         reference_audios=case.get("reference_audios"),
         duration=case.get("duration"),
         out_dir=out_dir,
+        enable_verify=False,
     )
 
     prompt = rec["prompt"]
