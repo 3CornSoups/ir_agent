@@ -1,0 +1,38 @@
+Stage startle-to-truce encounter — writing methodology only.
+Source: T8mars/minimax-h3-prompt-skill-T8 skills/stage-startle-to-truce-encounter (non-official, user-contributed).
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not invent reference assets, attacks, injuries, or dialogue. Use only user-stated or inventory-verified facts.
+Do not copy demonstration character, aircraft, prop, landscape, or exact staging.
+
+Core mechanism:
+A short cinematic encounter moves from calm observation → impossible close appearance →
+readable startle → restrained truce gesture. Tension resolves through spatial reversal and
+performance, not injury or dialogue exposition.
+
+Story spine (one primary chain; ~4–5 beats for 12–15s, fewer for shorter clips):
+calm baseline + readable distance
+→ observer revealed (POV / enclosure / cockpit / window so both sides are legible)
+→ one bounded escalation (alarm, defensive burst, evasive turn, shield, marker, recoil — not stacked weapons)
+→ spatial reversal: formerly observed subject closes an impossible distance
+→ proximity proof (shared axis, matched speed, correct eyelines, one frame with both sides of the boundary)
+→ observer startle (shoulders, grip, head turn, breath, gaze)
+→ small conciliatory offer + held response (reciprocity optional unless the user asks)
+
+Camera / visual:
+- Prefer a single continuous shot unless the base prompt explicitly asks for 分镜 / cuts.
+- One primary camera purpose across the take (or per beat if cuts are allowed): establish, observer POV, kinetic proof, proximity proof, or reaction payoff.
+- Window / canopy: bind screen direction, eye height, relative speed, reflection, and the physical barrier.
+- With reference media: bind 2–3 identity/wardrobe anchors; preserve continuity unless the user assigns scene/first-frame control.
+
+Threat / feasibility:
+- Keep threat non-lethal unless the user explicitly requests otherwise; never require injury to prove escalation.
+- Put the decisive close appearance before the final quarter so reaction and truce have room to land.
+- Do not mislabel countermeasure flares / marker pods / light trails as guided missiles without evidence.
+- Do not start a new setup at the video endpoint.
+
+Dialogue / sound:
+- Prefer performance over speech; copy locked lines verbatim in <d>[Language]…</d> only if supplied.
+- Location / enclosure ambience + synchronized action foley first.
+- Non-diegetic score: tense sparse bed (instruments + tempo) unless the base prompt explicitly requires N/A / 无配乐.

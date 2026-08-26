@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import pytest
 
@@ -107,7 +108,7 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return (
                 "integrated_multimodal_description: [Shot 1] cat 16:9\n\n"
                 "overall_soundscape: room tone\n\n"
-                "non_diegetic_music: N/A 768P fps 24."
+                "non_diegetic_music: Soft piano at a slow tempo. 768P fps 24."
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -125,11 +126,21 @@ def test_enhance_t2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
 
     assert rec["mode"] == "t2va"
     assert rec["duration"] == 7
-    assert [s["stage"] for s in rec["steps"]] == ["expand", "elaborate", "format"]
+    assert isinstance(rec.get("enhance_elapsed_sec"), float)
+    assert rec["enhance_elapsed_sec"] >= 0
+    assert rec.get("skills", {}).get("core") == ["h3-prompt-writing"]
+    assert rec.get("skills", {}).get("style") == []
+    assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "elaborate", "format"]
 
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert "768P" not in prompt_text
+    run_meta = json.loads((out_dir / "run.json").read_text(encoding="utf-8"))
+    assert "enhance_elapsed_sec" in run_meta
+    assert run_meta["enhance_elapsed_sec"] == rec["enhance_elapsed_sec"]
+    assert run_meta["skills"]["core"] == ["h3-prompt-writing"]
+    assert "style" in run_meta["skills"]
+    assert "mechanisms" in run_meta["skills"]
 
 
 def test_enhance_i2va_requires_first_frame(tmp_path: Path) -> None:
@@ -160,7 +171,7 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
                 "<Picture 1> (from [Shot 1]) is fully referenced.\n\n"
                 "integrated_multimodal_description: [Shot 1] walk forward 16:9\n\n"
                 "overall_soundscape: street\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -181,7 +192,13 @@ def test_enhance_i2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     )
 
     assert rec["mode"] == "i2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
+    assert [s["stage"] for s in rec["steps"]] == [
+        "perceive_image",
+        "skill_route",
+        "expand",
+        "elaborate",
+        "format",
+    ]
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert prompt_text.startswith(
@@ -227,7 +244,7 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
                 "Picture 2 (from Shot 1) aligns with the 5.00-second mark of the target video.\n\n"
                 "integrated_multimodal_description: [Shot 1] path 16:9\n\n"
                 "overall_soundscape: rain\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -251,7 +268,13 @@ def test_enhance_fl2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     )
 
     assert rec["mode"] == "fl2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
+    assert [s["stage"] for s in rec["steps"]] == [
+        "perceive_image",
+        "skill_route",
+        "expand",
+        "elaborate",
+        "format",
+    ]
     prompt_text = (out_dir / "prompt.txt").read_text(encoding="utf-8")
     assert "16:9" not in prompt_text
     assert "8.00-second" in prompt_text.split("\n", 1)[0]
@@ -278,7 +301,7 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             return (
                 "integrated_multimodal_description: [Shot 1] open [Shot 2] At 00:03.000 land\n\n"
                 "overall_soundscape: room\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -288,16 +311,23 @@ def test_enhance_l2va_mocked(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     last_frame = tmp_path / "last.png"
     last_frame.write_bytes(b"zz")
     out_dir = tmp_path / "out_l2va"
+    # 本用例刻意验证多镜对齐：意图须明确要求分镜，否则校验会压回单镜。
     rec = enhance(
         "l2va",
-        "短意图",
+        "分镜：先开场再落到尾帧",
         last_frame=str(last_frame),
         duration=6,
         out_dir=out_dir,
         mechanism_router="off",
     )
     assert rec["mode"] == "l2va"
-    assert [s["stage"] for s in rec["steps"]] == ["perceive_image", "expand", "elaborate", "format"]
+    assert [s["stage"] for s in rec["steps"]] == [
+        "perceive_image",
+        "skill_route",
+        "expand",
+        "elaborate",
+        "format",
+    ]
     first = rec["prompt"].split("\n", 1)[0]
     assert "<Picture 1> (from [Shot 2])" in first
     assert "6.00-second" in first
@@ -424,13 +454,26 @@ def test_elaborate_has_complexity_scaling() -> None:
 
 
 def test_format_h3_single_shot_not_over_pad() -> None:
-    """format_h3 不应再要求单镜头写成完整分镜级 production description。"""
+    """format_h3 应默认单镜、默认有配乐，且不再要求单镜头写成完整分镜级 production description。"""
     from src.config import load_prompt
 
     text = load_prompt("format_h3")
     assert "full shot-by-shot production description" not in text
     assert "unexecutable physical precision" in text
     assert "Keep identity/layout from the first frame" not in text
+    assert "Shot count (hard default)" in text
+    assert "ONLY [Shot 1]" in text
+    assert "non_diegetic_music (hard default)" in text
+
+
+def test_expand_intent_defaults_to_single_shot() -> None:
+    """expand_intent 应默认单镜，除非 base prompt 明确要求分镜。"""
+    from src.config import load_prompt
+
+    text = load_prompt("expand_intent")
+    assert "exactly ONE continuous shot" in text
+    assert "分镜" in text
+    assert "Music (hard default)" in text
 
 
 def test_perceive_prompts_require_clothing_coverage() -> None:
@@ -449,10 +492,25 @@ def test_elaborate_user_not_align_to_official_length() -> None:
     """elaborate 的 USER 消息不应再要求对齐官方长稿详略级别（否则抵消复杂度缩放）。"""
     from src.pipeline import _elaborate_user
 
-    user = _elaborate_user("Scene note.", inventory=None)
+    user = _elaborate_user("Scene note.", inventory=None, intent="一只橘猫在窗台晒太阳")
     assert "official Context-IR detail level" not in user
     assert "match detail depth to the scene's complexity" in user.lower()
     assert "do not pad a simple single-shot clip" in user.lower()
+    assert "ONE continuous shot" in user
+    assert "Do not write N/A" in user
+
+
+def test_expand_user_shot_policy() -> None:
+    """扩写 USER 应按意图注入单镜/多镜与配乐策略。"""
+    from src.pipeline import _expand_user
+
+    single = _expand_user("一只橘猫，镜头缓推", inventory=None, mode="t2va")
+    assert "does NOT request" in single
+    assert "Do not write N/A" in single
+    multi = _expand_user("请按分镜：全景后切特写", inventory=None, mode="t2va")
+    assert "explicitly allows multiple shots" in multi
+    na_music = _expand_user("不要配乐，只要环境音", inventory=None, mode="t2va")
+    assert "explicitly allows non_diegetic_music = N/A" in na_music
 
 
 def test_enhance_r2va_rescans_incomplete_grid(
@@ -497,7 +555,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
                 "retention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - coat kept.\n\n"
                 "detailed_description:\n[Shot 1] The cat from the sheet walks.\n\n"
                 "overall_soundscape: room tone\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -518,6 +576,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
     assert [s["stage"] for s in rec["steps"]] == [
         "perceive_refs",
         "perceive_grid_rescan",
+        "skill_route",
         "expand",
         "elaborate",
         "format",
@@ -529,7 +588,7 @@ def test_enhance_r2va_rescans_incomplete_grid(
 def test_enhance_loads_brand_skill_from_intent(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """品牌宣传意图应在扩写/格式化前注入 brand-promo overlay，且不再问路由模型。"""
+    """品牌宣传意图经 LLM 打分注入 brand-promo overlay。"""
     import src.pipeline as pipeline_mod
 
     seen: dict[str, str] = {}
@@ -539,7 +598,7 @@ def test_enhance_loads_brand_skill_from_intent(
 
     def chat_mock(system: str, user, *, stage: str = "expand") -> str:  # noqa: ANN001
         if stage == "route":
-            raise AssertionError("关键词命中后不应再走前置路由模型")
+            return json.dumps({"scores": {"brand-promo": 0.93, "3d-animation": 0.05}})
         if stage == "expand":
             seen["expand_user"] = user if isinstance(user, str) else str(user)
             return "EXPANDED brand reel"
@@ -550,7 +609,7 @@ def test_enhance_loads_brand_skill_from_intent(
             return (
                 "integrated_multimodal_description: [Shot 1] product proof\n\n"
                 "overall_soundscape: light UI ticks\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 
@@ -566,11 +625,18 @@ def test_enhance_loads_brand_skill_from_intent(
         mechanism_router="off",
     )
     assert rec["style_skills"] == ["brand-promo"]
-    assert rec["style_skill_source"] == "keyword"
+    assert rec["style_skill_source"] == "llm"
+    assert rec["skills"]["core"] == ["h3-prompt-writing"]
+    assert rec["skills"]["style"] == ["brand-promo"]
+    assert rec["skills"]["style_source"] == "llm"
+    assert rec["skills"]["style_llm_route"]["accepted"] is True
     assert [s["stage"] for s in rec["steps"]] == ["skill_route", "expand", "elaborate", "format"]
     assert "style skill: brand-promo" in seen["expand_user"]
     assert "style skill: brand-promo" in seen["format_sys"]
     assert "Official H3 writing guide" in seen["format_sys"]
+    run_meta = json.loads((tmp_path / "out_brand" / "run.json").read_text(encoding="utf-8"))
+    assert run_meta["skills"]["style"] == ["brand-promo"]
+    assert run_meta["skills"]["core"] == ["h3-prompt-writing"]
 
 
 def test_enhance_forced_skill_off_router(
@@ -595,7 +661,7 @@ def test_enhance_forced_skill_off_router(
             return (
                 "integrated_multimodal_description: [Shot 1] cartoon\n\n"
                 "overall_soundscape: N/A\n\n"
-                "non_diegetic_music: N/A"
+                "non_diegetic_music: Soft piano at a slow tempo"
             )
         raise AssertionError(f"unexpected stage: {stage}")
 

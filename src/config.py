@@ -14,8 +14,10 @@ CONFIGS = ROOT / "configs"
 
 
 def load_yaml(name: str) -> dict[str, Any]:
-    """读取 configs/{name}.yaml。"""
+    """读取 configs/{name}.yaml；文件不存在时返回空字典（可全靠环境变量）。"""
     path = CONFIGS / f"{name}.yaml"
+    if not path.is_file():
+        return {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if not isinstance(data, dict):
         raise ValueError(f"配置不是字典: {path}")

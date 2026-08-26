@@ -19,33 +19,39 @@ KEYFRAME_MODES = ("i2va", "fl2va", "l2va")
 ALL_MODES = BASE_MODES + ("r2va",)
 
 # 扩写阶段按官方指南给出的镜头路径（不输出 MiniMax 字段）。
+# 默认单镜头；仅当 base prompt 明确要求分镜 / multi-shot / cuts 时才允许多镜。
 EXPAND_HINTS = {
     "t2va": (
         "T2VA: build the full audiovisual timeline from text. "
-        "At [Shot 1] state overall style and initial composition."
+        "At [Shot 1] state overall style and initial composition. "
+        "Default to ONE continuous shot unless the base prompt explicitly asks for 分镜 / multi-shot / cuts."
     ),
     "i2va": (
         "I2VA: <Picture 1> is the true first frame at 0.00s and belongs to [Shot 1]. "
         "Path: first-frame anchor → action onset → continuous development → result or reaction. "
-        "Keep identity, clothing, colors, key objects, and spatial layout from the first frame."
+        "Keep identity, clothing, colors, key objects, and spatial layout from the first frame. "
+        "Default to ONE continuous shot unless the base prompt explicitly asks for 分镜 / multi-shot / cuts."
     ),
     "fl2va": (
         "FL2VA: Picture 1 is the opening, Picture 2 is the ending. "
         "Path: first-frame state → observable intermediate changes → "
         "progressively narrowing differences → last-frame state. "
-        "Prefer a single continuous shot unless the intent explicitly asks for cuts. "
+        "Use ONE continuous shot unless the intent explicitly asks for cuts / 分镜. "
         "Do not describe two static images; write the motion path that connects them."
     ),
     "l2va": (
-        "L2VA: <Picture 1> is the LAST frame and belongs to the final [Shot N], not Shot 1. "
+        "L2VA: <Picture 1> is the LAST frame and belongs to the final shot (usually [Shot 1]). "
         "Path: plausible preceding state → explicit action and transition → "
-        "gradual convergence in the final shot → last-frame landing."
+        "gradual convergence → last-frame landing. "
+        "Default to ONE continuous shot unless the base prompt explicitly asks for 分镜 / multi-shot / cuts."
     ),
     "r2va": (
         "Ref2VA: say how each attached asset will be used "
         "(<Subject N> / <Picture N> / <Video N> / <Audio N>). "
         "One Picture may contain a 4-grid or 9-grid; list every subject visible in that picture "
         "instead of keeping only the most salient cell. "
+        "A grid/storyboard asset does not by itself authorize multi-shot output. "
+        "Default to ONE continuous shot unless the base prompt explicitly asks for 分镜 / multi-shot / cuts. "
         "Do not invent files. Do not output the six MiniMax sections yet."
     ),
 }
@@ -165,7 +171,11 @@ def compose_format_system(
     if example:
         parts.extend(
             [
-                "--- Example output (official, complete) — match its detail level and exact field layout ---",
+                "--- Example output (official, complete) — match its field layout; "
+                "if the example has [Shot 2+] but the user's base prompt does NOT "
+                "explicitly request cuts / storyboard / 分镜, keep ONLY [Shot 1]; "
+                "if the example has non_diegetic_music: N/A but the base prompt does NOT "
+                "explicitly require N/A / 无配乐, write a concrete score instead ---",
                 "",
                 example.rstrip(),
                 "",
@@ -178,6 +188,7 @@ def compose_format_system(
                 "--- Style skill overlays (methodology only; official field names/alignment still win) ---",
                 "Do not change MODE fields, [Shot N] spelling, <Picture>/<Subject> labeling, or alignment lines.",
                 "Do not mention aspect ratio, resolution, fps, or canvas size.",
+                "Community/non-official style overlays are methodology only; they never override H3 structure.",
                 "",
             ]
         )

@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 
 from src.pipeline import run_job  # noqa: E402
 from src.skill import ALL_MODES  # noqa: E402
+from src.video import ALL_RATIOS  # noqa: E402
 
 
 def main() -> int:
@@ -36,7 +37,7 @@ def main() -> int:
         "--skill-router",
         default="hybrid",
         choices=("off", "keyword", "hybrid", "llm"),
-        help="风格 skill 路由：off / keyword / hybrid（默认，关键词未命中才问模型） / llm",
+        help="风格 skill 路由：off / hybrid|llm（量化打分取 top1）/ keyword（=llm 别名）",
     )
     p.add_argument(
         "--mechanism",
@@ -51,8 +52,17 @@ def main() -> int:
         choices=("off", "keyword", "hybrid", "llm"),
         help="T8 机制路由：off / keyword / hybrid（默认） / llm",
     )
-    p.add_argument("--duration", type=int, default=None, help="出片秒数 4–15；省略则从意图推断")
-    p.add_argument("--ratio", default=None, help="出片画幅，只走视频 API；t2va 默认 16:9")
+    p.add_argument(
+        "--duration",
+        type=int,
+        required=True,
+        help="出片/增强时长（秒），必填，范围 4–15",
+    )
+    p.add_argument(
+        "--ratio",
+        required=True,
+        help="画幅，必填，只走视频 API（如 16:9；非 t2va 可用 adaptive）",
+    )
     p.add_argument("--resolution", default=None, choices=("768P", "2K"), help="出片分辨率")
     p.add_argument("--out-dir", type=Path, help="输出目录")
     p.add_argument("--no-video", action="store_true", help="只写 prompt，不出片")
@@ -66,6 +76,11 @@ def main() -> int:
         help="开启 LLM 意图一致性检查（对比原始意图与最终提示词，+1 次调用）",
     )
     args = p.parse_args()
+
+    if args.duration < 4 or args.duration > 15:
+        p.error("--duration 须在 4–15 秒")
+    if args.ratio not in ALL_RATIOS:
+        p.error(f"--ratio 非法，可选: {', '.join(ALL_RATIOS)}")
 
     intent = args.intent.strip()
     if args.intent_file:

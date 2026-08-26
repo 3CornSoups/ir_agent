@@ -10,6 +10,8 @@ LLM 修复（stage="verify"），修复后重新校验，最多 max_fix_rounds �
 - <d>[Language] 语言匹配       → 台词发音紊乱
 - 禁止 [Mandarin]              → 台词发音紊乱
 - 用户原句必须进 <d>           → 台词被翻译 / 漏句
+- 未授权多镜 [Shot 2+]         → base prompt 未要求分镜却切镜
+- 未授权 non_diegetic_music=N/A → base prompt 未要求无配乐却写成 N/A
 """
 
 from __future__ import annotations
@@ -98,6 +100,44 @@ _CANVAS_RE = re.compile(
     r"|\b(?:16:9|9:16|21:9|4:3|3:4|1:1)\s*(?:aspect\s*ratio|横屏|竖屏)?"
 )
 
+# base prompt 明确要求多镜 / 分镜时才放行 [Shot 2+]。
+# 刻意不匹配「镜头缓推 / 镜头推进」等单镜运镜用语。
+_MULTI_SHOT_INTENT_RE = re.compile(
+    r"(?:"
+    r"分镜|多镜头|多镜切换|切镜|硬切|镜头切换|切换镜头|蒙太奇|分镜表|分镜脚本|"
+    r"第[一二三四五六七八九十两\d]+\s*个?\s*镜头|"
+    r"(?:两个|三个|多个)\s*镜头|"
+    r"镜头\s*[2-9一二三四五六七八九十]|"
+    r"\[?\s*Shot\s*[2-9]\s*\]?|"
+    r"multi[\s\-]?shots?|multiple\s+shots?|story\s*board|storyboard|montage|"
+    r"shot\s+list|cuts?\s+between|then\s+cut(?:s|\s+to)|cut\s+to\s+(?:a\s+)?(?:close|wide|medium)"
+    r")",
+    re.I,
+)
+_SHOT_INDEX_RE = re.compile(r"\[Shot\s+(\d+)\]", re.I)
+
+# base prompt 明确要求 non_diegetic_music = N/A 时才放行。
+_NA_MUSIC_INTENT_RE = re.compile(
+    r"(?:"
+    r"non[_\s\-]?diegetic[_\s\-]?music\s*[:=]\s*N\s*/?\s*A|"
+    r"(?:无|不要|无需|不需要|没有|别加|别要)\s*(?:非叙事)?(?:配乐|背景音乐|背景乐|音乐|BGM|bgm)|"
+    r"(?:纯|只要|仅|仅要)\s*环境音|"
+    r"ambience[\s\-]?only|ambient[\s\-]?only|"
+    r"no\s+(?:non[\s\-]?diegetic\s+)?(?:music|score|bgm)|"
+    r"without\s+(?:non[\s\-]?diegetic\s+)?(?:music|score|bgm)|"
+    r"no\s+score|"
+    r"(?:music|score|bgm)\s*[:=]\s*N\s*/?\s*A"
+    r")",
+    re.I,
+)
+_MUSIC_FIELD_RE = re.compile(
+    r"non_diegetic_music\s*:\s*(.*?)(?="
+    r"\n(?:integrated_multimodal_description|overall_soundscape|subject_definitions|"
+    r"summary|retention_analysis|detailed_description)\s*:|\Z)",
+    re.S | re.I,
+)
+_MUSIC_NA_RE = re.compile(r"^N\s*/?\s*A\.?\s*$", re.I)
+
 
 @dataclass(frozen=True)
 class VerifyIssue:
@@ -106,6 +146,66 @@ class VerifyIssue:
     code: str
     severity: str
     message: str
+
+
+def intent_allows_multi_shot(intent: str) -> bool:
+    """base prompt / 短意图是否明确要求分镜或多镜头。
+
+    未命中时默认单镜头；「镜头缓推」等运镜用语不算多镜授权。
+    """
+    return bool(_MULTI_SHOT_INTENT_RE.search(intent or ""))
+
+
+def intent_allows_na_music(intent: str) -> bool:
+    """base prompt 是否明确要求 non_diegetic_music 为 N/A / 无配乐。
+
+    未命中时默认必须写具体配乐，不能写 N/A。
+    """
+    return bool(_NA_MUSIC_INTENT_RE.search(intent or ""))
+
+
+def extract_non_diegetic_music(prompt: str) -> str:
+    """取出 non_diegetic_music 字段正文（去首尾空白）。"""
+    m = _MUSIC_FIELD_RE.search(prompt or "")
+    return (m.group(1) if m else "").strip()
+
+
+def check_unauthorized_multi_shot(prompt: str, intent: str) -> list[VerifyIssue]:
+    """未要求分镜时若出现 [Shot 2+]，报 error 以便自动修复压回单镜。"""
+    if intent_allows_multi_shot(intent):
+        return []
+    nums = [int(n) for n in _SHOT_INDEX_RE.findall(prompt or "")]
+    extra = sorted({n for n in nums if n >= 2})
+    if not extra:
+        return []
+    shown = ", ".join(f"[Shot {n}]" for n in extra)
+    return [
+        VerifyIssue(
+            "unauthorized_multi_shot",
+            "error",
+            f"base prompt 未明确要求分镜/多镜头/切镜，但提示词出现了 {shown}；"
+            "应压成单一连续 [Shot 1]",
+        )
+    ]
+
+
+def check_unauthorized_na_music(prompt: str, intent: str) -> list[VerifyIssue]:
+    """未要求无配乐时若 non_diegetic_music 为 N/A，报 error 以便自动补写配乐。"""
+    if intent_allows_na_music(intent):
+        return []
+    body = extract_non_diegetic_music(prompt)
+    if not body:
+        return []
+    if not _MUSIC_NA_RE.match(body):
+        return []
+    return [
+        VerifyIssue(
+            "unauthorized_na_music",
+            "error",
+            "base prompt 未明确要求 non_diegetic_music 为 N/A / 无配乐，"
+            "但字段写成了 N/A；应写具体乐器与速度节奏",
+        )
+    ]
 
 
 def check_field_structure(mode: str, prompt: str) -> list[VerifyIssue]:
@@ -357,6 +457,8 @@ def verify_prompt(
     issues += check_dialogue_language(prompt)
     issues += check_dialogue_verbatim(prompt, extract_locked_dialogue(intent))
     issues += check_canvas_residue(prompt)
+    issues += check_unauthorized_multi_shot(prompt, intent)
+    issues += check_unauthorized_na_music(prompt, intent)
     return issues
 
 

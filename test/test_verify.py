@@ -1,4 +1,4 @@
-"""质量校验规则单测：字段结构、对齐句、时间戳、标签、语言标签、画幅残留。"""
+"""质量校验规则单测：字段结构、对齐句、时间戳、标签、语言标签、画幅残留、单镜默认。"""
 
 from src.verify import (
     check_alignment_line,
@@ -10,12 +10,22 @@ from src.verify import (
     check_label_numbers,
     check_label_usage,
     check_timestamps,
+    check_unauthorized_multi_shot,
+    check_unauthorized_na_music,
     extract_locked_dialogue,
+    intent_allows_multi_shot,
+    intent_allows_na_music,
     verify_and_fix,
     verify_prompt,
 )
 
-T2VA_OK = """integrated_multimodal_description: [Shot 1] Live-action, cinematic, a cat on a windowsill stretches. The camera pushes in slowly. [Shot 2] At 00:04.000, the camera cuts to a close-up of its tail.
+T2VA_OK = """integrated_multimodal_description: [Shot 1] Live-action, cinematic, a cat on a windowsill stretches. The camera pushes in slowly as its tail curls.
+
+overall_soundscape: Soft room tone with faint street noise.
+
+non_diegetic_music: Gentle acoustic guitar at a slow tempo."""
+
+T2VA_MULTI = """integrated_multimodal_description: [Shot 1] Live-action, cinematic, a cat on a windowsill stretches. The camera pushes in slowly. [Shot 2] At 00:04.000, the camera cuts to a close-up of its tail.
 
 overall_soundscape: Soft room tone with faint street noise.
 
@@ -51,6 +61,68 @@ def _has_error(issues: list) -> bool:
 def test_verify_t2va_valid() -> None:
     """合法 t2va 提示词不应有任何问题。"""
     assert verify_prompt("t2va", T2VA_OK, duration=6) == []
+
+
+def test_intent_allows_multi_shot_keywords() -> None:
+    """仅明确分镜/多镜用语放行；单镜运镜不放行。"""
+    assert intent_allows_multi_shot("按分镜拍产品广告，先全景再特写")
+    assert intent_allows_multi_shot("two shots then cut to a close-up")
+    assert intent_allows_multi_shot("storyboard: Shot 1 wide, Shot 2 detail")
+    assert not intent_allows_multi_shot("一只橘猫在窗台晒太阳，镜头缓推")
+    assert not intent_allows_multi_shot("人物向前走，镜头缓慢推进")
+    assert not intent_allows_multi_shot("")
+
+
+def test_unauthorized_multi_shot_blocked() -> None:
+    """未要求分镜时 [Shot 2+] 应报 error；明确要求分镜时放行。"""
+    blocked = check_unauthorized_multi_shot(T2VA_MULTI, "一只橘猫在窗台晒太阳")
+    assert _has_error(blocked)
+    assert any(i.code == "unauthorized_multi_shot" for i in blocked)
+    assert check_unauthorized_multi_shot(T2VA_MULTI, "请按分镜：全景后切特写") == []
+    assert check_unauthorized_multi_shot(T2VA_OK, "一只橘猫") == []
+
+
+def test_verify_prompt_flags_multi_shot_without_intent() -> None:
+    """verify_prompt 在空/普通意图下应对未授权多镜报错。"""
+    issues = verify_prompt("t2va", T2VA_MULTI, duration=6, intent="一只橘猫在窗台晒太阳")
+    assert any(i.code == "unauthorized_multi_shot" for i in issues)
+    ok = verify_prompt("t2va", T2VA_MULTI, duration=6, intent="分镜：先全景再特写")
+    assert not any(i.code == "unauthorized_multi_shot" for i in ok)
+
+
+def test_intent_allows_na_music_keywords() -> None:
+    """仅明确无配乐用语放行 N/A；普通意图不放行。"""
+    assert intent_allows_na_music("non_diegetic_music: N/A")
+    assert intent_allows_na_music("不要配乐，只要环境音")
+    assert intent_allows_na_music("ambience only, no score")
+    assert not intent_allows_na_music("一只橘猫在窗台晒太阳")
+    assert not intent_allows_na_music("轻柔钢琴配乐")
+    assert not intent_allows_na_music("")
+
+
+def test_unauthorized_na_music_blocked() -> None:
+    """未要求无配乐时 N/A 应报 error；明确要求时放行。"""
+    na = T2VA_OK.replace(
+        "Gentle acoustic guitar at a slow tempo.",
+        "N/A",
+    )
+    blocked = check_unauthorized_na_music(na, "一只橘猫在窗台晒太阳")
+    assert _has_error(blocked)
+    assert any(i.code == "unauthorized_na_music" for i in blocked)
+    assert check_unauthorized_na_music(na, "不要配乐") == []
+    assert check_unauthorized_na_music(T2VA_OK, "一只橘猫") == []
+
+
+def test_verify_prompt_flags_na_music_without_intent() -> None:
+    """verify_prompt 在普通意图下应对未授权 N/A 配乐报错。"""
+    na = T2VA_OK.replace(
+        "Gentle acoustic guitar at a slow tempo.",
+        "N/A",
+    )
+    issues = verify_prompt("t2va", na, duration=6, intent="一只橘猫在窗台晒太阳")
+    assert any(i.code == "unauthorized_na_music" for i in issues)
+    ok = verify_prompt("t2va", na, duration=6, intent="non_diegetic_music: N/A")
+    assert not any(i.code == "unauthorized_na_music" for i in ok)
 
 
 def test_verify_missing_field() -> None:
@@ -110,7 +182,7 @@ def test_verify_timestamps_not_increasing() -> None:
 
 def test_verify_timestamps_over_duration() -> None:
     """时间戳超过时长应报 error。"""
-    text = T2VA_OK.replace("At 00:04.000", "At 00:07.000")
+    text = T2VA_MULTI.replace("At 00:04.000", "At 00:07.000")
     issues = check_timestamps(text, 6)
     assert _has_error(issues)
     assert any(i.code == "shot_time_over_duration" for i in issues)
@@ -230,7 +302,8 @@ def test_verify_and_fix_fixes_label_overrun() -> None:
         ).replace(
             "The music from <Audio 1> plays softly beneath.", ""
         ).replace(
-            "The atmospheric music from <Audio 1> reused at low volume.", "N/A"
+            "The atmospheric music from <Audio 1> reused at low volume.",
+            "Soft piano notes at a slow tempo.",
         )
 
     result = verify_and_fix(

@@ -6,6 +6,8 @@ Fixing rules:
 - Missing or misordered fields: restore the exact field names and section order (three fields for t2va/i2va/fl2va/l2va; six sections for r2va).
 - Alignment line: use the exact official wording, and keep S.SS equal to the video duration in seconds (two decimals).
 - Shot timestamps: strictly increasing and inside the video duration; the first shot has no timestamp.
+- Unauthorized multi-shot: if the issue says the base prompt did not request 分镜 / multi-shot / cuts, collapse everything into a single continuous [Shot 1]. Remove [Shot 2+], remove "At MM:SS.mmm" on later shots, and rewrite cut language ("the camera cuts to…") into continuous in-shot motion or a single take. Keep all story content; only remove extra shot boundaries.
+- Unauthorized N/A music: if the issue says non_diegetic_music is N/A but the base prompt did not request that, replace N/A with a short concrete score (instruments + tempo + brief dynamics) that fits the scene. Do not invent vocals unless the intent asked for them.
 - Reference labels: numbers must not exceed the attached asset count; a label defined in subject_definitions must be used in the body.
 - <d>[Language] text</d>: the language tag must match the actual written content. Never use [Mandarin] or [Putonghua]; Chinese dialogue must be [Chinese].
 - If the USER lists Locked spoken lines, every listed line must appear inside <d> verbatim in the original language. Do not translate, paraphrase, omit, or replace them with English.

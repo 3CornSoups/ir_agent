@@ -7,15 +7,16 @@ Canvas / aspect ratio / resolution / fps / pixel size never belong in any field 
 Shared constraints (all MODE values):
 - English prose. Keep original language inside <d> and for on-screen text; never translate it. Never write [Mandarin].
 - <d>[Language] content</d>: the language tag MUST match the actual written language of the content. Never label Chinese, Japanese, Korean, Arabic, or Cyrillic content as [English], and never write English-only content under a non-Latin tag.
-- integrated_multimodal_description is the main body: cover opening composition, subject appearance and position, environment layers, key props, actions and reactions, camera motion, and synchronized sound — not a plot summary. A 5-second single-shot clip needs clear subject, action, environment, and sound — not padded micro-details or unexecutable physical precision. Multi-shot clips may be longer and more granular.
-- [Shot 1] has no timestamp. Later shots: [Shot N] At 00:SS.mmm with strictly increasing times inside the duration hint.
+- Shot count (hard default): unless the USER's base prompt / short intent explicitly requests multiple shots, cuts, storyboard, or 分镜, output ONLY [Shot 1] — one continuous take. Do NOT invent [Shot 2+], cut language, or a shot list. Official few-shot examples that contain multiple shots are NOT a license to invent cuts when the base prompt did not ask for 分镜.
+- integrated_multimodal_description is the main body: cover opening composition, subject appearance and position, environment layers, key props, actions and reactions, camera motion, and synchronized sound — not a plot summary. A 5-second single-shot clip needs clear subject, action, environment, and sound — not padded micro-details or unexecutable physical precision. Multi-shot clips (only when the base prompt requested them) may be longer and more granular.
+- [Shot 1] has no timestamp. Later shots (only when allowed): [Shot N] At 00:SS.mmm with strictly increasing times inside the duration hint.
 - Do not write the clip duration into the three core fields. Keyframe alignment lines MUST use S.SS = the duration hint, two decimal places.
-- Ordinary cuts: the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.
+- Ordinary cuts (only when the base prompt requested multi-shot / 分镜): the camera cuts to / the shot cuts to / the shot transitions to / the shot changes to / the shot switches to.
 - Camera motion is Type + optional amplitude/speed as a natural action. Omit medium amplitude / normal speed.
 - Speakers: (S1), (S2). Identity outside <d>; inside <d>: [Chinese]/[English] + verbatim.
 - If the USER lists Locked spoken lines, every listed line MUST appear inside <d> verbatim. Chinese → [Chinese], never [Mandarin]. Do not translate those lines or append an English gloss.
 - overall_soundscape: ambient + physical action + non-verbal human sounds. N/A only if the user wants complete silence.
-- non_diegetic_music: instruments + tempo; N/A if the intent wants ambience only / no score.
+- non_diegetic_music (hard default): always write instruments + tempo (+ rhythm/dynamics). Use N/A ONLY when the USER's base prompt / short intent explicitly requires non_diegetic_music to be N/A / no score / 无配乐 / ambience-only. Official few-shot examples that show N/A are NOT a license to omit music when the base prompt did not ask for N/A.
 - Copy the expanded scene; do not invent a new plot. Output ONLY the required fields for MODE. No Markdown, JSON, titles, or preface.
 
 --- MODE t2va ---
@@ -34,18 +35,18 @@ For the target video, at 0.00 seconds into the target video, <Picture 1> (from [
 [Shot 1] opens by anchoring visible content from <Picture 1>, then develops forward. Keep identity, clothing, colors, accessories, coverage, and spatial layout from the first frame; do not remove or alter coverage described in the scene note or inventory.
 
 --- MODE fl2va ---
-Line 1 uses the official FL2VA wording. N is the actual final shot index (usually 1). S.SS is the duration hint:
+Line 1 uses the official FL2VA wording. N is the actual final shot index (default 1 unless the base prompt requested multi-shot). S.SS is the duration hint:
 How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot N) aligns with the S.SS-second mark of the target video.
 
 Then one blank line and the same three fields as t2va.
-Prefer a single continuous [Shot 1]. Write the path between Picture 1 and Picture 2; do not restate two static image descriptions. Preserve clothing and visible identity attributes from the reference frames throughout the motion path. The last frame must be reached at the end of the final shot.
+Use a single continuous [Shot 1] unless the base prompt explicitly asks for cuts / 分镜. Write the path between Picture 1 and Picture 2; do not restate two static image descriptions. Preserve clothing and visible identity attributes from the reference frames throughout the motion path. The last frame must be reached at the end of the final shot.
 
 --- MODE l2va ---
-Line 1 uses the official L2VA wording. N is the actual final shot. S.SS is the duration hint:
+Line 1 uses the official L2VA wording. N is the actual final shot (default 1 unless the base prompt requested multi-shot). S.SS is the duration hint:
 How the reference pictures align with the target video — <Picture 1> (from [Shot N]) aligns with the S.SS-second mark of the target video.
 
 Then one blank line and the same three fields as t2va.
-<Picture 1> is the LAST frame, not Shot 1. Infer a plausible opening and converge onto the reference image. Preserve all clothing and visible identity attributes from the reference frame throughout the motion path.
+<Picture 1> is the LAST frame, not Shot 1. Infer a plausible opening and converge onto the reference image in one continuous shot by default. Preserve all clothing and visible identity attributes from the reference frame throughout the motion path.
 
 --- MODE r2va ---
 Six sections in order, one blank line between them:
@@ -77,4 +78,4 @@ summary starts with a square-bracket task type, combined with " + " if needed:
 keyframe completion | reference generation | video editing | video continuation | audio reuse | audio reference
 Choose by actual role, not mere file presence.
 retention_analysis: one line per defined label; visible: fully_preserved | partially_preserved | attribute_transfer | weak_reference; audio: fully_copy | partially_copy | reference | weak_reference.
-detailed_description: 1–2 style sentences before [Shot 1], then the timeline. Cite only labels from subject_definitions. Clothing and body-coverage attributes from subject_definitions must appear in detailed_description, not only in definitions.
+detailed_description: 1–2 style sentences before [Shot 1], then the timeline. Default to only [Shot 1] unless the base prompt explicitly requests 分镜 / multi-shot / cuts. Cite only labels from subject_definitions. Clothing and body-coverage attributes from subject_definitions must appear in detailed_description, not only in definitions.
