@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -28,8 +29,13 @@ from .mechanism_router import (
     select_mechanisms,
     writing_blocks_for_user,
 )
-from .skill_router import ROUTER_MODES, select_style_skills, style_block_for_user
-from .verify import extract_locked_dialogue, verify_and_fix
+from .skill_router import normalize_router_mode, select_style_skills, style_block_for_user
+from .verify import (
+    extract_locked_dialogue,
+    intent_allows_multi_shot,
+    intent_allows_na_music,
+    verify_and_fix,
+)
 from .video import generate_video
 
 CANVAS_RE = re.compile(
@@ -39,6 +45,35 @@ CANVAS_RE = re.compile(
     re.I,
 )
 DURATION_RE = re.compile(r"(?:约|大概)?\s*(\d{1,2})\s*秒")
+
+
+def _shot_policy_block(intent: str) -> str:
+    """扩写 / 补细节 / 格式化共用的镜头数策略（默认单镜）。"""
+    if intent_allows_multi_shot(intent):
+        return (
+            "Shot policy: the user's base prompt explicitly allows multiple shots / cuts / 分镜. "
+            "You MAY use [Shot 2+] with increasing timestamps when it serves the intent."
+        )
+    return (
+        "Shot policy: the user's base prompt does NOT request storyboard / multi-shot / cuts / 分镜. "
+        "Use exactly ONE continuous shot ([Shot 1] only). "
+        "Do not invent [Shot 2+], cut language, or a shot list. "
+        "Camera moves inside one take are fine."
+    )
+
+
+def _music_policy_block(intent: str) -> str:
+    """扩写 / 补细节 / 格式化共用的配乐策略（默认必须有配乐）。"""
+    if intent_allows_na_music(intent):
+        return (
+            "Music policy: the user's base prompt explicitly allows non_diegetic_music = N/A "
+            "(no score / 无配乐 / ambience-only). You MAY write N/A for non_diegetic_music."
+        )
+    return (
+        "Music policy: the user's base prompt does NOT request non_diegetic_music = N/A. "
+        "You MUST write a concrete non-diegetic score (instruments + tempo + brief rhythm/dynamics). "
+        "Do not write N/A."
+    )
 
 
 def infer_duration(intent: str, fallback: int = 5) -> int:
@@ -82,6 +117,8 @@ def _expand_user(
     lines = [
         f"Mode: {mode}. Expand the short intent. Do not output MiniMax fields yet.",
         f"Writing path: {expand_hint(mode)}",
+        _shot_policy_block(intent),
+        _music_policy_block(intent),
         "",
         "Short intent:",
         intent.strip(),
@@ -112,6 +149,8 @@ def _format_user(
         f"MODE={mode}",
         "Serialize the scene note into the MiniMax-H3 fields for this MODE.",
         "Follow the appended official writing guide. Do not mention aspect ratio, resolution, fps, or canvas size.",
+        _shot_policy_block(intent),
+        _music_policy_block(intent),
     ]
     if duration is not None:
         lines.append(
@@ -200,7 +239,9 @@ def _elaborate_user(expanded: str, inventory: str | None, intent: str = "") -> s
     lines = [
         "Make the scene note below concrete and physically plausible. "
         "Match detail depth to the scene's complexity; do not pad a simple single-shot clip "
-        "to the length of a multi-shot production brief."
+        "to the length of a multi-shot production brief.",
+        _shot_policy_block(intent),
+        _music_policy_block(intent),
     ]
     if inventory:
         lines.extend(["", "Reference inventory:", inventory.strip()])
@@ -233,13 +274,14 @@ def enhance(
     跑完感知（若需要）→ 风格/机制路由 → 扩写 → 补细节 → 注入官方指南后格式化。
 
     skills: 强制加载的风格 skill id。
-    skill_router: off / keyword / hybrid / llm。hybrid 时关键词未命中才问前置模型。
+    skill_router: off / hybrid / llm（keyword 为 llm 别名）。hybrid/llm 均为 catalog 量化打分取 top1。
     mechanisms: 强制加载的 T8 Creative DNA 机制 id。
     mechanism_router: 机制路由模式，默认同 skill_router。
 
     Returns:
-        含 prompt、各步原文、mode
+        含 prompt、各步原文、mode、enhance_elapsed_sec
     """
+    t0 = time.monotonic()
     mode = mode.lower().strip()
     if mode not in ALL_MODES:
         raise ValueError(f"mode 须为 {' / '.join(ALL_MODES)}")
@@ -315,9 +357,7 @@ def enhance(
             inventory = rescanned
             steps.append({"stage": rescan, "text": inventory})
 
-    router_mode = (skill_router or "hybrid").strip().lower()
-    if router_mode not in ROUTER_MODES:
-        raise ValueError(f"skill_router 须为 {' / '.join(ROUTER_MODES)}")
+    router_mode = normalize_router_mode(skill_router or "hybrid")
     style_sel = select_style_skills(
         intent,
         inventory=inventory,
@@ -327,13 +367,15 @@ def enhance(
     )
     style_block = style_block_for_user(style_sel)
     extra_guides = style_sel.overlay_pairs()
-    if style_sel.ids:
-        steps.append(
-            {
-                "stage": "skill_route",
-                "text": f"source={style_sel.source}; skills={', '.join(style_sel.ids)}",
-            }
+    llm_meta = style_sel.llm_route_meta()
+    route_bits = [f"source={style_sel.source}", f"skills={', '.join(style_sel.ids) or '(none)'}"]
+    if llm_meta is not None:
+        route_bits.append(
+            f"llm_top1={llm_meta.get('top1_score')}; thr={llm_meta.get('threshold')}; "
+            f"accepted={llm_meta.get('accepted')}"
         )
+    if style_sel.ids or llm_meta is not None:
+        steps.append({"stage": "skill_route", "text": "; ".join(route_bits)})
 
     mech_router_mode = (mechanism_router or "hybrid").strip().lower()
     if mech_router_mode not in MECHANISM_ROUTER_MODES:
@@ -436,10 +478,20 @@ def enhance(
         "style_skill_source": style_sel.source,
         "mechanisms": mech_sel.ids,
         "mechanism_source": mech_sel.source,
+        "skills": {
+            "core": ["h3-prompt-writing"],
+            "style": list(style_sel.ids),
+            "style_source": style_sel.source,
+            "style_detail": style_sel.detail_records(),
+            "style_llm_route": style_sel.llm_route_meta(),
+            "mechanisms": list(mech_sel.ids),
+            "mechanism_source": mech_sel.source,
+        },
         "prompt_official": official_prompt,
         "prompt": prompt,
         "verify": verify_result,
         "steps": steps,
+        "enhance_elapsed_sec": round(time.monotonic() - t0, 3),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 

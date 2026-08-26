@@ -40,6 +40,20 @@ def write_report(
             "mode": record.get("mode"),
             "intent": record.get("intent"),
             "duration": record.get("duration"),
+            "enhance_elapsed_sec": record.get("enhance_elapsed_sec"),
+            "skills": record.get("skills")
+            or {
+                "core": ["h3-prompt-writing"],
+                "style": list(record.get("style_skills") or []),
+                "style_source": record.get("style_skill_source") or "none",
+                "style_detail": [],
+                "mechanisms": list(record.get("mechanisms") or []),
+                "mechanism_source": record.get("mechanism_source") or "none",
+            },
+            "style_skills": list(record.get("style_skills") or []),
+            "style_skill_source": record.get("style_skill_source") or "none",
+            "mechanisms": list(record.get("mechanisms") or []),
+            "mechanism_source": record.get("mechanism_source") or "none",
         },
         "prompts": {
             "official": prompt_official,
@@ -63,6 +77,25 @@ def write_report(
 
     # report.md 保持纯文本结构，避免把 diff 解释成代码块高亮导致可读性差。
     md = []
+    skills = report_json["meta"].get("skills") or {}
+    md.append("## Skills")
+    md.append("")
+    md.append(f"- core: {', '.join(skills.get('core') or []) or '(none)'}")
+    md.append(
+        f"- style: {', '.join(skills.get('style') or []) or '(none)'} "
+        f"(source={skills.get('style_source') or 'none'})"
+    )
+    llm_route = skills.get("style_llm_route")
+    if isinstance(llm_route, dict) and llm_route:
+        md.append(
+            f"- style_llm_route: top1={llm_route.get('top1_score')} "
+            f"thr={llm_route.get('threshold')} accepted={llm_route.get('accepted')}"
+        )
+    md.append(
+        f"- mechanisms: {', '.join(skills.get('mechanisms') or []) or '(none)'} "
+        f"(source={skills.get('mechanism_source') or 'none'})"
+    )
+    md.append("")
     md.append("## Prompt 对比")
     md.append("")
     md.append("### official_prompt(raw)")

@@ -1,8 +1,8 @@
 """按短意图动态加载风格 skill（底座 h3-prompt-writing 始终另行注入）。
 
 路由对齐 Anthropic skill 元数据先行、正文按需加载：
-1. catalog.yaml 的 description/triggers 始终可被前置模型看到
-2. 只有命中的 overlay 才拼进 expand / format
+1. catalog.yaml 的 description/triggers（cues）给前置模型打分用
+2. 只有 top1 达阈值的 overlay 才拼进 expand / format
 3. 风格稿不得覆盖官方字段名、对齐句、标签规则
 
 参考：
@@ -23,7 +23,9 @@ from .config import ROOT, load_prompt
 
 SKILLS_DIR = ROOT / "skills"
 CATALOG_PATH = SKILLS_DIR / "catalog.yaml"
-ROUTER_MODES = ("off", "keyword", "hybrid", "llm")
+# keyword 为历史别名，等价于 llm（量化打分）
+ROUTER_MODES = ("off", "hybrid", "llm")
+ROUTER_MODE_ALIASES = {"keyword": "llm"}
 _EN_WORD_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9+'’.\- ]{1,}$")
 ClassifyFn = Callable[..., str]
 
@@ -37,6 +39,8 @@ class StyleSkill:
     overlay_path: str
     description: str
     triggers: tuple[str, ...] = ()
+    origin: str = "official"  # official | community
+    upstream: str = ""
 
 
 @dataclass
@@ -45,7 +49,9 @@ class SkillSelection:
 
     ids: list[str] = field(default_factory=list)
     source: str = "none"
-    scores: dict[str, int] = field(default_factory=dict)
+    llm_scores: dict[str, float] = field(default_factory=dict)
+    llm_threshold: float | None = None
+    llm_top1_score: float | None = None
 
     def overlay_pairs(self) -> list[tuple[str, str]]:
         """返回 (id, overlay 正文) 供 format SYSTEM 拼接。"""
@@ -57,6 +63,50 @@ class SkillSelection:
                 continue
             pairs.append((sid, load_overlay(item)))
         return pairs
+
+    def detail_records(self) -> list[dict[str, str]]:
+        """供 run.json：每条 skill 的 id / origin / upstream。"""
+        catalog = {item.id: item for item in load_catalog()}
+        out: list[dict[str, str]] = []
+        for sid in self.ids:
+            item = catalog.get(sid)
+            if item is None:
+                out.append({"id": sid, "origin": "unknown", "upstream": ""})
+                continue
+            out.append(
+                {
+                    "id": item.id,
+                    "origin": item.origin,
+                    "upstream": item.upstream,
+                }
+            )
+        return out
+
+    def llm_route_meta(self) -> dict[str, Any] | None:
+        """LLM 打分路由摘要；未走 LLM 时返回 None。"""
+        if self.llm_threshold is None and not self.llm_scores:
+            return None
+        accepted = (
+            self.llm_top1_score is not None
+            and self.llm_threshold is not None
+            and self.llm_top1_score >= self.llm_threshold
+        )
+        return {
+            "threshold": self.llm_threshold,
+            "top1_score": self.llm_top1_score,
+            "accepted": accepted,
+            "scores": {k: round(v, 4) for k, v in sorted(self.llm_scores.items())},
+        }
+
+
+def normalize_router_mode(router: str | None) -> str:
+    """规范化 skill_router 模式；keyword → llm。"""
+    mode = (router or "hybrid").strip().lower()
+    mode = ROUTER_MODE_ALIASES.get(mode, mode)
+    if mode not in ROUTER_MODES:
+        allowed = " / ".join((*ROUTER_MODES, *ROUTER_MODE_ALIASES))
+        raise ValueError(f"skill_router 须为 {allowed}")
+    return mode
 
 
 def _as_str_list(value: Any) -> list[str]:
@@ -87,6 +137,10 @@ def load_catalog() -> tuple[StyleSkill, ...]:
         overlay = str(raw.get("overlay") or "").strip()
         if not sid or not overlay:
             continue
+        origin = str(raw.get("origin") or "official").strip().lower() or "official"
+        if origin not in {"official", "community"}:
+            origin = "official"
+        upstream = str(raw.get("upstream") or "").strip()
         items.append(
             StyleSkill(
                 id=sid,
@@ -94,6 +148,8 @@ def load_catalog() -> tuple[StyleSkill, ...]:
                 overlay_path=overlay,
                 description=" ".join(str(raw.get("description") or "").split()),
                 triggers=tuple(_as_str_list(raw.get("triggers"))),
+                origin=origin,
+                upstream=upstream,
             )
         )
     return tuple(items)
@@ -110,7 +166,7 @@ def load_yaml_path(path: Any) -> dict[str, Any]:
 
 
 def catalog_max_skills() -> int:
-    """单次任务最多加载的风格 skill 数。"""
+    """单次任务最多加载的风格 skill 数（forced 合并上限）。"""
     if not CATALOG_PATH.is_file():
         return 2
     data = load_yaml_path(CATALOG_PATH)
@@ -119,6 +175,18 @@ def catalog_max_skills() -> int:
     except (TypeError, ValueError):
         n = 2
     return max(1, min(3, n))
+
+
+def catalog_llm_score_threshold() -> float:
+    """LLM 路由 top1 分数阈值；低于则不选风格 skill。"""
+    if not CATALOG_PATH.is_file():
+        return 0.6
+    data = load_yaml_path(CATALOG_PATH)
+    try:
+        thr = float(data.get("llm_score_threshold", 0.6))
+    except (TypeError, ValueError):
+        thr = 0.6
+    return max(0.0, min(1.0, thr))
 
 
 def known_skill_ids() -> tuple[str, ...]:
@@ -148,7 +216,10 @@ def load_overlay(item: StyleSkill) -> str:
 
 
 def _hit_trigger(haystack: str, trigger: str) -> bool:
-    """英文按词边界匹配，中文及其它按子串匹配。"""
+    """英文按词边界匹配，中文及其它按子串匹配。
+
+    供 mechanism_router 等复用；风格 skill 本身不再做关键词命中。
+    """
     needle = trigger.strip()
     if not needle:
         return False
@@ -160,7 +231,7 @@ def _hit_trigger(haystack: str, trigger: str) -> bool:
 
 
 def score_intent(text: str, item: StyleSkill) -> int:
-    """统计一条 skill 在意图/库存文本上的触发次数。"""
+    """统计一条 skill 在意图/库存文本上的触发次数（mechanism 等复用）。"""
     haystack = text or ""
     hits = 0
     for trigger in item.triggers:
@@ -169,54 +240,118 @@ def score_intent(text: str, item: StyleSkill) -> int:
     return hits
 
 
-def keyword_route(intent: str, inventory: str | None = None) -> dict[str, int]:
-    """关键词预筛：返回 id → 命中数（只含 >0）。"""
-    blob = "\n".join(part for part in (intent, inventory) if part)
-    scores: dict[str, int] = {}
-    for item in load_catalog():
-        n = score_intent(blob, item)
-        if n:
-            scores[item.id] = n
-    return scores
-
-
 def parse_classify_response(text: str) -> list[str]:
-    """解析前置模型返回的 JSON skill 列表；失败则视为未选。"""
+    """解析旧格式 {"skills":[...]}；若含 scores 则返回过阈值前的 top1 id（仅测试兼容）。"""
+    scored = parse_classify_scores(text)
+    if scored:
+        ranked = _rank_score_ids(scored)
+        return [ranked[0][0]] if ranked else []
+    payload = _parse_json_object(text)
+    if not isinstance(payload, dict):
+        if isinstance(payload, list):
+            return _resolve_skill_ids(_as_str_list(payload))
+        return []
+    return _resolve_skill_ids(_as_str_list(payload.get("skills") or payload.get("skill") or []))
+
+
+def _parse_json_object(text: str) -> Any:
+    """从模型回复中提取 JSON 对象/数组。"""
     raw = (text or "").strip()
     if not raw:
-        return []
-    payload: Any = None
+        return None
     try:
-        payload = json.loads(raw)
+        return json.loads(raw)
     except json.JSONDecodeError:
-        start, end = raw.find("{"), raw.rfind("}")
-        if start >= 0 and end > start:
+        start_obj, end_obj = raw.find("{"), raw.rfind("}")
+        if start_obj >= 0 and end_obj > start_obj:
             try:
-                payload = json.loads(raw[start : end + 1])
+                return json.loads(raw[start_obj : end_obj + 1])
             except json.JSONDecodeError:
-                payload = None
-    ids: list[str] = []
-    if isinstance(payload, dict):
-        ids = _as_str_list(payload.get("skills") or payload.get("skill") or [])
-    elif isinstance(payload, list):
-        ids = _as_str_list(payload)
+                pass
+        start_arr, end_arr = raw.find("["), raw.rfind("]")
+        if start_arr >= 0 and end_arr > start_arr:
+            try:
+                return json.loads(raw[start_arr : end_arr + 1])
+            except json.JSONDecodeError:
+                return None
+    return None
+
+
+def parse_classify_scores(text: str) -> dict[str, float]:
+    """解析路由模型返回的 {"scores":{id: float}}；非法项丢弃。"""
+    payload = _parse_json_object(text)
+    if not isinstance(payload, dict):
+        return {}
+    scores_raw = payload.get("scores")
+    out: dict[str, float] = {}
     allowed = set(known_skill_ids())
+    aliases = {item.id: item.id for item in load_catalog()}
+    aliases.update({item.id.lower(): item.id for item in load_catalog()})
+    aliases.update({item.id.replace("-", "_"): item.id for item in load_catalog()})
+
+    items: list[tuple[Any, Any]] = []
+    if isinstance(scores_raw, dict):
+        items = list(scores_raw.items())
+    elif isinstance(scores_raw, list):
+        for row in scores_raw:
+            if isinstance(row, dict):
+                sid = row.get("id") or row.get("skill")
+                sc = row.get("score")
+                if sid is not None and sc is not None:
+                    items.append((sid, sc))
+    else:
+        return {}
+
+    for sid, sc in items:
+        key = str(sid).strip()
+        resolved = (
+            aliases.get(key)
+            or aliases.get(key.lower())
+            or aliases.get(key.lower().replace("_", "-"))
+        )
+        if resolved not in allowed:
+            continue
+        try:
+            val = float(sc)
+        except (TypeError, ValueError):
+            continue
+        val = max(0.0, min(1.0, val))
+        out[resolved] = max(out.get(resolved, 0.0), val)
+    return out
+
+
+def _resolve_skill_ids(ids: Iterable[str]) -> list[str]:
+    """把模型返回的 id 规范化到 catalog。"""
+    allowed = set(known_skill_ids())
+    aliases = {item.id: item.id for item in load_catalog()}
+    aliases.update({item.id.lower(): item.id for item in load_catalog()})
     out: list[str] = []
     for sid in ids:
-        key = sid.strip().lower().replace("_", "-")
-        aliases = {item.id: item.id for item in load_catalog()}
-        aliases.update({item.id.lower(): item.id for item in load_catalog()})
-        resolved = aliases.get(sid) or aliases.get(key)
+        key = str(sid).strip()
+        resolved = aliases.get(key) or aliases.get(key.lower().replace("_", "-"))
         if resolved in allowed and resolved not in out:
             out.append(resolved)
     return out
 
 
-def _rank_ids(scores: dict[str, int], limit: int) -> list[str]:
-    """按命中数降序、目录顺序升序取前 limit 个。"""
+def _rank_score_ids(scores: dict[str, float]) -> list[tuple[str, float]]:
+    """按 LLM 分数降序、目录顺序升序。"""
     order = {item.id: i for i, item in enumerate(load_catalog())}
-    ranked = sorted(scores.items(), key=lambda kv: (-kv[1], order.get(kv[0], 999)))
-    return [sid for sid, n in ranked if n > 0][:limit]
+    return sorted(scores.items(), key=lambda kv: (-kv[1], order.get(kv[0], 999)))
+
+
+def pick_top1_above_threshold(
+    scores: dict[str, float],
+    threshold: float,
+) -> tuple[list[str], float | None]:
+    """取分数最高的一条；若 top1 < threshold 则不选。"""
+    ranked = _rank_score_ids(scores)
+    if not ranked:
+        return [], None
+    top_id, top_score = ranked[0]
+    if top_score < threshold:
+        return [], top_score
+    return [top_id], top_score
 
 
 def _merge_ids(*groups: Iterable[str], limit: int) -> list[str]:
@@ -237,11 +372,16 @@ def classify_with_chat(
     chat: ClassifyFn,
     intent: str,
     inventory: str | None = None,
-) -> list[str]:
-    """调用前置模型，仅根据目录短描述选择 skill。"""
+    *,
+    threshold: float | None = None,
+) -> tuple[list[str], dict[str, float], float, float | None]:
+    """调用前置模型按目录短描述打分，返回 (选中ids, 全部分数, 阈值, top1分数)。"""
+    thr = catalog_llm_score_threshold() if threshold is None else float(threshold)
     system = load_prompt("route_skills")
     user_lines = [
         catalog_index_text(),
+        "",
+        f"Score threshold hint: top1 must be >= {thr:.2f} to be selected by the agent.",
         "",
         "Short intent:",
         (intent or "").strip(),
@@ -249,7 +389,17 @@ def classify_with_chat(
     if inventory:
         user_lines.extend(["", "Reference inventory (excerpt):", inventory.strip()[:2000]])
     raw = chat(system, "\n".join(user_lines), stage="route")
-    return parse_classify_response(raw)
+    scores = parse_classify_scores(raw)
+    if not scores:
+        # 兼容旧 JSON：{"skills":["id"]} → 视为 1.0，再过阈值
+        payload = _parse_json_object(raw)
+        if isinstance(payload, dict):
+            legacy_ids = _resolve_skill_ids(
+                _as_str_list(payload.get("skills") or payload.get("skill") or [])
+            )
+            scores = {sid: 1.0 for sid in legacy_ids}
+    ids, top_score = pick_top1_above_threshold(scores, thr)
+    return ids, scores, thr, top_score
 
 
 def select_style_skills(
@@ -261,41 +411,44 @@ def select_style_skills(
     classify: ClassifyFn | None = None,
     max_skills: int | None = None,
 ) -> SkillSelection:
-    """综合强制指定、关键词与前置模型，选出本次要加载的风格 skill。
+    """强制指定 + 前置模型量化打分，选出本次要加载的风格 skill。
 
     router:
     - off: 只用 forced
-    - keyword: 只用关键词
-    - llm: 只用前置模型（forced 仍合并）
-    - hybrid: 关键词有命中则不再请求模型；否则才走前置模型
+    - hybrid / llm: 对 catalog 短描述打分，取 top1；低于阈值则不选（forced 仍合并）
+    - keyword: 历史别名，等同 llm
     """
-    mode = (router or "hybrid").strip().lower()
-    if mode not in ROUTER_MODES:
-        raise ValueError(f"skill_router 须为 {' / '.join(ROUTER_MODES)}")
+    mode = normalize_router_mode(router)
     limit = max_skills or catalog_max_skills()
     forced_ids = _merge_ids(forced or [], limit=limit)
     if mode == "off":
         return SkillSelection(ids=forced_ids, source="forced" if forced_ids else "none")
 
-    scores = keyword_route(intent, inventory)
-    keyword_ids = _rank_ids(scores, limit)
-
     llm_ids: list[str] = []
-    source = "keyword"
-    need_llm = mode == "llm" or (mode == "hybrid" and not keyword_ids)
-    if need_llm and classify is not None:
-        llm_ids = classify_with_chat(classify, intent, inventory)
-        source = "llm" if mode == "llm" or not keyword_ids else "hybrid"
+    llm_scores: dict[str, float] = {}
+    llm_threshold: float | None = None
+    llm_top1: float | None = None
+    source = "llm"
+    if classify is not None:
+        llm_ids, llm_scores, llm_threshold, llm_top1 = classify_with_chat(
+            classify, intent, inventory
+        )
 
-    if forced_ids and (keyword_ids or llm_ids):
-        source = "forced+" + source
+    if forced_ids and llm_ids:
+        source = "forced+llm"
     elif forced_ids:
         source = "forced"
 
-    ids = _merge_ids(forced_ids, keyword_ids, llm_ids, limit=limit)
+    ids = _merge_ids(forced_ids, llm_ids, limit=max(1, limit))
     if not ids:
         source = "none"
-    return SkillSelection(ids=ids, source=source, scores=scores)
+    return SkillSelection(
+        ids=ids,
+        source=source,
+        llm_scores=llm_scores,
+        llm_threshold=llm_threshold,
+        llm_top1_score=llm_top1,
+    )
 
 
 def style_block_for_user(selection: SkillSelection) -> str | None:
@@ -303,11 +456,18 @@ def style_block_for_user(selection: SkillSelection) -> str | None:
     pairs = selection.overlay_pairs()
     if not pairs:
         return None
+    catalog = {item.id: item for item in load_catalog()}
     parts = [
         "Loaded style skills (writing methodology only; do not change MiniMax field names):",
         "Priority: official H3 structure > these genre notes. Do not mention canvas / ratio / resolution.",
         "",
     ]
     for sid, body in pairs:
-        parts.extend([f"--- style skill: {sid} ---", body.rstrip(), ""])
+        item = catalog.get(sid)
+        origin = item.origin if item else "unknown"
+        note = f" ({origin}"
+        if item and item.upstream:
+            note += f"; upstream={item.upstream}"
+        note += ")"
+        parts.extend([f"--- style skill: {sid}{note} ---", body.rstrip(), ""])
     return "\n".join(parts).rstrip() + "\n"

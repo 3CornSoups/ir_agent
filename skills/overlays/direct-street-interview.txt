@@ -1,0 +1,42 @@
+Direct street interview / walk-and-talk — writing methodology only.
+Source: T8mars/minimax-h3-prompt-skill-T8 skills/direct-street-interview-video (non-official, user-contributed).
+
+Do not change H3 field names, alignment lines, or <Picture>/<Subject> rules.
+Do not mention aspect ratio, resolution, fps, or canvas size.
+Do not invent reference assets or dialogue. Use only user-stated or inventory-verified facts.
+Do not copy any demonstration person's likeness, wardrobe, exact street, dialogue, or beat timing.
+
+Core mechanism:
+One continuous street route turns a short conversation into visible relationship change —
+establish distance → one readable social signal → adjust pace/position together → land on a resolved state —
+while environmental parallax, moving daylight, and location sound prove continuity.
+
+Story spine (one primary chain):
+social premise (approach / recognition / question / compliment / request / compact reveal)
+→ stable subject identity (2–3 visual anchors + wardrobe continuity)
+→ distance / gaze / pace / gesture change
+→ readable ending (permission, pose, object shown, route chosen, reaction, or natural release)
+
+Camera (default):
+- One continuous first-person handheld follow: backpedaling or side-walking at conversational distance.
+- Prefer a single continuous shot unless the base prompt explicitly asks for 分镜 / cuts.
+- Camera motion must follow the subject's walk line, turn, stop, gaze, or gesture — not random shake.
+
+Street / environment:
+- Foreground occlusion, background parallax, passing light/shadow, small exposure adaptation.
+- Foot contact with the ground; subject must not float over the street.
+
+Dialogue:
+- Short turns only; each line finishes before the next speaker begins.
+- ~10s: prefer 2–3 short spoken turns; ~15s: at most 4–5 unless the user supplied rapid speech.
+- Keep dialogue subordinate to visible action. Copy locked lines verbatim in <d>[Language]…</d>.
+- Default to verbal or gestural positioning; add touch only when the user explicitly wants consensual contact.
+
+Sound:
+- Location ambience + synchronized footsteps / fabric / action foley first.
+- Non-diegetic score: sparse documentary bed (instruments + tempo) unless the base prompt explicitly requires non_diegetic_music = N/A / 无配乐.
+
+Feasibility:
+- Do not start a new setup at the video endpoint.
+- Remove a shot before compressing dialogue into unnatural speed.
+- No 4K / HDR / film-stock / lens-metadata claims unless the user requested them.

@@ -6,21 +6,25 @@
   - runs/<模式>_<时间戳>_<序号>/       增强结果（prompt.txt / expanded / elaborated / run.json 等）
 
 用法示例：
-  # 单条意图，只增强不出片
-  python3 scripts/oneclick_run.py -m t2va --intent "一只橘猫在窗台晒太阳"
+  # 单条意图，只增强不出片（duration / ratio 必填）
+  python3 scripts/oneclick_run.py -m t2va --intent "一只橘猫在窗台晒太阳" \
+    --duration 5 --ratio 16:9
 
   # 从文件读意图
-  python3 scripts/oneclick_run.py -m t2va --intent-file input.txt
+  python3 scripts/oneclick_run.py -m t2va --intent-file input.txt \
+    --duration 5 --ratio 16:9
 
   # 批量（每行一条意图）
-  python3 scripts/oneclick_run.py -m t2va --intents-file intents.txt
+  python3 scripts/oneclick_run.py -m t2va --intents-file intents.txt \
+    --duration 5 --ratio 16:9
 
   # 出片（需要配置 configs/h3.yaml 或 MINIMAX_API_KEY）
   python3 scripts/oneclick_run.py -m i2va --intent "人物向前走" \
-    --first-frame first.png --duration 5 --video
+    --first-frame first.png --duration 5 --ratio 16:9 --video
 
   # 只看增强结果，不自动质量校验
-  python3 scripts/oneclick_run.py -m t2va --intent "..." --no-verify
+  python3 scripts/oneclick_run.py -m t2va --intent "..." \
+    --duration 5 --ratio 16:9 --no-verify
 """
 
 from __future__ import annotations
@@ -36,6 +40,7 @@ sys.path.insert(0, str(ROOT))
 from src.pipeline import run_job  # noqa: E402
 from src.runlog import LOG_ROOT, activate, deactivate, write_meta  # noqa: E402
 from src.skill import ALL_MODES  # noqa: E402
+from src.video import ALL_RATIOS  # noqa: E402
 
 
 def _load_intents(path: Path) -> list[str]:
@@ -59,8 +64,17 @@ def main() -> int:
     p.add_argument("--ref-image", action="append", default=[], help="r2va 参考图，可重复")
     p.add_argument("--ref-video", action="append", default=[], help="r2va 参考视频，可重复")
     p.add_argument("--ref-audio", action="append", default=[], help="r2va 参考音频，可重复")
-    p.add_argument("--duration", type=int, default=None, help="出片秒数 4–15；省略则从意图推断")
-    p.add_argument("--ratio", default=None, help="出片画幅，只走视频 API")
+    p.add_argument(
+        "--duration",
+        type=int,
+        required=True,
+        help="出片/增强时长（秒），必填，范围 4–15",
+    )
+    p.add_argument(
+        "--ratio",
+        required=True,
+        help="画幅，必填，只走视频 API（如 16:9；非 t2va 可用 adaptive）",
+    )
     p.add_argument("--resolution", default=None, choices=("768P", "2K"), help="出片分辨率")
     p.add_argument(
         "--skill",
@@ -73,7 +87,7 @@ def main() -> int:
         "--skill-router",
         default="hybrid",
         choices=("off", "keyword", "hybrid", "llm"),
-        help="风格 skill 路由",
+        help="风格 skill 路由：off / hybrid|llm（打分）/ keyword(=llm)",
     )
     p.add_argument(
         "--mechanism",
@@ -95,6 +109,11 @@ def main() -> int:
     p.add_argument("--out-root", type=Path, default=ROOT / "runs", help="增强结果输出根目录")
     p.add_argument("--log-root", type=Path, default=LOG_ROOT, help="运行日志根目录")
     args = p.parse_args()
+
+    if args.duration < 4 or args.duration > 15:
+        p.error("--duration 须在 4–15 秒")
+    if args.ratio not in ALL_RATIOS:
+        p.error(f"--ratio 非法，可选: {', '.join(ALL_RATIOS)}")
 
     if args.intent_file:
         intents = [args.intent_file.read_text(encoding="utf-8").strip()]
@@ -149,18 +168,25 @@ def main() -> int:
                     "intent": intent,
                     "out_dir": str(out_dir),
                     "log_dir": str(log_dir),
-                    "verify": rec.get("verify"),
+                    "enhance_elapsed_sec": rec.get("enhance_elapsed_sec"),
+                    "skills": rec.get("skills"),
                     "style_skills": rec.get("style_skills"),
+                    "style_skill_source": rec.get("style_skill_source"),
                     "mechanisms": rec.get("mechanisms"),
+                    "mechanism_source": rec.get("mechanism_source"),
+                    "verify": rec.get("verify"),
                 }
             )
             verify = rec.get("verify") or {}
             status = verify.get("status", "?")
             ok = status in ("passed", "") or rec.get("make_video") is False
             mark = "OK" if ok else "NG"
+            elapsed = rec.get("enhance_elapsed_sec")
+            elapsed_s = f"{elapsed:.3f}s" if isinstance(elapsed, (int, float)) else "?"
             print(f"[{idx}/{len(intents)}] [{mark}] {run_id}")
             print(f"  intent  : {intent[:60]}")
             print(f"  prompt  : {out_dir / 'prompt.txt'}")
+            print(f"  enhance : {elapsed_s}")
             print(f"  verify  : {status} (errors={verify.get('errors', 0)})")
             print(f"  日志    : {log_dir}\n")
             if not ok:

@@ -25,7 +25,7 @@
 
 质量校验的 LLM 修复最多 1 次；开启 `--verify-intent-llm` 时会对「原始意图 vs 最终提示词」做一次 LLM 意图一致性检查（不新增剧情 / 不丢要点），且修复后会对修复稿**复检**，意图偏差结论不会被静默丢弃。两种 LLM 调用都失败 / 无用时不影响出 prompt，结果记入 `run.json` 与 report。
 
-风格路由在 `hybrid` 下：关键词能定则 **+0 次 HTTP**；未命中时前置模型读 `skills/catalog.yaml` 短描述并返回 JSON，**+1 次 HTTP**。`keyword` / `off` 不额外请求；`llm` 每次都 +1。
+风格路由在 `hybrid` / `llm` 下：前置模型读 `skills/catalog.yaml` 短描述打分（0~1），取 top1；达 `llm_score_threshold` 才加载，**+1 次 HTTP**。`off` 不额外请求；`keyword` 为 `llm` 历史别名。
 
 **T8 Creative DNA 机制**（扩写/补细节的因果节拍增强，与题材 skill 正交）默认 `hybrid`：中文标题/标签 **≥2 次命中**才走关键词；否则再问前置模型读 `skills/t8/catalog.yaml`（**+0~1 次 HTTP**）。机制 overlay 只注入扩写/补细节，不改 H3 字段骨架。上游：[T8mars/minimax-h3-prompt-skill-T8](https://github.com/T8mars/minimax-h3-prompt-skill-T8) **v1.1.8**（109 个稳定 selector）。同步命令：`python scripts/sync_t8_mechanisms.py`。
 
@@ -55,13 +55,12 @@ Ref2VA 标签跟官方一致：上传顺序只用来编号源素材；人设/风
 
 前置路由在扩写之前按意图加载题材写法（**不**加载 Hub 出片工具或确认门）。底座始终是 `h3-prompt-writing`；风格 overlay 只补叙事/画风，字段名仍以官方指南为准。
 
-写法压缩自 [MiniMax 官方 8 个题材 skill](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)、[swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) 与 [sjh00 分镜提示词技能集](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill)。
+写法压缩自 [MiniMax 官方 8 个题材 skill](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills)、[swan7-py/MiniMax-H3-Skills-Local](https://github.com/swan7-py/MiniMax-H3-Skills-Local) 与 [sjh00 分镜提示词技能集](https://github.com/sjh00/MiniMax-H3-Storyboard-Prompt-Generator-Skill)。非官方 / 社区 skill 也可接入：见 `skills/catalog.yaml` 顶部步骤与 `skills/overlays/_TEMPLATE_community.txt`（`origin: community` + `upstream`）。
 
 | 路由 | 行为 |
 | --- | --- |
-| `hybrid`（默认） | 关键词命中则直接加载；未命中才让前置模型看 `skills/catalog.yaml` 短描述并返回 JSON |
-| `keyword` | 只靠触发词 |
-| `llm` | 每次都问前置模型 |
+| `hybrid`（默认） / `llm` | 前置模型对 catalog 短描述打分，取 top1；低于阈值则不选 |
+| `keyword` | `llm` 的历史别名 |
 | `off` | 不自动选；仍可用 `--skill` 强制加载 |
 
 ```bash
@@ -72,7 +71,7 @@ python3 scripts/run.py -m t2va --intent "给产品拍一支品牌宣传片，结
 python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" --skill 3d-animation --skill-router off --no-video
 ```
 
-可选 id：`brand-promo`、`minimalist-product-ad`、`3d-animation`、`papercraft-stop-motion`、`paper-collage`、`music-video-subtitle`、`co-op-game-intro`、`handdrawn-live`。
+可选 id：`brand-promo`、`minimalist-product-ad`、`3d-animation`、`papercraft-stop-motion`、`paper-collage`、`music-video-subtitle`、`co-op-game-intro`、`handdrawn-live`、`direct-street-interview`、`stage-startle-to-truce`。
 
 ### T8 Creative DNA 机制（基模增强）
 
@@ -109,8 +108,8 @@ python3 scripts/run.py -m t2va --intent "深海潜水员在维修码头..." \
 | --- | --- |
 | `skills/catalog.yaml` | 风格 skill 目录：id、description、triggers、overlay 路径 |
 | `skills/overlays/*.txt` | 各题材的写法 overlay（只进扩写/格式化，不改 H3 字段骨架） |
-| `prompts/route_skills.txt` | 前置路由 SYSTEM：只返回 `{"skills":[...]}` JSON |
-| `src/skill_router.py` | 关键词 / LLM / 强制指定 三路合并 |
+| `prompts/route_skills.txt` | 前置路由 SYSTEM：返回 `{"scores":{id:0~1}}`；agent 取 top1，低于 `llm_score_threshold` 则不选 |
+| `src/skill_router.py` | LLM 量化打分 + 强制指定 |
 | `src/skill.py` → `compose_format_system()` | overlay + 官方指南 + 风格 overlay 拼接 |
 | `src/runlog.py` | 运行级模型调用日志：按 stage 成对落盘 request/response |
 | `scripts/oneclick_run.py` | 服务器一键运行：增强 + 出片 + 每次运行一个 log 小目录 |
@@ -150,6 +149,8 @@ python3 scripts/run.py -m t2va --intent "深海潜水员在维修码头..." \
 | `music-video-subtitle-generator` | `music-video-subtitle` | `skills/overlays/music-video-subtitle.txt` |
 | `co-op-game-intro-generator` | `co-op-game-intro` | `skills/overlays/co-op-game-intro.txt` |
 | `handdrawn-live-video-generator` | `handdrawn-live` | `skills/overlays/handdrawn-live.txt` |
+| [T8mars `direct-street-interview-video`](https://github.com/T8mars/minimax-h3-prompt-skill-T8/tree/main/skills/direct-street-interview-video) | `direct-street-interview` | `skills/overlays/direct-street-interview.txt` |
+| [T8mars `stage-startle-to-truce-encounter`](https://github.com/T8mars/minimax-h3-prompt-skill-T8/tree/main/skills/stage-startle-to-truce-encounter) | `stage-startle-to-truce` | `skills/overlays/stage-startle-to-truce.txt` |
 
 ### 宫格 / 多主体
 
@@ -282,16 +283,12 @@ python3 scripts/run.py -m l2va --intent "杯子从桌边滑落摔碎" \
 python3 scripts/run.py -m r2va --intent "保持人设，在街道上走路" \
   --ref-image face.png --ref-video walk.mp4 --duration 5 --no-video
 
-# 风格 skill：自动路由（默认 hybrid）
+# 风格 skill：自动量化打分路由（默认 hybrid）
 python3 scripts/run.py -m t2va --intent "给产品拍一支品牌宣传片，结尾 CTA" --no-video
 
 # 风格 skill：强制指定 + 关闭自动路由
 python3 scripts/run.py -m t2va --intent "一只橘猫弹跳" \
   --skill 3d-animation --skill-router off --no-video
-
-# 风格 skill：只用关键词，不问路由模型
-python3 scripts/run.py -m t2va --intent "Apple 风极简产品广告" \
-  --skill-router keyword --no-video
 
 # 质量校验：关闭校验 / 开启 LLM 意图一致性检查
 python3 scripts/run.py -m t2va --intent "一只橘猫在窗台晒太阳" --no-verify --no-video
@@ -303,7 +300,7 @@ CLI 风格与校验相关参数：
 | 参数 | 说明 |
 | --- | --- |
 | `--skill ID` | 强制加载风格 skill，可重复（最多 2 个，见 `catalog.yaml`） |
-| `--skill-router MODE` | `hybrid`（默认）/ `keyword` / `llm` / `off` |
+| `--skill-router MODE` | `hybrid`（默认）/ `llm` / `off`（`keyword`=`llm` 别名） |
 | `--no-verify` | 关闭质量校验（含规则与自动修复） |
 | `--verify-intent-llm` | 开启 LLM 意图一致性检查（对比原始意图与最终提示词，+1 次调用） |
 
