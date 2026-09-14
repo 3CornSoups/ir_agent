@@ -159,7 +159,8 @@ def _env_bool(name: str, default: bool) -> bool:
     if value in {"1", "true", "yes", "on"}:
         return True
     if value in {"0", "false", "no", "off"}:
-        raise ValueError(f"{name} must be a boolean")
+        return False
+    raise ValueError(f"{name} must be a boolean")
 
 
 def _decode_stage(stage: str, temperature: float, top_p: float) -> dict[str, float]:
