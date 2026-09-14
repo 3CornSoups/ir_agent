@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+configs/*.yaml
+!configs/*.yaml.example
+log/
+runs/
+*.mp4
+*.mov
