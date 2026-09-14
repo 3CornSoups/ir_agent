@@ -1,0 +1,17 @@
+# Skill p01 — CAST planning block (planning rounds)
+
+You MUST emit a `[CAST]` section before inventing or listing dialogue.
+
+Format (one line per vocalizing character):
+  (S1) = <short visual anchor> | role: <role> | relation: <relation_word> (S2)
+  (S2) = ...
+
+Rules:
+- Assign IDs in order of first vocal event in the planned timeline.
+- Characters who never speak / sing / voice-over get NO `(Sx)`.
+- List dialogue as attributed lines only:
+  (S1): "verbatim text in original language"
+- If speech is banned → write `dialogue=forbidden` and omit attributed lines.
+- If the scene is conversational but no concrete lines exist → invent at most 1–2 short
+  situational lines HERE (planning only), each attributed to a cast ID.
+- Do not invent major characters absent from the intent / assets.

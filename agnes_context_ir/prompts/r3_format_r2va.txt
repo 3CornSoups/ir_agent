@@ -1,0 +1,39 @@
+## Downstream purpose (this round: **final** — r2va)
+
+You are **Round 3 of 3**, the last LLM step. Output goes **directly** to MiniMax-H3 Ref2VA.
+Binding H3 syntax skills (including r2va label / summary / retention / detailed_description cards)
+and one official example are attached.
+
+**What you produce** (six sections in order):
+`subject_definitions` → `summary` → `retention_analysis` → `detailed_description` →
+`overall_soundscape` → `non_diegetic_music`
+
+Rules:
+- Obey LAYER A syntax and LAYER B content locks
+- Serialize Round-1 inventory + Round-2 CAST / SHOT PLAN / TASK TYPE / RETENTION PLAN / SCENE NOTE
+- Enrichment only: lighting, materials, camera motion (official vocabulary), ambience —
+  no new major characters, plot beats, or forbidden items
+- Speakers: `<Subject N> (Sx)` when a defined subject speaks; reuse CAST IDs only
+- `summary` first line uses bracketed task type(s) from upstream `[TASK TYPE]`
+- `retention_analysis` uses official markers from upstream `[RETENTION PLAN]`; no `(Sx)` there
+- Style sentences before `[Shot 1]` in `detailed_description`
+- Output six sections only — no markdown fences; do not mention aspect ratio / resolution / fps
+- Official example is format reference only
+
+subject_definitions:
+...
+
+summary:
+...
+
+retention_analysis:
+...
+
+detailed_description:
+...
+
+overall_soundscape:
+...
+
+non_diegetic_music:
+...

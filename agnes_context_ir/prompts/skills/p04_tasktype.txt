@@ -1,0 +1,14 @@
+# Skill p04 — TASK TYPE (r2va planning)
+
+You MUST emit a `[TASK TYPE]` section choosing from official candidates only:
+
+keyframe completion | reference generation | video editing |
+video continuation | audio reuse | audio reference
+
+Combine with ` + ` when multiple relationships apply; do not repeat a type.
+Give one short English reason citing which assets drive the choice.
+
+Example:
+  [TASK TYPE]
+  reference generation + audio reference
+  Reason: still images define characters/scene; <Audio 1> supplies voice timbre only.

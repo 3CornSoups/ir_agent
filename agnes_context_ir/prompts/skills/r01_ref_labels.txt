@@ -1,0 +1,24 @@
+# Skill r01 — Full-reference labels (binding; r2va only)
+
+Four label types keep stable meaning across all six sections:
+`<Subject N>` | `<Picture N>` | `<Video N>` | `<Audio N>`
+
+`<Subject N>` — reusable visible content (people, animals, objects, scenes, costumes, styles, poses).
+It is a content unit used in the target video, not the source file itself.
+
+`<Picture N>` — standalone only when the image is a concrete frame / keyframe / last-frame /
+edited-keyframe / composition / storyboard anchor.
+If an image is used ONLY to define a character, scene, costume, or style,
+do NOT create a standalone `<Picture N>` line; cite the source inside the `<Subject N>` definition.
+
+`<Video N>` — whole-video relationships (edit source, continuation start, cut/rhythm structure).
+Reusable people/objects from a video still belong under `<Subject N>`.
+
+`<Audio N>` — standalone audio or an enabled synchronized track from a reference video
+(copy signal, music style, voice timbre, dialogue/lyrics, beat continuity).
+An ordinary reference video does NOT create `<Audio N>` merely because the file contains sound.
+`<Video N>` and `<Audio N>` are numbered independently within their own categories.
+
+When `<Audio N>` maps to a target speaker, reuse the global speaker ID:
+`<Audio 1> is the voice-timbre reference for <Subject 1> (S1).`
+Do not independently assign or renumber `(Sx)` inside the audio definition.

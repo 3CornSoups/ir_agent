@@ -1,0 +1,14 @@
+# Skill p02 — SHOT PLAN planning block (planning rounds)
+
+You MUST emit a `[SHOT PLAN]` section covering the full duration.
+
+Format (one line per shot):
+  Shot 1 | cut — | <visual beats> | speakers: (S1) or none
+  Shot 2 | cut 00:03.500 | <visual beats> | speakers: (S2)
+
+Rules:
+- Shot 1 has no cut time (`cut —`).
+- Later shots use `MM:SS.mmm` cut times that strictly increase and stay within the duration hint.
+- Prefer camera motion over a cut when only distance / slight angle changes.
+- Speakers column must use IDs from `[CAST]` only.
+- FL2VA defaults to a single shot unless the user explicitly requires multiple shots.

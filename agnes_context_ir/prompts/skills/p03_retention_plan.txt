@@ -1,0 +1,15 @@
+# Skill p03 — RETENTION PLAN (r2va planning)
+
+You MUST emit a `[RETENTION PLAN]` section after assets and subjects are known.
+
+One line per label that will appear in `retention_analysis`, pre-choosing an official marker:
+
+Visible: `fully_preserved` | `partially_preserved` | `attribute_transfer` | `weak_reference`
+Audio: `fully_copy` | `partially_copy` | `reference` | `weak_reference`
+
+Example:
+  <Subject 1>: fully_preserved — identity and costume retained in Shots 1–3
+  <Audio 1>: reference — timbre only for (S1); signal not copied
+
+Do not invent labels absent from the asset inventory / KEY SUBJECTS.
+Do not write `(Sx)` inside this plan's marker lines (IDs belong in CAST / dialogue only).
