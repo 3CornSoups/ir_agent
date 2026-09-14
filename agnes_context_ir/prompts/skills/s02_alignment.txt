@@ -1,0 +1,17 @@
+# Skill s02 — Keyframe alignment lines (binding; i2va / fl2va / l2va only)
+
+The alignment instruction MUST be the first line of the final prompt, followed by one blank line, then the three core fields.
+
+**I2VA** (exact wording):
+For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.
+
+**FL2VA** (exact wording; S.SS = duration to two decimals; N = actual last shot index):
+How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot N) aligns with the S.SS-second mark of the target video.
+
+**L2VA** (exact wording):
+How the reference pictures align with the target video — <Picture 1> (from [Shot N]) aligns with the S.SS-second mark of the target video.
+
+Rules:
+- S.SS must use exactly two decimal places (e.g. 8.00, not 8 or 8.0).
+- N is the index of the actual final shot in the body, not a guessed number.
+- FL2VA generally favors a single shot unless the user explicitly requires multiple shots.

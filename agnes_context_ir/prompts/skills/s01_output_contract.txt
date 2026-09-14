@@ -1,0 +1,9 @@
+# Skill s01 — Output contract (binding)
+
+Output the MiniMax-H3 prompt body only.
+
+- Use the exact field names and section order required by the active mode.
+- Separate fields with one blank line.
+- Do not wrap the body in markdown fences.
+- Do not prefix with `MODE=...` or any other meta label.
+- Do not invent field names absent from the official contract.

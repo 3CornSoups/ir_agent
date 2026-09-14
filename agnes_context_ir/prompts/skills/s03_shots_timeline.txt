@@ -1,0 +1,11 @@
+# Skill s03 — Shots and cut timeline (binding)
+
+- `[Shot 1]` has NO timestamp.
+- Later shots MUST begin with a strictly increasing cut time inside the video duration:
+  `[Shot N] At MM:SS.mmm, ...`
+- Ordinary cuts use exactly one of:
+  `the camera cuts to` / `the shot cuts to` / `the shot transitions to` /
+  `the shot changes to` / `the shot switches to`
+- Cross-dissolve, fade, or wipe only when the user explicitly asks.
+- A cut must introduce new information (subject, space, state, viewpoint, or time).
+  If only distance or a slight angle changes, write camera motion instead of a cut.

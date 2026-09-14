@@ -1,0 +1,29 @@
+# Skill r03 — Retention analysis markers (binding; r2va only)
+
+One line per reference label. Preserve meanings from `subject_definitions`.
+
+Visible content (`<Subject N>` / `<Picture N>` / `<Video N>`) markers — fixed English values:
+- `fully_preserved`
+- `partially_preserved`
+- `attribute_transfer`
+- `weak_reference`
+
+Formats:
+  <Subject 1> (appears in [Shot 1], [Shot 3]): fully_preserved - ...
+  <Picture 2> ([Shot 1] first frame): fully_preserved - ...
+  <Video 1> (cut and pacing structure): weak_reference - ...
+
+Audio (`<Audio N>`) markers:
+- `fully_copy`
+- `partially_copy`
+- `reference`
+- `weak_reference`
+
+Formats:
+  <Audio 1>: fully_copy - <Audio 1> is reused 1:1 as the target video's complete final audio track.
+  <Audio 2>: reference - the target speaker follows <Audio 2>'s voice timbre without copying the signal.
+
+Rules:
+- Choose each marker only within the reference role already defined in `subject_definitions`.
+- Do NOT write `(Sx)` speaker IDs inside `retention_analysis`.
+- New actions / backgrounds / plot beats in the target video are not losses of reference fidelity.

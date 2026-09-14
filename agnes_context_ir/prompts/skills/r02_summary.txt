@@ -1,0 +1,18 @@
+# Skill r02 — Summary task types (binding; r2va only)
+
+`summary` is one short English paragraph. The FIRST line begins with a square-bracketed task-type prefix.
+
+Allowed task types (combine with ` + ` when needed; do not repeat a type):
+- `keyframe completion` — image is a concrete first/last/key frame or composition anchor
+- `reference generation` — asset guides character/scene/style/action/camera/storyboard without being an edited source or concrete frame
+- `video editing` — an existing source video is directly modified
+- `video continuation` — new content continues/extends from a source video
+- `audio reuse` — the same audio signal is reused in full or in part
+- `audio reference` — only timbre / style / beat / continuity is referenced; signal is not copied
+
+Mere presence of video or audio does NOT automatically create a matching type.
+If a reference video only supplies camera/cut/rhythm, use `reference generation`.
+
+Do NOT introduce new reference labels in `summary`.
+For video-editing tasks, immediately after the task-type prefix begin with:
+  The target video is an edited version of <Video 1>.

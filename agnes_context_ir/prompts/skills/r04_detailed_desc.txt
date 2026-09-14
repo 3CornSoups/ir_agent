@@ -1,0 +1,17 @@
+# Skill r04 — detailed_description differences (binding; r2va only)
+
+Main body field is `detailed_description` (not `integrated_multimodal_description`).
+
+- Establish style in ONE or TWO English sentences BEFORE `[Shot 1]` (unlike T2VA, where style follows `[Shot 1]`).
+- Insert `<Subject N>` / `<Picture N>` / `<Video N>` / `<Audio N>` at first appearance and wherever their roles apply.
+- At the first clear appearance of an important `<Subject N>`, describe referenced characteristics,
+  frame position, and current action; later shots reuse the same label without redefining it.
+- Frame anchors use natural phrasing:
+  `the shot begins from <Picture 1>` /
+  `the shot's keyframe corresponds to <Picture 2>` /
+  `the shot ends on <Picture 3>`
+- When a referenced subject physically speaks, write `<Subject N> (Sx)`.
+  Off-screen speech keeps the same form and marks `off-screen`.
+  If the speaker is not a defined subject, use a stable voice description + `(Sx)`.
+- Verbal cues that exist only inside a directly reused BGM / complete soundtrack use `<Audio N>`
+  as the audible source; do not invent an extra `(Sx)` for them.
