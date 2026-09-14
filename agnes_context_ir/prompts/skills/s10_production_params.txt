@@ -1,0 +1,4 @@
+# Skill s10 — Production parameters (binding)
+
+Aspect ratio, resolution, quality, and fps are API parameters only.
+Do NOT write them into any MiniMax prompt field or description body.
