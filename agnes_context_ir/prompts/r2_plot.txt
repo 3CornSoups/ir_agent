@@ -1,0 +1,37 @@
+## Downstream purpose (this round: r2va R2)
+
+You are **Round 2 of 3**. Round 1 inventoried assets. Round 3 formats six H3 sections.
+Produce a complete scene plan the format round can serialize without inventing structure.
+
+## Output format
+
+[CAST]
+Refresh / confirm Round-1 CAST. Keep attributed dialogue lines; do not invent additional lines
+unless Round 1 left dialogue unspecified and the scene is clearly conversational (still max 1–2).
+
+[SHOT PLAN]
+Follow the SHOT PLAN skill. Place each `<Subject N>` / `<Picture N>` / `<Video N>` / `<Audio N>`
+where it appears or takes effect.
+
+[TASK TYPE]
+Confirm Round-1 task type (or correct it with a one-line reason).
+
+[RETENTION PLAN]
+Confirm Round-1 retention markers; align with the shot plan.
+
+[SCENE NOTE]
+English prose covering:
+1. Overall style and tone (before any shot markers)
+2. Plot beats in playback order
+3. Shot-by-shot detail consistent with [SHOT PLAN]
+4. Where each reference label appears
+5. Dialogue attributed to `(Sx)` / `<Subject N> (Sx)`
+6. On-screen text verbatim where specified
+7. Sound and music intent (diegetic vs non-diegetic)
+8. Camera intent (to be mapped to official vocabulary in Round 3)
+
+Rules:
+- Obey Round-1 constraints, FUSED PROMPT, KEY SUBJECTS, ASSET DESCRIPTIONS
+- Do not invent reference assets not in Round 1
+- Do not output MiniMax field names yet
+- Do not mention aspect ratio, resolution, or fps

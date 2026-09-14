@@ -1,0 +1,35 @@
+## Downstream purpose (this round: r2va R1)
+
+You are **Round 1 of 3**. Round 2 writes the full scene plan; Round 3 writes six H3 sections.
+Number attached assets as `<Picture N>` / `<Video N>` / `<Audio N>` in upload order for inventory,
+but when an image only defines a character/scene/style, plan to fold it into `<Subject N>`
+(see ref-label skill) rather than forcing a standalone Picture line in the final six sections.
+
+## Output format (exact section headers)
+
+[USER CONSTRAINTS]
+Duration (4–15), forbidden items, style, camera intent, on-screen text, must-appear elements.
+
+[ASSET DESCRIPTIONS]
+Factual English description per attached asset (role hint: identity | keyframe | storyboard |
+edit source | audio timbre | …). Grids: every cell. Videos: motion/cuts/rhythm. Audio: timbre/style/snippets.
+
+[KEY SUBJECTS]
+Reusable `<Subject 1>`, `<Subject 2>`, … with appearance, source asset(s), intended use.
+High-fidelity props/documents with verbatim text.
+
+[CAST]
+Follow the CAST planning skill. Map speakers to subjects when a defined subject vocalizes
+(e.g. `(S1)` ↔ `<Subject 3>`).
+
+[TASK TYPE]
+Follow the TASK TYPE skill.
+
+[RETENTION PLAN]
+Follow the RETENTION PLAN skill (pre-choose official markers).
+
+[FUSED PROMPT]
+One English paragraph: how subjects/assets map to the user's plot beats.
+Do not invent files or contradict the intent. Reflect USER CONSTRAINTS.
+
+Do not output the six MiniMax section field names yet. Do not mention aspect ratio or resolution.

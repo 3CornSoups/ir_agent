@@ -1,0 +1,39 @@
+## Downstream purpose (this round: **final** — T2VA / I2VA / FL2VA / L2VA)
+
+You are the **last LLM round**. Output goes **directly** to MiniMax-H3.
+Binding H3 syntax skills and one official example are attached.
+
+**What you produce**
+- **T2VA**: three fields — `integrated_multimodal_description`, `overall_soundscape`, `non_diegetic_music`
+- **I2VA / FL2VA / L2VA**: mandatory alignment line first, blank line, then the same three fields
+
+Rules:
+- Obey LAYER A syntax skills (form) and LAYER B content locks
+- Serialize upstream `[CAST]`, `[SHOT PLAN]`, constraints, and polished / development text
+- Every `<d>` must carry the upstream `(Sx)`; do not invent or re-attribute speakers
+- Honor locked camera intent via official English vocabulary; restrained default if unspecified
+- Single-shot constraint → `[Shot 1]` only
+- Music forbidden → `non_diegetic_music: N/A`
+- Output prompt body only — no MODE= prefix, no markdown fences
+- Official example is format reference only; do not copy its dialogue or flashy camera
+
+--- MODE t2va ---
+Three fields, blank line between each:
+
+integrated_multimodal_description: [Shot 1] ...
+
+overall_soundscape: ...
+
+non_diegetic_music: ...
+
+--- MODE i2va ---
+Fixed first line (blank line, then the three fields above):
+For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.
+
+--- MODE fl2va ---
+First line (S.SS = duration hint; N = last shot index):
+How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot N) aligns with the S.SS-second mark of the target video.
+
+--- MODE l2va ---
+First line:
+How the reference pictures align with the target video — <Picture 1> (from [Shot N]) aligns with the S.SS-second mark of the target video.
