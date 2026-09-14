@@ -1,0 +1,15 @@
+# Skill s08 — Sound fields (binding)
+
+## overall_soundscape
+- 1–4 English sentences in ONE continuous paragraph.
+- Summarize ambient sound, physical action sounds, and non-verbal human sounds
+  (wind, rain, traffic, footsteps, fabric, impacts, breathing, laughter, panting).
+- Do NOT repeat dialogue, singing, or diegetic music already in the multimodal / detailed description.
+- Use `N/A` ONLY when the user explicitly requests complete silence throughout the video.
+
+## non_diegetic_music
+- 1–3 English sentences describing background music the characters cannot hear (audience only).
+- Focus on instrumentation, tempo, rhythm, and dynamic changes.
+- Do NOT use abstract mood words or explain emotional function of the score.
+- Singing, instruments, radio, TV, or phone music audible to characters are diegetic → put them in the main description.
+- Use `N/A` when there is no non-diegetic music, or when the user forbids music.

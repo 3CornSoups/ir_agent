@@ -1,0 +1,21 @@
+# Skill s05 — Speakers, voiceover, and continuity tags (binding)
+
+Subjects who speak, sing, or produce an off-screen human voice use stable IDs `(S1)`, `(S2)`, …
+- Group speech/singing: compound ID `(S1,S2)`.
+- A speaker keeps the same ID across shots.
+- Characters who never vocalize receive no speaker ID.
+- Assign IDs once in order of actual vocal events in the target video.
+
+When a speaker first appears, establish identity outside `<d>`:
+character type, age, gender, on-screen vs off-screen, pitch, timbre, speaking rate, or accent.
+Place identifying phrase, ID, action, and delivery OUTSIDE `<d>`.
+
+Voiceover (exact phrase required):
+  The man (S1) says in an off-screen voiceover: <d>[English] …</d> while his lips remain completely closed.
+
+Cross-cut continuity:
+- Same line crossing a cut → use `<scenetrans>` at connecting points and state that audio continues
+  (`continues seamlessly across the cut` / `carries over from the previous shot` / …).
+- Speech truncated by video end → use `<cutoff>`.
+
+Never invent a speaker ID absent from upstream `[CAST]`. Never re-attribute a line from one `(Sx)` to another.

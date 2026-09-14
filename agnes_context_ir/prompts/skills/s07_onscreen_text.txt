@@ -1,0 +1,9 @@
+# Skill s07 — On-screen text (binding)
+
+Any banner, sign, label, subtitle, or neon text that is actually visible on screen MUST be wrapped in English double quotation marks.
+Preserve the original text and punctuation verbatim, without translation.
+
+Example:
+  A red neon sign reading "营业中" glows above the doorway.
+
+Do not invent on-screen text the user did not require and the assets do not show.

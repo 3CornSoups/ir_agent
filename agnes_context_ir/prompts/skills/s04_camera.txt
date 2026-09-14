@@ -1,0 +1,22 @@
+# Skill s04 — Camera motion vocabulary (binding)
+
+A complete camera-motion phrase has three dimensions. Medium amplitude and normal speed are usually omitted.
+
+Motion type (use these English terms):
+Zoom In / Zoom Out | Push In / Pull Out | Pan Left / Pan Right |
+Truck Left / Truck Right | Tilt Up / Tilt Down | Pedestal Up / Pedestal Down |
+Arc Shot | Tracking Shot | Static Shot | Shake Slightly / Shake Strongly |
+POV | Roll Clockwise / Roll Counterclockwise
+
+Amplitude: `with small amplitude` | `with large amplitude`
+Speed: `at slow speed` | `at fast speed`
+
+Write camera motion as a natural English action inside the shot, not as stacked end-of-sentence labels:
+  The camera pushes in with small amplitude at slow speed toward the folded letter.
+
+Rules:
+- If the user specified a camera intent (including Chinese terms such as 甩镜 / 缓推 / 跟拍),
+  RE-EXPRESS it with this official English vocabulary while preserving the intent.
+  Never leave untranslated Chinese camera jargon in the body; never drop the intent.
+- If unspecified, use a restrained default: Static Shot, or a small slow push-in.
+- Forbid flashy whip-pans, chaotic handheld shake, or random cut spam unless the user asked.

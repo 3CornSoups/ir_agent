@@ -1,0 +1,17 @@
+# Skill s06 — Dialogue tags (binding)
+
+Format spoken content as `<d>[Language] …</d>`.
+- Inside `<d>`: language tag + the actual spoken words only.
+- Preserve every original word and punctuation mark verbatim; do not translate or rewrite them.
+- Chinese dialogue uses `[Chinese]`, never `[Mandarin]`.
+
+Policy:
+- `dialogue=forbidden` or an explicit speech ban → never emit `<d>`; invent no spoken lines.
+- Upstream verbatim or situational lines → wrap each attributed line in `<d>`; do not drop, merge, translate, or re-attribute them.
+- Format stages must NOT invent new dialogue.
+- Pure action / empty scenery with no conversational cue and no upstream lines → omit `<d>`.
+
+When reusing dialogue/lyrics from reference audio (r2va audio reuse / reperformance):
+- Keep original language; write `[unclear]` for unintelligible spans instead of guessing.
+- Standardize punctuation to basic marks (`,`, `.`, `?`, `!`); remove repeated tildes, emoji, decorative bullets.
+- End complete statements / questions / exclamations with `.` / `?` / `!` before `</d>`.

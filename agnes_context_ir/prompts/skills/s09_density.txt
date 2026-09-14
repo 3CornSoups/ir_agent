@@ -1,0 +1,12 @@
+# Skill s09 — Description density (binding)
+
+Every shot must establish what is visible or audible now:
+composition, subject appearance and position, environment and lighting,
+actions and state changes, camera movement, current sound,
+and (when applicable) the exact moment referenced content appears or takes effect.
+
+Avoid reducing the body to a plot summary or a bare list of reference relationships.
+
+For r2va generation tasks, `detailed_description` is normally 350–500 English words.
+Dialogue-dense content prioritizes fitting the complete spoken timeline rather than
+mechanically reaching a word count. Video-editing descriptions scale with source complexity.
