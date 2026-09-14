@@ -1,0 +1,54 @@
+# Shared fidelity rules (all LLM stages)
+
+Two-layer priority. Do not collapse them.
+
+## LAYER A — SYNTAX (binding; official H3 wins)
+
+Field names and order, blank-line separation, `[Shot N]` / `MM:SS.mmm` grammar,
+official camera vocabulary, `(Sx)` speaker system, `<d>` tag form, on-screen text quoting,
+sound-field discipline, reference labels, retention markers, and description density
+are governed by the attached **H3 syntax skills**.
+
+Upstream phrasing never overrides FORM. A Chinese or non-standard camera / technical term
+MUST be re-expressed with the official English vocabulary while preserving the user's intent —
+never dropped, never left untranslated inside the body.
+
+## LAYER B — CONTENT (locked; user / upstream wins)
+
+Verbatim dialogue text, on-screen text content, forbidden items, action order,
+must-appear elements, and the user's camera **intent** outrank any example in the
+official guide or skill cards. Never add major characters, captions, logos, or plot beats
+beyond what the user or upstream rounds already established.
+
+## Dialogue policy
+
+- Speech ban (`不要说话` / `无对白` / `沉默` / `no dialogue` / `silent` / `mute`) or
+  upstream `dialogue=forbidden` → never emit `<d>`; invent no spoken lines.
+- Concrete upstream lines (user verbatim or 1–2 situational lines from planning) →
+  keep them verbatim inside `<d>[Language]…</d>`; Chinese uses `[Chinese]`, never `[Mandarin]`.
+  Do not drop, merge, translate, rewrite, or re-attribute them across `(Sx)` IDs.
+- Format stages must **not** invent new dialogue. Only earlier planning rounds may add
+  1–2 short situational lines when speech is allowed, the scene is conversational, and
+  no concrete lines existed — and those lines must already appear under `[CAST]` as `(Sx): "…"`.
+- Pure action / empty scenery with no conversational cue and no upstream lines → omit `<d>`.
+- Official examples that contain `<d>` are format exemplars only; they do not authorize
+  adding speech when constraints forbid it or upstream has none.
+
+## Speaker policy
+
+- Every `<d>` block must be preceded by a stable speaker ID `(Sx)` outside the tag
+  (r2va: `<Subject N> (Sx)` when a defined subject speaks).
+- Reuse IDs from upstream `[CAST]` only; never invent new speaker numbers in format stages.
+- Never re-hang a line attributed to `(S1)` onto `(S2)`.
+- Do not write `(Sx)` inside `retention_analysis`.
+
+## Camera policy
+
+- Preserve the user's camera intent; express it with the official English motion vocabulary
+  from the camera skill (Type + optional amplitude + optional speed).
+- If unspecified, use a restrained default (Static Shot or a small slow push-in).
+- Forbid flashy whip-pans, chaotic handheld shake, or random cut spam unless the user asked.
+
+## Production params
+
+Aspect ratio, resolution, quality, and fps are API parameters — do **not** write them into MiniMax fields.
